@@ -2,10 +2,12 @@
 
 | 项 | 内容 |
 |---|---|
-| 版本 | **v0.7**｜ 冻结范围：架构 / 目录 / ADR / 数据模型 / 跨模块契约 / Wire 纪律 |
+| 版本 | **v0.8**｜ 冻结范围：架构 / 目录 / ADR / 数据模型 / 跨模块契约 / Wire 纪律 |
 | 依据 | PRD v1.3（评审稿）+ 规范评审讨论纪要（v0.1 → v0.2 → v0.3 三轮）+ 记忆机制方案讨论纪要（v0.4 输入）+ 记忆机制定稿评审纪要 |
 | 取舍标准 | 不可逆决策、数据格式、跨模块契约 → 本稿冻结；模块内可逆细节 → 实施时以技术设计稿确定，走 IDR 机制（附录 B） |
 | 相关文档 | PRD v1.3 ｜ v0.2（归档，模块设计输入）｜ HTTP vs IPC 论证（ADR-1 补充稿）｜ Agent 进程归属论证（ADR-9 补充稿）｜ 记忆机制讨论纪要 ｜ 第一周验证计划（独立执行文档）｜ 日志与审计规范讨论纪要（v0.6 输入） |
+
+**v0.7 → v0.8 变更**：§3.2 工具链行由「建议待 spike」修订为 IDR 定稿（移除 tauri-specta 括注）；附录 B IDR 登记（IDR-01 工具链定稿 / IDR-02 spike S1–S7 结论 / IDR-03 path stub 演进策略）。
 
 **v0.6 → v0.7 变更**：新增 §5「Agent 资源加载边界」与「Agent 工具面」契约、ADR-12 / ADR-13——Sidecar 资源全部构建期内置：能力经 extensionFactories 注册，skills / prompts / themes 经 additional 显式路径指向随包资源，noExtensions / noSkills / noPromptTemplates / noContextFiles 关闭全部目录发现（含 AGENTS.md），打包内容由开发期确定，开发与运行时同规则；内置工具面 = read / edit / write / grep / find / ls，关闭 bash / powershell（无 shell 执行），六工具经 tool_call 门圈定在数据目录 vault 内，写路径直通为 V1 过渡态。
 
@@ -120,7 +122,7 @@ repo/
 - 生成类型止于 HTTP 边界，UI 视图模型不生成；
 - 生成物 commit 入库 + CI diff 检查（Rust 字段变更 → 前端/sidecar 同一 CI 显红）。
 
-工具链建议默认 utoipa + openapi-typescript + openapi-fetch（IPC 层 tauri-specta），随第一周 D3 spike 验证后以 IDR 定稿（见附录 A）。
+工具链定稿（IDR-01）：utoipa 5（契约源 + path stub，零 tauri 依赖）→ 自研 gen bin（确定性键排序 + 工具 Schema $ref 解引用）→ openapi-typescript + openapi-fetch（TS 消费侧），输出版本 OpenAPI 3.1.0（IDR-02 spike 结论）；tauri-specta 不采纳（DEC-01 关闭后 IPC 面仅系统能力，无可生成面）。详见附录 B。
 
 ---
 
@@ -392,6 +394,8 @@ PRD §4.3 沿用：Project / Stage / Tag / Item / FileVersion / Event / Credenti
 
 | IDR | 日期 | 模块 | 决策 | 依据/设计稿链接 |
 |---|---|---|---|---|
-| （空，随实施追加） | | | | |
+| IDR-01 | 2026-09-13 | contracts | 契约工具链定稿：utoipa 5.5（类型 + utoipa 注解 + path stub，零 tauri 依赖）→ `cargo run -p contracts --bin gen`（serde_json BTreeMap 确定性键排序；工具 Schema $ref 生成期解引用为自包含 JSON Schema）→ openapi-typescript 7.13 / openapi-fetch 0.17（TS 消费侧）；**输出版本 OpenAPI 3.1.0**；tauri-specta **不采纳**（DEC-01 关闭后 IPC 面仅系统能力，无可生成面） | `phase-1-contracts-skeleton`（design D3/D6） |
+| IDR-02 | 2026-09-13 | contracts | 第一周 spike 结论：**S1** tagged enum 含点号 tag（`card.batch`）→ TS 判别 union narrowing 可用 ✓；**S2** utoipa 对 `Option<T>` 生成可空联合（`oneOf:[null,X]` / `type:[T,null]`），与 Wire 纪律「可选 = 字段省略」冲突 → gen bin 生成期统一剔除 null 形态并修正查询参数 `required`（`enforce_wire_discipline`），TS 侧得 `field?: T`（无 `\| null`）✓；**S3** chrono `DateTime<Utc>` → RFC 3339 string(date-time) ✓；**S4** openapi-fetch 消费生成类型 typecheck 通过 ✓；**S5** 同源两次生成 git diff 为空（BTreeMap 键排序）✓；**S6** stub 注解迁 utoipa-axum 0.2 `OpenApiRouter` 路径操作零 diff ✓；**S7** OpenAPI 3.1 生态兼容实测（openapi-typescript / Ajv 2020-12 `addSchema` 键解析 $ref / openapi-fetch）→ 定稿 3.1.0 ✓ | `phase-1-contracts-skeleton` tasks 2.3–2.6 |
+| IDR-03 | 2026-09-13 | contracts | path stub 演进策略（design D2）：Phase-2/3/5 实装各域时将 `#[utoipa::path]` 注解原样迁至真实 handler（utoipa-axum `OpenApiRouter`），迁移正确性以 openapi.json 零 diff 证明；S6 已验证注解原样迁移可行（函数签名变化不影响产物） | `phase-1-contracts-skeleton` spike S6 |
 
 ---
