@@ -1,0 +1,16 @@
+{
+  "name": "app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@jotline/contracts": "workspace:*",
+    "openapi-fetch": "0.17.0"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

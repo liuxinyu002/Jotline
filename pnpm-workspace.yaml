@@ -1,0 +1,5 @@
+packages:
+  - app
+  - sidecar
+  - contracts/mock
+  - contracts/generated

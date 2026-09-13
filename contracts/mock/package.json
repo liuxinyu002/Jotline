@@ -1,0 +1,14 @@
+{
+  "name": "@jotline/mock",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "契约 Mock 服务（开发期领域 API 替身，读 contracts/openapi.json）",
+  "dependencies": {
+    "ajv": "8.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4",
+    "typescript": "5.9.3"
+  }
+}

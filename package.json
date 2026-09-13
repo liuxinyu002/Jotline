@@ -1,0 +1,23 @@
+{
+  "name": "jotline",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@12.4.1",
+  "engines": {
+    "node": "24.14.1",
+    "pnpm": "12.4.1"
+  },
+  "scripts": {
+    "contracts:build": "./scripts/contracts-build.sh",
+    "contracts:check": "./scripts/contracts-check.sh",
+    "mock": "pnpm --filter @jotline/mock run dev",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "typecheck": "pnpm -r run typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.13",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@jotline/contracts",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "契约生成物（openapi-typescript 产物，禁止手写修改——由 pnpm contracts:build 重新生成）",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

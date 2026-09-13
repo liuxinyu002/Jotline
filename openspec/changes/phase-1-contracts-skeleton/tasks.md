@@ -2,12 +2,12 @@
 
 ## 1. 仓库引导与工作区骨架
 
-- [ ] 1.1 git init + `.gitignore`（`._*` / `.DS_Store` / `target/` / `node_modules/` / `dist/`）+ 基线提交（准备阶段已完成则跳过，验证 AppleDouble 文件零入库）
-- [ ] 1.2 根 `package.json` + `pnpm-workspace.yaml`（packages: app / sidecar / contracts/mock / contracts/generated）+ 根脚本占位（`contracts:build` / `contracts:check` / `mock`）；验证 `pnpm install` 零错误
-- [ ] 1.3 工具链版本钉死：`rust-toolchain.toml`、`.node-version`、`package.json` engines + packageManager；依赖版本策略：Cargo.lock 与 pnpm-lock.yaml 入库（.gitignore 不含 lockfile），CI 安装带 `--locked` / `--frozen-lockfile`；验证各工具读取各自钉死版本、CI 按 lockfile 安装
-- [ ] 1.4 Biome 初始化：根 `biome.json`（三 TS 包共用，排除 `contracts/generated/**`）+ `pnpm lint` / `pnpm format` 脚本；验证 `pnpm lint` 对占位文件通过
-- [ ] 1.5 app/ 与 sidecar/ 最小占位（package.json + tsconfig，声明对 `@jotline/contracts` 的 workspace 依赖）；验证 `pnpm --filter app typecheck` / `pnpm --filter sidecar typecheck` 空跑通过
-- [ ] 1.6 README「本地开发」节 + `.env.example`（端口 4765/4766/1420、`dev-token`、`JOTLINE_DATA_DIR`、`DEEPSEEK_API_KEY` 占位）；验证按 README 从零可复现环境准备步骤
+- [x] 1.1 git init + `.gitignore`（`._*` / `.DS_Store` / `target/` / `node_modules/` / `dist/`）+ 基线提交（准备阶段已完成则跳过，验证 AppleDouble 文件零入库）
+- [x] 1.2 根 `package.json` + `pnpm-workspace.yaml`（packages: app / sidecar / contracts/mock / contracts/generated）+ 根脚本占位（`contracts:build` / `contracts:check` / `mock`）；验证 `pnpm install` 零错误
+- [x] 1.3 工具链版本钉死：`rust-toolchain.toml`、`.node-version`、`package.json` engines + packageManager；依赖版本策略：Cargo.lock 与 pnpm-lock.yaml 入库（.gitignore 不含 lockfile），CI 安装带 `--locked` / `--frozen-lockfile`；验证各工具读取各自钉死版本、CI 按 lockfile 安装
+- [x] 1.4 Biome 初始化：根 `biome.json`（三 TS 包共用，排除 `contracts/generated/**`）+ `pnpm lint` / `pnpm format` 脚本；验证 `pnpm lint` 对占位文件通过
+- [x] 1.5 app/ 与 sidecar/ 最小占位（package.json + tsconfig，声明对 `@jotline/contracts` 的 workspace 依赖）；验证 `pnpm --filter app typecheck` / `pnpm --filter sidecar typecheck` 空跑通过
+- [x] 1.6 README「本地开发」节 + `.env.example`（端口 4765/4766/1420、`dev-token`、`JOTLINE_DATA_DIR`、`DEEPSEEK_API_KEY` 占位）；验证按 README 从零可复现环境准备步骤
 
 ## 2. Rust 契约 crate 与 spike
 
