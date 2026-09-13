@@ -82,6 +82,7 @@ Mock 引擎（contracts/mock/，轻量 Node 服务，监听 127.0.0.1:4766）
 ├── 语义内核：内存状态（场景播种）+ 写操作变更状态 + SSE 事件广播 + 心跳
 └── 剧本层：场景级覆写——延迟注入 / 错误注入 / 预定义响应序列
 场景选择：X-Mock-Scenario 请求头（请求级）+ 控制端点 /_mock/*（全局切换/重置）
+端口策略：默认常量 4766（Roadmap 开发环境约定），支持 MOCK_PORT 环境变量覆盖；.env.example 中端口为文档性占位，Mock 不强制读取
 ```
 
 **边界钳制**：语义只覆盖 Phase-1 契约域内实体（projects / notes / events / todos 基础读写），不实现业务规则（推断 / 聚合 / 降级）；各 FE 阶段用场景文件增量喂。引擎框架（hono vs bare node http）为实施期选择，不进本设计。

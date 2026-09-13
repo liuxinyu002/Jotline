@@ -29,6 +29,11 @@ Mock SHALL 维护内存状态并由场景数据播种；写操作（create/updat
 - **WHEN** 通过 Mock 创建一条资源后立即列表查询
 - **THEN** 列表包含新创建的资源（字段符合契约）
 
+#### Scenario: 写操作请求体违反契约
+
+- **WHEN** 对写操作路由提交不符合契约 Schema 的请求体
+- **THEN** 返回 422 错误信封（含校验错误码与失败字段定位），内存状态不变
+
 ### Requirement: SSE 事件广播
 
 状态因写操作变更时，Mock SHALL 向全部活跃 SSE 订阅者广播对应的注册事件（信封遵循 wire-protocol）；空闲期 SHALL 发送心跳注释行维持连接。

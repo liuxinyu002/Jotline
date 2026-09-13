@@ -30,6 +30,6 @@ Roadmap Phase-1 [Shared]：项目已有冻结的 SPEC（Wire 纪律、ADR-1~13�
 ## Impact
 
 - **下游影响**：Phase-2 为首个消费者（api-client / stdio 协议 / dev 环境）；Phase-8/9 消费工具 Schema；Phase-11~17 全部 FE 阶段消费 Mock 与场景
-- **文档影响**：SPEC §3.2 工具链建议行（移除 tauri-specta）+ 附录 B 新增 IDR（工具链定稿）；Roadmap Phase-1 勾选
+- **文档影响**：SPEC §3.2 工具链建议行（移除 tauri-specta）+ 附录 B 新增 IDR（工具链定稿）；Roadmap Phase-1 勾选 + 总则 4 开发环境约定定稿时点由 Phase-2 前移至 Phase-1（本 change 定稿，Phase-2 起直接引用）
 - **依赖引入**：Rust：utoipa（+chrono feature）、serde、chrono；Node：openapi-typescript、openapi-fetch（app 占位即声明）、Ajv、Biome；包管理 pnpm（workspace）+ bun（sidecar 构建期）
 - **仓库状态**：当前非 git 仓库，实施首步 `git init`；目标托管 GitHub（CI 按 Linux runner 设计）
