@@ -3,7 +3,7 @@
 //! search 按 SPEC §5 冻结承诺逐字段对齐：
 //! `(query, filters, top_k) → [{id, title, snippet, provenance, score}]`。
 
-use crate::common::{Timestamp, Provenance};
+use crate::common::{Provenance, Timestamp};
 use crate::error::ErrorEnvelope;
 use crate::ids::{NoteId, ProjectId};
 use serde::{Deserialize, Serialize};
@@ -147,7 +147,10 @@ mod tests {
             format: None,
         };
         let s = serde_json::to_string(&r).unwrap();
-        assert!(!s.contains("target_dir") && !s.contains("tags") && !s.contains("format"), "{s}");
+        assert!(
+            !s.contains("target_dir") && !s.contains("tags") && !s.contains("format"),
+            "{s}"
+        );
         let back: CreateNoteRequest = serde_json::from_str(&s).unwrap();
         assert_eq!(back, r);
     }

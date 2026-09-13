@@ -97,7 +97,9 @@ impl IpcHealthResponse {
         Self {
             jsonrpc: JSONRPC_VERSION.into(),
             id: request.id.clone(),
-            result: IpcHealthResult { status: "ok".into() },
+            result: IpcHealthResult {
+                status: "ok".into(),
+            },
         }
     }
 }

@@ -43,7 +43,11 @@ pub struct ErrorEnvelope {
 impl ErrorEnvelope {
     /// 构造无明细错误。
     pub fn new(code: ErrorCode, message: impl Into<String>) -> Self {
-        Self { code, message: message.into(), detail: None }
+        Self {
+            code,
+            message: message.into(),
+            detail: None,
+        }
     }
 
     /// 构造带字段定位的校验失败（422）。
@@ -51,7 +55,11 @@ impl ErrorEnvelope {
         Self {
             code: ErrorCode::ValidationFailed,
             message: message.into(),
-            detail: if detail.is_empty() { None } else { Some(detail) },
+            detail: if detail.is_empty() {
+                None
+            } else {
+                Some(detail)
+            },
         }
     }
 
@@ -73,15 +81,24 @@ mod tests {
 
     #[test]
     fn error_codes_snake_case_and_status() {
-        assert_eq!(serde_json::to_string(&ErrorCode::Unauthorized).unwrap(), "\"unauthorized\"");
+        assert_eq!(
+            serde_json::to_string(&ErrorCode::Unauthorized).unwrap(),
+            "\"unauthorized\""
+        );
         assert_eq!(
             serde_json::to_string(&ErrorCode::ValidationFailed).unwrap(),
             "\"validation_failed\""
         );
-        assert_eq!(ErrorEnvelope::new(ErrorCode::Unauthorized, "x").status(), 401);
+        assert_eq!(
+            ErrorEnvelope::new(ErrorCode::Unauthorized, "x").status(),
+            401
+        );
         assert_eq!(ErrorEnvelope::new(ErrorCode::NotFound, "x").status(), 404);
         assert_eq!(ErrorEnvelope::new(ErrorCode::Conflict, "x").status(), 409);
-        assert_eq!(ErrorEnvelope::new(ErrorCode::ValidationFailed, "x").status(), 422);
+        assert_eq!(
+            ErrorEnvelope::new(ErrorCode::ValidationFailed, "x").status(),
+            422
+        );
         assert_eq!(ErrorEnvelope::new(ErrorCode::Internal, "x").status(), 500);
     }
 
@@ -92,7 +109,10 @@ mod tests {
         assert!(!s.contains("detail"), "无明细时字段应省略：{s}");
         let e2 = ErrorEnvelope::validation(
             "请求体校验失败",
-            vec![FieldError { field: "title".into(), message: "不能为空".into() }],
+            vec![FieldError {
+                field: "title".into(),
+                message: "不能为空".into(),
+            }],
         );
         let s2 = serde_json::to_string(&e2).unwrap();
         assert!(s2.contains("\"field\":\"title\""), "{s2}");

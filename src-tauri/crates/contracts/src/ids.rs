@@ -53,7 +53,13 @@ macro_rules! define_id {
                     Ok(Self(raw.to_owned()))
                 } else {
                     Err(format!(
-                        concat!("非法 ", stringify!($name), "：{}（期望 `", $prefix, "_<26 位 ULID>`）"),
+                        concat!(
+                            "非法 ",
+                            stringify!($name),
+                            "：{}（期望 `",
+                            $prefix,
+                            "_<26 位 ULID>`）"
+                        ),
                         raw
                     ))
                 }
@@ -105,7 +111,10 @@ macro_rules! define_id {
                 ObjectBuilder::new()
                     .schema_type(Type::String)
                     .pattern(Some(concat!("^", $prefix, "_", "[0-9A-HJKMNP-TV-Z]{26}$")))
-                    .examples([serde_json::json!(concat!($prefix, "_01J8Z3A7B4C5D6E7F8G9H0JKMN"))])
+                    .examples([serde_json::json!(concat!(
+                        $prefix,
+                        "_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+                    ))])
                     .into()
             }
         }
@@ -144,13 +153,15 @@ impl IdStr {
     /// 解析（校验「三字母前缀 + ULID」形态）。
     pub fn parse(raw: &str) -> Result<Self, String> {
         let ok = raw.len() == 30
-            && matches!(&raw[3..4], "_" )
+            && matches!(&raw[3..4], "_")
             && raw[0..3].bytes().all(|b| b.is_ascii_lowercase())
             && is_valid_ulid(&raw[4..]);
         if ok {
             Ok(Self(raw.to_owned()))
         } else {
-            Err(format!("非法实体 ID 引用：{raw}（期望 `<前缀>_<26 位 ULID>`）"))
+            Err(format!(
+                "非法实体 ID 引用：{raw}（期望 `<前缀>_<26 位 ULID>`）"
+            ))
         }
     }
 

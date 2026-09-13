@@ -133,7 +133,10 @@ mod tests {
 
     #[test]
     fn at_source_snake_case() {
-        assert_eq!(serde_json::to_string(&AtSource::ContentTime).unwrap(), "\"content_time\"");
+        assert_eq!(
+            serde_json::to_string(&AtSource::ContentTime).unwrap(),
+            "\"content_time\""
+        );
         assert_eq!(
             serde_json::to_string(&AtSource::DerivedTime).unwrap(),
             "\"derived_time\""

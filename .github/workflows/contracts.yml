@@ -1,0 +1,112 @@
+name: contracts
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        # 版本取 package.json packageManager（pnpm 12.4.1）
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@1.95.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri/crates/contracts
+
+      - name: 安装依赖（按 lockfile 冻结）
+        run: pnpm install --frozen-lockfile
+
+      - name: 生成契约产物（build）
+        run: pnpm contracts:build
+
+      - name: 零漂移 + Wire 纪律检查（check）
+        run: pnpm contracts:check
+
+      - name: Mock 冒烟（起服务 + curl 断言）
+        run: |
+          pnpm --filter @jotline/mock run start &
+          for i in $(seq 1 30); do
+            curl -s -o /dev/null http://127.0.0.1:4766/_mock/scenarios && break
+            sleep 1
+          done
+          # ① 200 + ULID/ISO-8601 抽查
+          curl -sf http://127.0.0.1:4766/api/projects -H "Authorization: Bearer dev-token" | \
+            python3 -c "
+import json, re, sys
+d = json.load(sys.stdin)
+assert d['page']['total'] >= 1
+p = d['items'][0]
+assert re.match(r'^prj_[0-9A-HJKMNP-TV-Z]{26}$', p['id'])
+assert re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', p['created_at'])
+print('① projects 200 + ULID/ISO-8601 ✓')
+"
+          # ② search snippet+provenance 命中
+          curl -sf "http://127.0.0.1:4766/api/search?q=oracle" -H "Authorization: Bearer dev-token" | \
+            python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+assert len(d) >= 1 and 'snippet' in d[0] and 'provenance' in d[0]
+print('② search 命中 ✓')
+"
+          # ③ SSE 3 条事件后关闭
+          EVENTS=$(curl -sN --max-time 10 http://127.0.0.1:4766/api/stream \
+            -H "Authorization: Bearer dev-token" -H "X-Mock-Scenario: stream-demo" | grep -c '^event:' || true)
+          [ "$EVENTS" = "3" ] && echo "③ stream 3 条事件后关闭 ✓" || { echo "③ stream 事件数异常: $EVENTS"; exit 1; }
+          # ④ 无 token → 401
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4766/api/projects)
+          [ "$CODE" = "401" ] && echo "④ 无 token 401 ✓" || { echo "④ 状态码异常: $CODE"; exit 1; }
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri/crates/contracts
+
+      - name: 格式检查
+        run: cargo fmt --all --check
+
+      - name: Clippy（契约 crate，零 tauri 依赖，Linux 可跑）
+        run: cargo clippy -p contracts --locked --all-targets -- -D warnings
+
+      - name: 单元测试
+        run: cargo test -p contracts --locked
+
+  ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: 安装依赖（按 lockfile 冻结）
+        run: pnpm install --frozen-lockfile
+
+      - name: Biome 检查（app / sidecar / mock）
+        run: pnpm lint
+
+      - name: 类型检查（含契约类型消费侧）
+        run: pnpm typecheck

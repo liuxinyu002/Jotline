@@ -36,8 +36,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut schema = serde_json::to_value((tool.params)())?;
         deref_refs(&mut schema, &components, 0)?;
         strip_null(&mut schema);
-        let path = out_dir.join("tools").join(format!("{}.schema.json", tool.name));
-        fs::write(path, format!("{}\n", serde_json::to_string_pretty(&schema)?))?;
+        let path = out_dir
+            .join("tools")
+            .join(format!("{}.schema.json", tool.name));
+        fs::write(
+            path,
+            format!("{}\n", serde_json::to_string_pretty(&schema)?),
+        )?;
     }
 
     println!("契约生成完成：contracts/openapi.json + contracts/tools/*.schema.json");
@@ -60,7 +65,9 @@ fn repo_root() -> Result<PathBuf, Box<dyn std::error::Error>> {
 /// - `oneOf: [{type: "null"}, X]` → `X`
 /// - `type: [T, "null"]` → `type: T`
 /// - 查询参数剔除 null 后 `required: true` → `required: false`
-fn enforce_wire_discipline(value: &mut serde_json::Value) -> Result<(), Box<dyn std::error::Error>> {
+fn enforce_wire_discipline(
+    value: &mut serde_json::Value,
+) -> Result<(), Box<dyn std::error::Error>> {
     // 路径参数 / 查询参数：先剔 null，再修正 required
     if let Some(paths) = value.get_mut("paths").and_then(|p| p.as_object_mut()) {
         for (_path, item) in paths.iter_mut() {

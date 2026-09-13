@@ -17,9 +17,15 @@ use utoipa::ToSchema;
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum StreamEnvelope {
     /// 笔记已创建
-    NoteCreated { event_id: u64, payload: NoteResponse },
+    NoteCreated {
+        event_id: u64,
+        payload: NoteResponse,
+    },
     /// 笔记已更新（追加 / 合并）
-    NoteUpdated { event_id: u64, payload: NoteResponse },
+    NoteUpdated {
+        event_id: u64,
+        payload: NoteResponse,
+    },
     /// 项目已创建
     ProjectCreated { event_id: u64, payload: Project },
     /// 项目已更新（含敏感开关变更）
@@ -85,7 +91,10 @@ mod tests {
 
     #[test]
     fn envelope_tagged_serialization() {
-        let e = StreamEnvelope::NoteCreated { event_id: 1, payload: sample_note() };
+        let e = StreamEnvelope::NoteCreated {
+            event_id: 1,
+            payload: sample_note(),
+        };
         let v: serde_json::Value = serde_json::to_value(&e).unwrap();
         assert_eq!(v["type"], "note_created");
         assert_eq!(v["event_id"], 1);

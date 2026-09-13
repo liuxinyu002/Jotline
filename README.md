@@ -26,16 +26,19 @@ corepack enable
 # 2. 安装依赖（CI 同款：按 lockfile 冻结安装）
 pnpm install --frozen-lockfile
 
-# 3. 校验 Rust 工具链与契约 crate 编译（按 rust-toolchain.toml 锁定 1.95.0）
+# 3. 安装 pre-commit hook（契约防漂移内环；见 scripts/pre-commit.sh）
+cp scripts/pre-commit.sh .git/hooks/pre-commit 2>/dev/null || true
+
+# 4. 校验 Rust 工具链与契约 crate 编译（按 rust-toolchain.toml 锁定 1.95.0）
 cargo check -p contracts --locked
 
-# 4. 生成契约三端产物（openapi.json / 前端 TS 类型 / 工具 Schema）
+# 5. 生成契约三端产物（openapi.json / 前端 TS 类型 / 工具 Schema）
 pnpm contracts:build
 
-# 5. 契约防漂移检查（重新生成 + 零 diff 校验 + Wire 纪律 grep）
+# 6. 契约防漂移检查（重新生成 + 零 diff 校验 + Wire 纪律 grep）
 pnpm contracts:check
 
-# 6. 复制环境变量占位（可选：Phase-1/2 仅 Mock 需要 token，其余为后续阶段占位）
+# 7. 复制环境变量占位（可选：Phase-1/2 仅 Mock 需要 token，其余为后续阶段占位）
 cp .env.example .env
 ```
 

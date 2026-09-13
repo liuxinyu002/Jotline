@@ -1,10 +1,10 @@
 //! 实体域：projects / stages / tags（全量，PRD 字段齐备）
 //! + events / timeline_groups / templates / todos（骨架，核心字段）。
 
-use crate::common::{AtSource, Timestamp, ListParams, PaginationMeta};
+use crate::common::{AtSource, ListParams, PaginationMeta, Timestamp};
 use crate::error::ErrorEnvelope;
 use crate::ids::{
-    EventId, IdStr, NoteId, ProjectId, StageId, TagId, TemplateId, TodoId, TimelineGroupId,
+    EventId, IdStr, NoteId, ProjectId, StageId, TagId, TemplateId, TimelineGroupId, TodoId,
 };
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -454,9 +454,18 @@ mod tests {
 
     #[test]
     fn todo_status_and_source_snake_case() {
-        assert_eq!(serde_json::to_string(&TodoStatus::Open).unwrap(), "\"open\"");
-        assert_eq!(serde_json::to_string(&TodoStatus::Done).unwrap(), "\"done\"");
-        assert_eq!(serde_json::to_string(&TodoSource::Card).unwrap(), "\"card\"");
+        assert_eq!(
+            serde_json::to_string(&TodoStatus::Open).unwrap(),
+            "\"open\""
+        );
+        assert_eq!(
+            serde_json::to_string(&TodoStatus::Done).unwrap(),
+            "\"done\""
+        );
+        assert_eq!(
+            serde_json::to_string(&TodoSource::Card).unwrap(),
+            "\"card\""
+        );
     }
 
     #[test]

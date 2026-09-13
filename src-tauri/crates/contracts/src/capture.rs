@@ -1,8 +1,8 @@
-//! 捕获域：capture 提交输入矩阵（text / image / file tagged union）
-//! + 操作卡片 schema（PRD §7.3：entries / event / todos[] / provenance.processing
-//! / group_name / at_source）。
+//! 捕获域：capture 提交输入矩阵（text / image / file tagged union）与操作卡片
+//! schema（PRD §7.3：entries / event / todos[] / provenance.processing / group_name
+//! / at_source）。
 
-use crate::common::{AtSource, Timestamp, ProvenanceSource};
+use crate::common::{AtSource, ProvenanceSource, Timestamp};
 use crate::error::ErrorEnvelope;
 use crate::ids::{CaptureId, CardId, EventId, NoteId, ProjectId, TodoId};
 use crate::notes::NoteFormat;
@@ -28,9 +28,7 @@ pub enum CaptureStatus {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CaptureSubmit {
     /// 文本粘贴（短文本即正文；>8K 分块 → card.batch 多 entries）
-    Text {
-        text: String,
-    },
+    Text { text: String },
     /// 截图（原图入附件库；OCR 全文 + Agent 摘要）
     Image {
         /// 图片原始字节（base64 编码）
@@ -382,7 +380,12 @@ mod tests {
         let card: CardResponse = serde_json::from_value(sample_card_json()).unwrap();
         assert_eq!(card.status, CardStatus::Pending);
         match &card.content {
-            CardContent::Batch { project, confidence, reason, entries } => {
+            CardContent::Batch {
+                project,
+                confidence,
+                reason,
+                entries,
+            } => {
                 assert!(project.is_some());
                 assert_eq!(*confidence, Some(Confidence::High));
                 assert_eq!(reason.as_deref(), Some("内容提及 AMS 系统 UAT 环境"));
@@ -409,29 +412,42 @@ mod tests {
     fn capture_submit_tagged_union() {
         let text: CaptureSubmit = serde_json::from_value(serde_json::json!({
             "type": "text", "text": "昨天和客户开了UAT评审会"
-        })).unwrap();
+        }))
+        .unwrap();
         match &text {
             CaptureSubmit::Text { text } => assert!(text.contains("UAT")),
             _ => panic!("应解析为 Text 变体"),
         }
         let img: CaptureSubmit = serde_json::from_value(serde_json::json!({
             "type": "image", "data_base64": "aGVsbG8="
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(matches!(img, CaptureSubmit::Image { .. }));
         let file: CaptureSubmit = serde_json::from_value(serde_json::json!({
             "type": "file", "data_base64": "aGVsbG8=", "filename": "纪要.docx"
-        })).unwrap();
+        }))
+        .unwrap();
         assert!(matches!(file, CaptureSubmit::File { .. }));
         // 未知 type 拒绝
         assert!(serde_json::from_value::<CaptureSubmit>(serde_json::json!({
             "type": "audio", "data_base64": "x"
-        })).is_err());
+        }))
+        .is_err());
     }
 
     #[test]
     fn capture_statuses_snake_case() {
-        assert_eq!(serde_json::to_string(&CaptureStatus::CardReady).unwrap(), "\"card_ready\"");
-        assert_eq!(serde_json::to_string(&CardStatus::Pending).unwrap(), "\"pending\"");
-        assert_eq!(serde_json::to_string(&CardAction::SaveCredential).unwrap(), "\"save_credential\"");
+        assert_eq!(
+            serde_json::to_string(&CaptureStatus::CardReady).unwrap(),
+            "\"card_ready\""
+        );
+        assert_eq!(
+            serde_json::to_string(&CardStatus::Pending).unwrap(),
+            "\"pending\""
+        );
+        assert_eq!(
+            serde_json::to_string(&CardAction::SaveCredential).unwrap(),
+            "\"save_credential\""
+        );
     }
 }
