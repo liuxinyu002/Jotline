@@ -34,39 +34,16 @@ jobs:
       - name: 零漂移 + Wire 纪律检查（check）
         run: pnpm contracts:check
 
-      - name: Mock 冒烟（起服务 + curl 断言）
+      - name: Mock 冒烟（起服务 + 四条 curl 断言）
         run: |
           pnpm --filter @jotline/mock run start &
-          for i in $(seq 1 30); do
-            curl -s -o /dev/null http://127.0.0.1:4766/_mock/scenarios && break
+          for _ in $(seq 1 30); do
+            if curl -s -o /dev/null "$BASE" 2>/dev/null; then break; fi
             sleep 1
           done
-          # ① 200 + ULID/ISO-8601 抽查
-          curl -sf http://127.0.0.1:4766/api/projects -H "Authorization: Bearer dev-token" | \
-            python3 -c "
-import json, re, sys
-d = json.load(sys.stdin)
-assert d['page']['total'] >= 1
-p = d['items'][0]
-assert re.match(r'^prj_[0-9A-HJKMNP-TV-Z]{26}$', p['id'])
-assert re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', p['created_at'])
-print('① projects 200 + ULID/ISO-8601 ✓')
-"
-          # ② search snippet+provenance 命中
-          curl -sf "http://127.0.0.1:4766/api/search?q=oracle" -H "Authorization: Bearer dev-token" | \
-            python3 -c "
-import json, sys
-d = json.load(sys.stdin)
-assert len(d) >= 1 and 'snippet' in d[0] and 'provenance' in d[0]
-print('② search 命中 ✓')
-"
-          # ③ SSE 3 条事件后关闭
-          EVENTS=$(curl -sN --max-time 10 http://127.0.0.1:4766/api/stream \
-            -H "Authorization: Bearer dev-token" -H "X-Mock-Scenario: stream-demo" | grep -c '^event:' || true)
-          [ "$EVENTS" = "3" ] && echo "③ stream 3 条事件后关闭 ✓" || { echo "③ stream 事件数异常: $EVENTS"; exit 1; }
-          # ④ 无 token → 401
-          CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:4766/api/projects)
-          [ "$CODE" = "401" ] && echo "④ 无 token 401 ✓" || { echo "④ 状态码异常: $CODE"; exit 1; }
+          bash scripts/mock-smoke.sh
+        env:
+          BASE: http://127.0.0.1:4766
 
   rust:
     runs-on: ubuntu-latest
