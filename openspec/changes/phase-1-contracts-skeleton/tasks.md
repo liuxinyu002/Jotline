@@ -55,7 +55,7 @@
 
 - [x] 7.1 `.github/workflows/contracts.yml`：contracts job（build → diff --exit-code + 场景校验 + mock 冒烟 curl 断言）/ rust job（fmt + clippy）/ ts job（biome + typecheck），ubuntu-latest；验证在 GitHub 上首次运行三 job 全绿
 - [x] 7.2 pre-commit hook（contracts:check，倾向零依赖脚本）；验证改动契约源未重新生成时提交被拦截
-- [ ] 7.3 仓库推送 GitHub 后开启 main 分支 required check（contracts job）+ 分支保护；验证故意推送未重生成的提交被拒（可用测试分支演练后删除）
+- [x] 7.3 仓库推送 GitHub 后开启 main 分支 required check（contracts job）+ 分支保护；验证故意推送未重生成的提交被拒（可用测试分支演练后删除）
 
 ## 8. 文档回写与 spike 结论归档
 
