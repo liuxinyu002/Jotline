@@ -10,5 +10,11 @@
   "devDependencies": {
     "@types/node": "24.13.4",
     "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.ts",
+    "start": "node src/server.ts",
+    "validate": "node src/validate.ts",
+    "typecheck": "tsc -p tsconfig.json"
   }
 }

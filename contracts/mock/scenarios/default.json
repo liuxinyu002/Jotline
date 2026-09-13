@@ -1,0 +1,309 @@
+{
+  "name": "default",
+  "description": "默认场景：prj_ams / prj_crm 双项目 + 阶段序列 + 标签池 + 笔记与事件种子（Roadmap 四条 curl 验证的数据源）",
+  "seed": {
+    "templates": [
+      {
+        "id": "tpl_01J8Z3TPM10000000000000000",
+        "name": "产品实施交付",
+        "stage_names": [
+          "项目启动",
+          "需求调研",
+          "方案设计",
+          "环境部署",
+          "数据迁移",
+          "测试验证",
+          "培训验收",
+          "运维移交"
+        ],
+        "directory_paths": [
+          "会议纪要/",
+          "需求/",
+          "方案与设计/",
+          "环境与部署/",
+          "问题与变更/",
+          "交付物/",
+          "沟通记录/"
+        ],
+        "event_types": ["会议", "问题", "变更", "里程碑"],
+        "tag_names": ["环境", "数据", "会议", "风险"],
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      }
+    ],
+    "projects": [
+      {
+        "id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "AMS 产品实施项目",
+        "sensitive": false,
+        "template_id": "tpl_01J8Z3TPM10000000000000000",
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-10T08:00:00Z"
+      },
+      {
+        "id": "prj_01J8Z3PRJ20000000000000000",
+        "name": "CRM 数据治理",
+        "sensitive": true,
+        "template_id": "tpl_01J8Z3TPM10000000000000000",
+        "created_at": "2025-06-05T02:00:00Z",
+        "updated_at": "2025-06-05T02:00:00Z"
+      }
+    ],
+    "stages": [
+      {
+        "id": "stg_01J8Z3STG10000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "项目启动",
+        "position": 1,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "stg_01J8Z3STG20000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "需求调研",
+        "position": 2,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "stg_01J8Z3STG30000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "方案设计",
+        "position": 3,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "stg_01J8Z3STG40000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "环境部署",
+        "position": 4,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "stg_01J8Z3STG50000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "数据迁移",
+        "position": 5,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "stg_01J8Z3STG60000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "测试验证",
+        "position": 6,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "stg_01J8Z3STG70000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "培训验收",
+        "position": 7,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "stg_01J8Z3STG80000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "运维移交",
+        "position": 8,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      }
+    ],
+    "tags": [
+      {
+        "id": "tag_01J8Z3TAG10000000000000000",
+        "name": "环境",
+        "usage_count": 3,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "tag_01J8Z3TAG20000000000000000",
+        "name": "数据",
+        "usage_count": 2,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "tag_01J8Z3TAG30000000000000000",
+        "name": "会议",
+        "usage_count": 1,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      },
+      {
+        "id": "tag_01J8Z3TAG40000000000000000",
+        "name": "风险",
+        "usage_count": 1,
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-01T02:00:00Z"
+      }
+    ],
+    "notes": [
+      {
+        "id": "itm_01J8Z3NTE10000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "UAT 环境数据库连接问题处理",
+        "body": "## 现象\nUAT 环境数据库连接串超时，应用日志报 ORA-12170。\n## 处理\n防火墙放行 1521 端口后恢复；oracle 连接串的 SID 配置同步修正。\n## 待办\n部署手册需补充「监听自检」步骤。",
+        "target_dir": "问题与变更/",
+        "format": "markdown",
+        "tags": ["环境", "数据"],
+        "provenance": {
+          "source": "screenshot",
+          "origin": "微信群-客户群",
+          "imported": false
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      },
+      {
+        "id": "itm_01J8Z3NTE20000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "AMS 项目周会纪要",
+        "body": "本周完成测试验证阶段准入；oracle 数据核对排期下周二。",
+        "target_dir": "会议纪要/",
+        "format": "markdown",
+        "tags": ["会议"],
+        "provenance": {
+          "source": "paste",
+          "origin": "手动粘贴",
+          "imported": false
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      },
+      {
+        "id": "itm_01J8Z3NTE30000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "数据迁移字段映射说明",
+        "body": "客户主表 42 字段映射至 AMS 标准 schema，含 3 个自定义扩展字段。",
+        "target_dir": "方案与设计/",
+        "format": "markdown",
+        "tags": ["数据"],
+        "provenance": {
+          "source": "file",
+          "origin": "邮件附件",
+          "imported": false
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      }
+    ],
+    "events": [
+      {
+        "id": "evt_01J8Z3EVT10000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "type": "问题",
+        "stage": "测试验证",
+        "at": "2025-06-12T06:30:00Z",
+        "at_source": "content_time",
+        "group_name": "UAT 环境搭建",
+        "note_id": "itm_01J8Z3NTE10000000000000000",
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      },
+      {
+        "id": "evt_01J8Z3EVT20000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "type": "会议",
+        "stage": "项目启动",
+        "at": "2025-06-02T02:00:00Z",
+        "at_source": "capture_time",
+        "note_id": "itm_01J8Z3NTE20000000000000000",
+        "created_at": "2025-06-02T02:05:00Z",
+        "updated_at": "2025-06-02T02:05:00Z"
+      }
+    ],
+    "timeline_groups": [
+      {
+        "id": "tlg_01J8Z3GRP10000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "UAT 环境搭建",
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      }
+    ],
+    "todos": [
+      {
+        "id": "tdo_01J8Z3TSK10000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "部署手册补充「监听自检」步骤",
+        "due_at": "2025-06-20T00:00:00Z",
+        "status": "open",
+        "owner": "张工",
+        "source": "card",
+        "source_ref": "crd_01J8Z3CRD10000000000000000",
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      },
+      {
+        "id": "tdo_01J8Z3TSK20000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "oracle 数据迁移核对",
+        "due_at": "2025-06-17T00:00:00Z",
+        "status": "open",
+        "source": "manual",
+        "created_at": "2025-06-11T08:00:00Z",
+        "updated_at": "2025-06-11T08:00:00Z"
+      }
+    ],
+    "captures": [
+      {
+        "id": "cap_01J8Z3CAP10000000000000000",
+        "status": "card_ready",
+        "card_id": "crd_01J8Z3CRD10000000000000000",
+        "created_at": "2025-06-12T06:31:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      }
+    ],
+    "cards": [
+      {
+        "id": "crd_01J8Z3CRD10000000000000000",
+        "status": "pending",
+        "content": {
+          "type": "card.batch",
+          "project": "prj_01J8Z3PRJ10000000000000000",
+          "confidence": "high",
+          "reason": "内容提及 AMS 系统 UAT 环境",
+          "entries": [
+            {
+              "action": "create_note",
+              "title": "UAT 环境数据库连接问题处理",
+              "target_dir": "问题与变更/",
+              "format": "markdown",
+              "tags": ["环境", "数据"],
+              "group_name": "UAT 环境搭建",
+              "event": {
+                "type": "问题",
+                "stage": "测试验证",
+                "at": "2025-06-12T06:30:00Z",
+                "at_source": "content_time"
+              },
+              "todos": [
+                {
+                  "title": "部署手册补充「监听自检」步骤",
+                  "due": "2025-06-20T00:00:00Z",
+                  "owner": "张工"
+                }
+              ],
+              "provenance": {
+                "source": "screenshot",
+                "origin": "微信群-客户群",
+                "imported": false
+              },
+              "body": "## 现象\nUAT 环境数据库连接串超时，应用日志报 ORA-12170。\n## 处理\n防火墙放行 1521 端口后恢复；oracle 连接串的 SID 配置同步修正。\n## 待办\n部署手册需补充「监听自检」步骤。"
+            }
+          ]
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      }
+    ]
+  }
+}

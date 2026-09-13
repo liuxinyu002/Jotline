@@ -40,16 +40,16 @@
 
 ## 5. 协议文档 PROTOCOL.md
 
-- [ ] 5.1 Wire 纪律细则 + ID 前缀注册表（15 实体）+ 时间格式细则；验证与契约源实现逐条对应（review 检查）
-- [ ] 5.2 错误码表（信封格式 + 已实现错误码）+ 鉴权约定（Bearer / dev-token / 端口）+ SSE 事件信封与首批事件注册表 + stdio JSON-RPC 方法注册表（health 定稿，其余预留）；验证 Mock 实现与文档一致（401 信封、SSE 事件名抽查——本项在第 6 章 Mock 完成后执行）
+- [x] 5.1 Wire 纪律细则 + ID 前缀注册表（15 实体）+ 时间格式细则；验证与契约源实现逐条对应（review 检查）
+- [x] 5.2 错误码表（信封格式 + 已实现错误码）+ 鉴权约定（Bearer / dev-token / 端口）+ SSE 事件信封与首批事件注册表 + stdio JSON-RPC 方法注册表（health 定稿，其余预留）；验证 Mock 实现与文档一致（401 信封、SSE 事件名抽查——本项在第 6 章 Mock 完成后执行）
 
 ## 6. Mock 服务与场景数据集
 
-- [ ] 6.1 引擎骨架：读 openapi.json 路由匹配（契约外 404）+ Bearer dev-token 鉴权（错 token 401 错误信封）；验证 `pnpm mock` 启动后 curl 无 token → 401
-- [ ] 6.2 场景数据格式定稿 + 校验层：场景文件 schema（种子状态 + 剧本路由 + 延迟/错误注入声明）、启动时按契约 Schema 校验、固定 ULID；验证故意坏场景 → 启动失败并定位文件与字段
-- [ ] 6.3 语义内核：内存状态播种 + 写操作变更 + 读反映状态 + SSE 广播（状态变更推事件 + 心跳）；验证创建一条笔记后列表可见、SSE 订阅端收到事件、违反契约的写操作请求体 → 422 错误信封（含字段定位）且状态不变
-- [ ] 6.4 剧本层与场景选择：延迟注入、错误注入（409 场景）、`X-Mock-Scenario` 请求级选择 + `/_mock/*` 控制端点（切换/重置，不在 openapi.json）；验证延迟注入场景实测生效、重置后状态回种子
-- [ ] 6.5 首批场景数据集：default（projects/notes/search 数据，ULID+ISO-8601 抽查合格）/ auth-401 / stream-demo（3 条事件后正常关闭）/ search-oracle（含 snippet+provenance 命中）；验证 Roadmap 四条 curl 命令逐一通过
+- [x] 6.1 引擎骨架：读 openapi.json 路由匹配（契约外 404）+ Bearer dev-token 鉴权（错 token 401 错误信封）；验证 `pnpm mock` 启动后 curl 无 token → 401
+- [x] 6.2 场景数据格式定稿 + 校验层：场景文件 schema（种子状态 + 剧本路由 + 延迟/错误注入声明）、启动时按契约 Schema 校验、固定 ULID；验证故意坏场景 → 启动失败并定位文件与字段
+- [x] 6.3 语义内核：内存状态播种 + 写操作变更 + 读反映状态 + SSE 广播（状态变更推事件 + 心跳）；验证创建一条笔记后列表可见、SSE 订阅端收到事件、违反契约的写操作请求体 → 422 错误信封（含字段定位）且状态不变
+- [x] 6.4 剧本层与场景选择：延迟注入、错误注入（409 场景）、`X-Mock-Scenario` 请求级选择 + `/_mock/*` 控制端点（切换/重置，不在 openapi.json）；验证延迟注入场景实测生效、重置后状态回种子
+- [x] 6.5 首批场景数据集：default（projects/notes/search 数据，ULID+ISO-8601 抽查合格）/ auth-401 / stream-demo（3 条事件后正常关闭）/ search-oracle（含 snippet+provenance 命中）；验证 Roadmap 四条 curl 命令逐一通过
 
 ## 7. CI 布防
 

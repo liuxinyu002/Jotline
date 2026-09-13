@@ -1,0 +1,90 @@
+{
+  "name": "search-oracle",
+  "description": "检索命中场景：oracle 关键词在正文 / 标题 / OCR 文本三处命中，含 snippet + provenance",
+  "seed": {
+    "projects": [
+      {
+        "id": "prj_01J8Z3PRJ10000000000000000",
+        "name": "AMS 产品实施项目",
+        "sensitive": false,
+        "template_id": "tpl_01J8Z3TPM10000000000000000",
+        "created_at": "2025-06-01T02:00:00Z",
+        "updated_at": "2025-06-10T08:00:00Z"
+      },
+      {
+        "id": "prj_01J8Z3PRJ20000000000000000",
+        "name": "CRM 数据治理",
+        "sensitive": true,
+        "template_id": "tpl_01J8Z3TPM10000000000000000",
+        "created_at": "2025-06-05T02:00:00Z",
+        "updated_at": "2025-06-05T02:00:00Z"
+      }
+    ],
+    "notes": [
+      {
+        "id": "itm_01J8Z3NTE21000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "UAT 环境数据库连接问题处理",
+        "body": "数据库连接串超时，日志报 ORA-12170；oracle 监听器配置修正后恢复。",
+        "target_dir": "问题与变更/",
+        "format": "markdown",
+        "tags": ["环境", "数据"],
+        "provenance": {
+          "source": "screenshot",
+          "origin": "微信群-客户群",
+          "imported": false
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      },
+      {
+        "id": "itm_01J8Z3NTE22000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "oracle 数据迁移核对结论",
+        "body": "42 字段映射核对完成，3 个扩展字段待产品确认。",
+        "target_dir": "问题与变更/",
+        "format": "markdown",
+        "tags": ["环境", "数据"],
+        "provenance": {
+          "source": "file",
+          "origin": "邮件附件",
+          "imported": false
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      },
+      {
+        "id": "itm_01J8Z3NTE23000000000000000",
+        "project_id": "prj_01J8Z3PRJ10000000000000000",
+        "title": "OCR 识别白板照片",
+        "body": "白板照片 OCR 文本：oracle 实例扩容评审 下周四。",
+        "target_dir": "问题与变更/",
+        "format": "markdown",
+        "tags": ["环境", "数据"],
+        "provenance": {
+          "source": "screenshot",
+          "origin": "白板照片",
+          "imported": false
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      },
+      {
+        "id": "itm_01J8Z3NTE30000000000000000",
+        "project_id": "prj_01J8Z3PRJ20000000000000000",
+        "title": "CRM 数据治理启动纪要",
+        "body": "客户主数据清洗范围与里程碑确认。",
+        "target_dir": "会议纪要/",
+        "format": "markdown",
+        "tags": ["会议"],
+        "provenance": {
+          "source": "paste",
+          "origin": "手动粘贴",
+          "imported": false
+        },
+        "created_at": "2025-06-12T06:32:00Z",
+        "updated_at": "2025-06-12T06:32:00Z"
+      }
+    ]
+  }
+}

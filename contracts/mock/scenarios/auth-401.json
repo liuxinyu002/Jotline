@@ -1,0 +1,16 @@
+{
+  "name": "auth-401",
+  "description": "全部契约路由注入 401（含正确 token）——验证前端过期 token / 鉴权失效 UX",
+  "seed": {},
+  "script": {
+    "routes": {
+      "*": {
+        "error": {
+          "status": 401,
+          "code": "unauthorized",
+          "message": "token 已失效（auth-401 场景注入）"
+        }
+      }
+    }
+  }
+}
