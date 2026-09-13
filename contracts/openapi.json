@@ -1,0 +1,2936 @@
+{
+  "components": {
+    "schemas": {
+      "AtSource": {
+        "description": "时间取值来源（SPEC §4.1 时间回退链的落库约束；`at ≠ capture_time` 时必填）。",
+        "enum": [
+          "content_time",
+          "derived_time",
+          "capture_time"
+        ],
+        "type": "string"
+      },
+      "AuditId": {
+        "examples": [
+          "aud_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^aud_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "CaptureId": {
+        "examples": [
+          "cap_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^cap_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "CaptureResponse": {
+        "description": "捕获提交响应。",
+        "properties": {
+          "capture_id": {
+            "$ref": "#/components/schemas/CaptureId"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CaptureStatus"
+          }
+        },
+        "required": [
+          "capture_id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "CaptureStatus": {
+        "description": "捕获状态（降级总原则：LLM 不可达 / 解析失败 → degraded，原文入 inbox，永不阻塞捕获）。",
+        "enum": [
+          "submitted",
+          "processing",
+          "card_ready",
+          "degraded"
+        ],
+        "type": "string"
+      },
+      "CaptureStatusPayload": {
+        "description": "捕获状态事件负载。",
+        "properties": {
+          "capture_id": {
+            "$ref": "#/components/schemas/CaptureId"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CaptureStatus"
+          }
+        },
+        "required": [
+          "capture_id",
+          "status"
+        ],
+        "type": "object"
+      },
+      "CaptureStatusResponse": {
+        "description": "捕获状态查询响应。",
+        "properties": {
+          "card_id": {
+            "$ref": "#/components/schemas/CardId",
+            "description": "关联待审卡片（status = card_ready 时存在）"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "id": {
+            "$ref": "#/components/schemas/CaptureId"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CaptureStatus"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "CaptureSubmit": {
+        "description": "捕获提交输入矩阵（tagged union：type 判别）。",
+        "oneOf": [
+          {
+            "description": "文本粘贴（短文本即正文；>8K 分块 → card.batch 多 entries）",
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "text"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "text",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "截图（原图入附件库；OCR 全文 + Agent 摘要）",
+            "properties": {
+              "data_base64": {
+                "description": "图片原始字节（base64 编码）",
+                "type": "string"
+              },
+              "filename": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "image"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "data_base64",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "文件（原文件存储 + SHA-256 去重；V1 元数据卡）",
+            "properties": {
+              "data_base64": {
+                "description": "文件原始字节（base64 编码）",
+                "type": "string"
+              },
+              "filename": {
+                "type": "string"
+              },
+              "media_type": {
+                "description": "MIME 类型",
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "file"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "data_base64",
+              "filename",
+              "type"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "CardAction": {
+        "description": "卡片条目动作。",
+        "enum": [
+          "create_note",
+          "save_file",
+          "add_event",
+          "save_credential"
+        ],
+        "type": "string"
+      },
+      "CardContent": {
+        "description": "卡片内容（tagged union；「card.batch」为预留批量容器，单条目卡片亦用此形态）。",
+        "oneOf": [
+          {
+            "description": "批量容器：一张卡片 N 条目 + 一份汇总（长文本分块 / 投递聚合）",
+            "properties": {
+              "confidence": {
+                "$ref": "#/components/schemas/Confidence"
+              },
+              "entries": {
+                "items": {
+                  "$ref": "#/components/schemas/CardEntry"
+                },
+                "type": "array"
+              },
+              "project": {
+                "$ref": "#/components/schemas/ProjectId",
+                "description": "项目推断结果"
+              },
+              "reason": {
+                "description": "推断理由（如「内容提及 AMS 系统 UAT 环境」）",
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "card.batch"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "entries",
+              "type"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "CardEntry": {
+        "description": "卡片条目（PRD §7.3 entries[]）。",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/CardAction"
+          },
+          "body": {
+            "description": "Markdown 正文",
+            "type": "string"
+          },
+          "event": {
+            "$ref": "#/components/schemas/CardEvent",
+            "description": "事件行（action = create_note / add_event 时可携带）"
+          },
+          "format": {
+            "$ref": "#/components/schemas/NoteFormat"
+          },
+          "group_name": {
+            "description": "分组名建议（Agent 识别系列事件时填入，用户可改）",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/CardProvenance"
+          },
+          "tags": {
+            "description": "标签建议",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "target_dir": {
+            "description": "目标目录",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "todos": {
+            "description": "待办行",
+            "items": {
+              "$ref": "#/components/schemas/CardTodo"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "action",
+          "title",
+          "provenance",
+          "body"
+        ],
+        "type": "object"
+      },
+      "CardEvent": {
+        "description": "卡片事件行（已发生 → Event）。",
+        "properties": {
+          "at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "at_source": {
+            "$ref": "#/components/schemas/AtSource",
+            "description": "时间取值来源（Agent 推断时间时必填）"
+          },
+          "stage": {
+            "description": "阶段名",
+            "type": "string"
+          },
+          "type": {
+            "description": "事件类型（模板供给，如「问题」「会议」）",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "at",
+          "at_source"
+        ],
+        "type": "object"
+      },
+      "CardExecutionResult": {
+        "description": "卡片执行结果（入库产物定位）。",
+        "properties": {
+          "card_id": {
+            "$ref": "#/components/schemas/CardId"
+          },
+          "event_ids": {
+            "items": {
+              "$ref": "#/components/schemas/EventId"
+            },
+            "type": "array"
+          },
+          "note_ids": {
+            "items": {
+              "$ref": "#/components/schemas/NoteId"
+            },
+            "type": "array"
+          },
+          "todo_ids": {
+            "items": {
+              "$ref": "#/components/schemas/TodoId"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "card_id",
+          "note_ids",
+          "event_ids",
+          "todo_ids"
+        ],
+        "type": "object"
+      },
+      "CardId": {
+        "examples": [
+          "crd_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^crd_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "CardPatch": {
+        "description": "卡片对话调整（PATCH；改草稿不落库，免逐轮确认）。",
+        "properties": {
+          "confidence": {
+            "$ref": "#/components/schemas/Confidence"
+          },
+          "entries": {
+            "description": "条目整体替换（对话调整的载体）",
+            "items": {
+              "$ref": "#/components/schemas/CardEntry"
+            },
+            "type": "array"
+          },
+          "project": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CardProcessing": {
+        "description": "卡片执行时的处理通道事实（标注 UI 读取此字段而非设置页当前值）。",
+        "properties": {
+          "cloud": {
+            "description": "是否云端通道",
+            "type": "boolean"
+          },
+          "model": {
+            "description": "模型名（如 deepseek-chat / ollama:qwen）",
+            "type": "string"
+          },
+          "redacted": {
+            "description": "是否经出站脱敏",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "model",
+          "cloud",
+          "redacted"
+        ],
+        "type": "object"
+      },
+      "CardProvenance": {
+        "description": "卡片条目溯源。",
+        "properties": {
+          "imported": {
+            "type": "boolean"
+          },
+          "origin": {
+            "description": "原始来源（截图聚合时为「截图 ×N · 已按顺序合并」）",
+            "type": "string"
+          },
+          "processing": {
+            "$ref": "#/components/schemas/CardProcessing",
+            "description": "执行时写入的事实数据（待审卡片无此字段）"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ProvenanceSource"
+          }
+        },
+        "required": [
+          "source",
+          "origin",
+          "imported"
+        ],
+        "type": "object"
+      },
+      "CardResponse": {
+        "description": "卡片响应。",
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/CardContent"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "id": {
+            "$ref": "#/components/schemas/CardId"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CardStatus"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "content",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "CardStatus": {
+        "description": "卡片状态（状态机：pending → executed / discarded）。",
+        "enum": [
+          "pending",
+          "executed",
+          "discarded"
+        ],
+        "type": "string"
+      },
+      "CardTodo": {
+        "description": "卡片待办行（未来 → Todo；执行时创建实体进待办中心，原文待办行保留）。",
+        "properties": {
+          "due": {
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "截止时间（解析失败置空：不猜日期）"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title"
+        ],
+        "type": "object"
+      },
+      "Confidence": {
+        "description": "项目推断置信度。",
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ],
+        "type": "string"
+      },
+      "CreateNoteRequest": {
+        "description": "创建笔记请求。",
+        "properties": {
+          "body": {
+            "description": "Markdown 正文",
+            "type": "string"
+          },
+          "format": {
+            "$ref": "#/components/schemas/NoteFormat"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "tags": {
+            "description": "标签（Agent 优先复用已有标签）",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "target_dir": {
+            "description": "目标目录（单归属；缺省落模板默认目录）",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "title",
+          "body"
+        ],
+        "type": "object"
+      },
+      "CredentialId": {
+        "examples": [
+          "cred_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^cred_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "ErrorCode": {
+        "description": "机器可读错误码（登记表见 contracts/PROTOCOL.md；新增错误码先登记后使用）。",
+        "enum": [
+          "unauthorized",
+          "not_found",
+          "conflict",
+          "validation_failed",
+          "internal"
+        ],
+        "type": "string"
+      },
+      "ErrorEnvelope": {
+        "description": "统一错误信封。",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode",
+            "description": "机器可读错误码"
+          },
+          "detail": {
+            "description": "可选明细（422 校验失败时携带字段定位）",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            },
+            "type": "array"
+          },
+          "message": {
+            "description": "人读错误信息",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "Event": {
+        "description": "时间线事件。",
+        "properties": {
+          "at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "at_source": {
+            "$ref": "#/components/schemas/AtSource",
+            "description": "时间取值来源（SPEC §4.1：必附）"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "group_name": {
+            "description": "分组名（Agent 建议系列事件时填入；无组事件不折叠）",
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/EventId"
+          },
+          "note_id": {
+            "$ref": "#/components/schemas/NoteId",
+            "description": "关联笔记"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "stage": {
+            "description": "阶段名（事件发生时所属阶段）",
+            "type": "string"
+          },
+          "type": {
+            "description": "事件类型（模板供给，如「会议」「问题」）",
+            "type": "string"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "voided_at": {
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "作废标记（只增不改：作废后保留可见）"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "type",
+          "at",
+          "at_source",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "EventId": {
+        "examples": [
+          "evt_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^evt_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "EventList": {
+        "description": "事件列表信封。",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "type": "object"
+      },
+      "EventListParams": {
+        "description": "事件列表查询。",
+        "properties": {
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId",
+            "description": "按项目过滤（必填）"
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "ExperienceId": {
+        "examples": [
+          "exp_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^exp_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "FieldError": {
+        "description": "校验失败的字段定位（422 信封 detail 条目）。",
+        "properties": {
+          "field": {
+            "description": "字段路径（如 `entries[0].title`）",
+            "type": "string"
+          },
+          "message": {
+            "description": "失败原因（人读）",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "type": "object"
+      },
+      "FileVersionId": {
+        "examples": [
+          "ver_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^ver_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "IdStr": {
+        "pattern": "^[a-z]{3}_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "IpcError": {
+        "description": "JSON-RPC 错误对象。",
+        "properties": {
+          "code": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "data": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "type": "object"
+      },
+      "IpcHealthRequest": {
+        "description": "健康检查请求（method 固定 `health.ping`）。",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "jsonrpc": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "jsonrpc",
+          "id",
+          "method"
+        ],
+        "type": "object"
+      },
+      "IpcHealthResponse": {
+        "description": "健康检查响应（同一 id 的成功响应 = JSON-RPC 2.0 信封）。",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "jsonrpc": {
+            "type": "string"
+          },
+          "result": {
+            "$ref": "#/components/schemas/IpcHealthResult"
+          }
+        },
+        "required": [
+          "jsonrpc",
+          "id",
+          "result"
+        ],
+        "type": "object"
+      },
+      "IpcHealthResult": {
+        "description": "健康检查结果。",
+        "properties": {
+          "status": {
+            "description": "`\"ok\"`（异常形态随 Phase-8 生命周期设计增补）",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "type": "object"
+      },
+      "IpcNotification": {
+        "description": "JSON-RPC 通知（无 id，无需响应）。",
+        "properties": {
+          "jsonrpc": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "params": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "jsonrpc",
+          "method"
+        ],
+        "type": "object"
+      },
+      "IpcRequest": {
+        "description": "JSON-RPC 请求（主进程 → sidecar）。",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "jsonrpc": {
+            "description": "固定 `\"2.0\"`",
+            "type": "string"
+          },
+          "method": {
+            "description": "方法名（注册表登记）",
+            "type": "string"
+          },
+          "params": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "jsonrpc",
+          "id",
+          "method"
+        ],
+        "type": "object"
+      },
+      "IpcResponse": {
+        "description": "JSON-RPC 响应（sidecar → 主进程；`result` 与 `error` 恰居其一）。",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/IpcError"
+          },
+          "id": {
+            "description": "与请求同 id（ping-pong 往返锚点）",
+            "type": "string"
+          },
+          "jsonrpc": {
+            "type": "string"
+          },
+          "result": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "jsonrpc",
+          "id"
+        ],
+        "type": "object"
+      },
+      "ListParams": {
+        "description": "列表端点共用查询参数。",
+        "properties": {
+          "limit": {
+            "description": "本页条数上限（默认 50）",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "offset": {
+            "description": "偏移量（默认 0）",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "MemoryId": {
+        "examples": [
+          "mem_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^mem_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "NoteFormat": {
+        "description": "笔记格式。",
+        "enum": [
+          "markdown"
+        ],
+        "type": "string"
+      },
+      "NoteId": {
+        "examples": [
+          "itm_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^itm_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "NoteResponse": {
+        "description": "笔记响应（create / read 共用）。",
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "format": {
+            "$ref": "#/components/schemas/NoteFormat"
+          },
+          "id": {
+            "$ref": "#/components/schemas/NoteId"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "target_dir": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "title",
+          "body",
+          "format",
+          "tags",
+          "provenance",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "PaginationMeta": {
+        "description": "分页元信息（列表信封共用）。",
+        "properties": {
+          "limit": {
+            "description": "本页条数上限",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "offset": {
+            "description": "偏移量",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "total": {
+            "description": "总条数",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "limit",
+          "offset"
+        ],
+        "type": "object"
+      },
+      "Project": {
+        "description": "项目。",
+        "properties": {
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sensitive": {
+            "description": "项目敏感开关（ON = 全链路本地模型；变更落审计）",
+            "type": "boolean"
+          },
+          "template_id": {
+            "$ref": "#/components/schemas/TemplateId",
+            "description": "项目源自的模板"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sensitive",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "ProjectId": {
+        "examples": [
+          "prj_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^prj_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "ProjectList": {
+        "description": "项目列表信封。",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            },
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "type": "object"
+      },
+      "ProjectUpsert": {
+        "description": "项目创建 / 更新（`id` 缺省 = 新建）。",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sensitive": {
+            "type": "boolean"
+          },
+          "template_id": {
+            "$ref": "#/components/schemas/TemplateId"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "Provenance": {
+        "description": "溯源信息（笔记 / 检索命中通用）。",
+        "properties": {
+          "imported": {
+            "description": "是否导入回填（与实时记录视觉区分的依据）。",
+            "type": "boolean"
+          },
+          "origin": {
+            "description": "原始来源描述（如「微信群-客户群」「截图 ×3 · 已按顺序合并」）。",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ProvenanceSource"
+          }
+        },
+        "required": [
+          "source",
+          "origin",
+          "imported"
+        ],
+        "type": "object"
+      },
+      "ProvenanceSource": {
+        "description": "内容来源方式。",
+        "enum": [
+          "paste",
+          "screenshot",
+          "file",
+          "manual"
+        ],
+        "type": "string"
+      },
+      "SearchHit": {
+        "description": "检索命中条目（SPEC §5 接口承诺，V1–V3 不变）。",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/NoteId"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "score": {
+            "description": "相关性得分",
+            "format": "double",
+            "type": "number"
+          },
+          "snippet": {
+            "description": "命中片段（关键词高亮素材）",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "snippet",
+          "provenance",
+          "score"
+        ],
+        "type": "object"
+      },
+      "SearchQuery": {
+        "description": "检索请求（GET /api/search 查询参数；同时作为 search_content 工具的参数 Schema）。",
+        "properties": {
+          "after": {
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "时间范围下界（含）"
+          },
+          "before": {
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "时间范围上界（含）"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId",
+            "description": "按项目过滤"
+          },
+          "q": {
+            "description": "检索词（口语化问句会被翻译为可检索词）",
+            "type": "string"
+          },
+          "tags": {
+            "description": "按标签过滤（多选交集）",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "target_dir": {
+            "description": "按目录过滤",
+            "type": "string"
+          },
+          "top_k": {
+            "description": "返回条数上限（默认 10）",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "type": "object"
+      },
+      "Stage": {
+        "description": "项目阶段（阶段序列由 position 决定）。",
+        "properties": {
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "id": {
+            "$ref": "#/components/schemas/StageId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "description": "序列位置（从 1 起）",
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "position",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "StageId": {
+        "examples": [
+          "stg_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^stg_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "StageList": {
+        "description": "阶段列表信封。",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "type": "object"
+      },
+      "StageListParams": {
+        "description": "阶段列表查询。",
+        "properties": {
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId",
+            "description": "按项目过滤（必填）"
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "StageUpsert": {
+        "description": "阶段创建 / 更新。",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/StageId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId"
+          }
+        },
+        "required": [
+          "project_id",
+          "name",
+          "position"
+        ],
+        "type": "object"
+      },
+      "StreamEnvelope": {
+        "description": "SSE 事件信封（tagged union：`type` 判别 + `event_id` + 类型化 `payload`）。\n\n事件注册表见 contracts/PROTOCOL.md；新增事件 = 新增变体（信封结构不变）。",
+        "oneOf": [
+          {
+            "description": "笔记已创建",
+            "properties": {
+              "event_id": {
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/NoteResponse"
+              },
+              "type": {
+                "enum": [
+                  "note_created"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "payload",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "笔记已更新（追加 / 合并）",
+            "properties": {
+              "event_id": {
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/NoteResponse"
+              },
+              "type": {
+                "enum": [
+                  "note_updated"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "payload",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "项目已创建",
+            "properties": {
+              "event_id": {
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/Project"
+              },
+              "type": {
+                "enum": [
+                  "project_created"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "payload",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "项目已更新（含敏感开关变更）",
+            "properties": {
+              "event_id": {
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/Project"
+              },
+              "type": {
+                "enum": [
+                  "project_updated"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "payload",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "待办已创建",
+            "properties": {
+              "event_id": {
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/Todo"
+              },
+              "type": {
+                "enum": [
+                  "todo_created"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "payload",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "待办已更新（勾销 / 恢复）",
+            "properties": {
+              "event_id": {
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/Todo"
+              },
+              "type": {
+                "enum": [
+                  "todo_updated"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "payload",
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "捕获状态变更（submitted → processing → card_ready / degraded）",
+            "properties": {
+              "event_id": {
+                "format": "int64",
+                "minimum": 0,
+                "type": "integer"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/CaptureStatusPayload"
+              },
+              "type": {
+                "enum": [
+                  "capture_status_changed"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_id",
+              "payload",
+              "type"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "Tag": {
+        "description": "标签（全局池）。",
+        "properties": {
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "usage_count": {
+            "description": "使用计数（标签池面板展示）",
+            "format": "int64",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "usage_count",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "TagId": {
+        "examples": [
+          "tag_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^tag_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "TagList": {
+        "description": "标签列表信封。",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            },
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "type": "object"
+      },
+      "TagUpsert": {
+        "description": "标签创建 / 更新（重命名 / 合并）。",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "Template": {
+        "description": "模板（预置「产品实施交付」，可编辑、可另存复用）。",
+        "properties": {
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "directory_paths": {
+            "description": "目录树（模板预设路径）",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "event_types": {
+            "description": "事件类型池",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "$ref": "#/components/schemas/TemplateId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "stage_names": {
+            "description": "阶段序列（有序）",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tag_names": {
+            "description": "标签池",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "stage_names",
+          "directory_paths",
+          "event_types",
+          "tag_names",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "TemplateId": {
+        "examples": [
+          "tpl_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^tpl_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "TemplateList": {
+        "description": "模板列表信封。",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Template"
+            },
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "type": "object"
+      },
+      "TimelineGroup": {
+        "description": "时间线分组。",
+        "properties": {
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "id": {
+            "$ref": "#/components/schemas/TimelineGroupId"
+          },
+          "name": {
+            "description": "分组名（= Event.group_name）",
+            "type": "string"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "project_id",
+          "name",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "TimelineGroupId": {
+        "examples": [
+          "tlg_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^tlg_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "TimelineGroupList": {
+        "description": "分组列表信封。",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineGroup"
+            },
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "type": "object"
+      },
+      "TimelineGroupListParams": {
+        "description": "分组列表查询。",
+        "properties": {
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId",
+            "description": "按项目过滤（必填）"
+          }
+        },
+        "required": [
+          "project_id"
+        ],
+        "type": "object"
+      },
+      "Timestamp": {
+        "examples": [
+          "2025-06-12T06:32:00Z"
+        ],
+        "format": "date-time",
+        "type": "string"
+      },
+      "Todo": {
+        "description": "待办（活数据：逾期 = due_at 已过且未完成，不回写时间线事件）。",
+        "properties": {
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "due_at": {
+            "$ref": "#/components/schemas/Timestamp",
+            "description": "截止时间（解析失败置空：进卡片墙不进日历，不猜日期）"
+          },
+          "id": {
+            "$ref": "#/components/schemas/TodoId"
+          },
+          "owner": {
+            "description": "责任人（记录用途，不产生通知）",
+            "type": "string"
+          },
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TodoSource"
+          },
+          "source_ref": {
+            "$ref": "#/components/schemas/IdStr",
+            "description": "来源引用（如来源卡片的 crd_ ID）"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TodoStatus"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "status",
+          "source",
+          "created_at",
+          "updated_at"
+        ],
+        "type": "object"
+      },
+      "TodoId": {
+        "examples": [
+          "tdo_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+        ],
+        "pattern": "^tdo_[0-9A-HJKMNP-TV-Z]{26}$",
+        "type": "string"
+      },
+      "TodoList": {
+        "description": "待办列表信封。",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Todo"
+            },
+            "type": "array"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "required": [
+          "items",
+          "page"
+        ],
+        "type": "object"
+      },
+      "TodoListParams": {
+        "description": "待办列表查询。",
+        "properties": {
+          "project_id": {
+            "$ref": "#/components/schemas/ProjectId",
+            "description": "按项目过滤"
+          },
+          "source": {
+            "$ref": "#/components/schemas/TodoSource",
+            "description": "按来源过滤"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TodoStatus",
+            "description": "按状态过滤"
+          }
+        },
+        "type": "object"
+      },
+      "TodoSource": {
+        "description": "待办来源。",
+        "enum": [
+          "card",
+          "manual",
+          "import"
+        ],
+        "type": "string"
+      },
+      "TodoStatus": {
+        "description": "待办状态（基础二态；DEC-09 状态机细化随待办中心设计稿增补变体）。",
+        "enum": [
+          "open",
+          "done"
+        ],
+        "type": "string"
+      }
+    }
+  },
+  "info": {
+    "description": "本地单用户领域 API（127.0.0.1 + Bearer token）。本文件为生成物，契约源见 src-tauri/crates/contracts。",
+    "license": {
+      "name": ""
+    },
+    "title": "Jotline 领域 API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/capture": {
+      "post": {
+        "operationId": "submit_capture",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaptureSubmit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureResponse"
+                }
+              }
+            },
+            "description": "已受理（异步处理）"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "请求体校验失败"
+          }
+        },
+        "summary": "提交捕获（确定性预处理：图片→OCR、文件→存储+SHA-256 去重、文本→直通）。",
+        "tags": [
+          "capture"
+        ]
+      }
+    },
+    "/api/captures/{capture_id}": {
+      "get": {
+        "operationId": "read_capture",
+        "parameters": [
+          {
+            "description": "捕获 ID（cap_ 前缀）",
+            "in": "path",
+            "name": "capture_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CaptureId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaptureStatusResponse"
+                }
+              }
+            },
+            "description": "捕获状态"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "捕获不存在"
+          }
+        },
+        "summary": "查询捕获状态（轮询至 card_ready / degraded）。",
+        "tags": [
+          "capture"
+        ]
+      }
+    },
+    "/api/cards/{card_id}": {
+      "get": {
+        "operationId": "read_card",
+        "parameters": [
+          {
+            "description": "卡片 ID（crd_ 前缀）",
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CardId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardResponse"
+                }
+              }
+            },
+            "description": "卡片详情"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "卡片不存在"
+          }
+        },
+        "summary": "读取操作卡片。",
+        "tags": [
+          "capture"
+        ]
+      },
+      "patch": {
+        "operationId": "update_card",
+        "parameters": [
+          {
+            "description": "卡片 ID（crd_ 前缀）",
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CardId"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardResponse"
+                }
+              }
+            },
+            "description": "调整后的卡片"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "卡片不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "卡片已执行 / 已丢弃，不可调整"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "请求体校验失败"
+          }
+        },
+        "summary": "卡片对话调整（改草稿不落库）。",
+        "tags": [
+          "capture"
+        ]
+      }
+    },
+    "/api/cards/{card_id}/discard": {
+      "post": {
+        "operationId": "discard_card",
+        "parameters": [
+          {
+            "description": "卡片 ID（crd_ 前缀）",
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CardId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "已丢弃"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "卡片不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "卡片已执行，不可丢弃"
+          }
+        },
+        "summary": "丢弃卡片。",
+        "tags": [
+          "capture"
+        ]
+      }
+    },
+    "/api/cards/{card_id}/execute": {
+      "post": {
+        "operationId": "execute_card",
+        "parameters": [
+          {
+            "description": "卡片 ID（crd_ 前缀）",
+            "in": "path",
+            "name": "card_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CardId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardExecutionResult"
+                }
+              }
+            },
+            "description": "执行结果（入库产物定位）"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "卡片不存在"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "卡片已执行 / 已丢弃"
+          }
+        },
+        "summary": "执行卡片（唯一确认与入库触发点：create_note + add_timeline_event + todos + FTS 索引）。",
+        "tags": [
+          "capture"
+        ]
+      }
+    },
+    "/api/events": {
+      "get": {
+        "operationId": "list_events",
+        "parameters": [
+          {
+            "description": "按项目过滤（必填）",
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ProjectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventList"
+                }
+              }
+            },
+            "description": "事件列表"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "查询参数校验失败"
+          }
+        },
+        "summary": "列出时间线事件（含作废标记；导入回填视觉区分依据 imported）。",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/api/notes": {
+      "post": {
+        "operationId": "create_note",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteResponse"
+                }
+              }
+            },
+            "description": "笔记已创建"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "请求体校验失败"
+          }
+        },
+        "summary": "创建笔记（Phase-2 实装：写 vault + SQLite 索引 + FTS）。",
+        "tags": [
+          "notes"
+        ]
+      }
+    },
+    "/api/notes/{note_id}": {
+      "get": {
+        "operationId": "read_note",
+        "parameters": [
+          {
+            "description": "笔记 ID（itm_ 前缀）",
+            "in": "path",
+            "name": "note_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/NoteId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteResponse"
+                }
+              }
+            },
+            "description": "笔记详情"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "笔记不存在"
+          }
+        },
+        "summary": "读取笔记。",
+        "tags": [
+          "notes"
+        ]
+      }
+    },
+    "/api/projects": {
+      "get": {
+        "operationId": "list_projects",
+        "parameters": [
+          {
+            "description": "本页条数上限（默认 50）",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "偏移量（默认 0）",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            },
+            "description": "项目列表"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          }
+        },
+        "summary": "列出项目。",
+        "tags": [
+          "entities"
+        ]
+      },
+      "post": {
+        "operationId": "upsert_project",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            },
+            "description": "项目已更新"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            },
+            "description": "项目已创建"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "请求体校验失败"
+          }
+        },
+        "summary": "创建 / 更新项目。",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/api/search": {
+      "get": {
+        "operationId": "search_content",
+        "parameters": [
+          {
+            "description": "检索词（口语化问句会被翻译为可检索词）",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "按项目过滤",
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ProjectId"
+            }
+          },
+          {
+            "description": "按目录过滤",
+            "in": "query",
+            "name": "target_dir",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "按标签过滤（多选交集）",
+            "in": "query",
+            "name": "tags",
+            "required": false,
+            "schema": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          {
+            "description": "时间范围下界（含）",
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Timestamp"
+            }
+          },
+          {
+            "description": "时间范围上界（含）",
+            "in": "query",
+            "name": "before",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Timestamp"
+            }
+          },
+          {
+            "description": "返回条数上限（默认 10）",
+            "in": "query",
+            "name": "top_k",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SearchHit"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "命中列表（带 snippet / provenance）"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "查询参数校验失败"
+          }
+        },
+        "summary": "全文检索（含 OCR 文本；元数据过滤；浮窗「查」与主窗共用同一接口）。",
+        "tags": [
+          "notes"
+        ]
+      }
+    },
+    "/api/stages": {
+      "get": {
+        "operationId": "list_stages",
+        "parameters": [
+          {
+            "description": "按项目过滤（必填）",
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ProjectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageList"
+                }
+              }
+            },
+            "description": "阶段序列"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "查询参数校验失败"
+          }
+        },
+        "summary": "列出阶段（按 position 有序）。",
+        "tags": [
+          "entities"
+        ]
+      },
+      "post": {
+        "operationId": "upsert_stage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StageUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stage"
+                }
+              }
+            },
+            "description": "阶段已更新"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stage"
+                }
+              }
+            },
+            "description": "阶段已创建"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "请求体校验失败"
+          }
+        },
+        "summary": "创建 / 更新阶段。",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/api/stream": {
+      "get": {
+        "operationId": "get_stream",
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamEnvelope"
+                }
+              }
+            },
+            "description": "SSE 事件流（data 行为 StreamEnvelope JSON；空闲期心跳注释行）"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          }
+        },
+        "summary": "订阅事件流（主窗与浮窗同源；Mock 以此验证双窗一致性）。",
+        "tags": [
+          "stream"
+        ]
+      }
+    },
+    "/api/tags": {
+      "get": {
+        "operationId": "list_tags",
+        "parameters": [
+          {
+            "description": "本页条数上限（默认 50）",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "偏移量（默认 0）",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagList"
+                }
+              }
+            },
+            "description": "标签池"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          }
+        },
+        "summary": "列出标签（全局池，含使用计数）。",
+        "tags": [
+          "entities"
+        ]
+      },
+      "post": {
+        "operationId": "upsert_tag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            },
+            "description": "标签已更新"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            },
+            "description": "标签已创建"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "请求体校验失败"
+          }
+        },
+        "summary": "创建 / 更新标签（重命名 / 合并）。",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/api/templates": {
+      "get": {
+        "operationId": "list_templates",
+        "parameters": [
+          {
+            "description": "本页条数上限（默认 50）",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "偏移量（默认 0）",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "format": "int32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateList"
+                }
+              }
+            },
+            "description": "模板列表"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          }
+        },
+        "summary": "列出模板 bundle。",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/api/timeline-groups": {
+      "get": {
+        "operationId": "list_timeline_groups",
+        "parameters": [
+          {
+            "description": "按项目过滤（必填）",
+            "in": "query",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ProjectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimelineGroupList"
+                }
+              }
+            },
+            "description": "分组列表"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "查询参数校验失败"
+          }
+        },
+        "summary": "列出时间线分组（group_name 折叠）。",
+        "tags": [
+          "entities"
+        ]
+      }
+    },
+    "/api/todos": {
+      "get": {
+        "operationId": "list_todos",
+        "parameters": [
+          {
+            "description": "按项目过滤",
+            "in": "query",
+            "name": "project_id",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ProjectId"
+            }
+          },
+          {
+            "description": "按状态过滤",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TodoStatus"
+            }
+          },
+          {
+            "description": "按来源过滤",
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TodoSource"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoList"
+                }
+              }
+            },
+            "description": "待办列表"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "未认证"
+          }
+        },
+        "summary": "列出待办（进行中 / 已完成；今日到期与逾期由消费侧按 due_at 计算）。",
+        "tags": [
+          "entities"
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "description": "Rust 主进程（dev）",
+      "url": "http://127.0.0.1:4765"
+    }
+  ],
+  "tags": [
+    {
+      "description": "笔记基础域（create / read / search）",
+      "name": "notes"
+    },
+    {
+      "description": "SSE 事件流",
+      "name": "stream"
+    },
+    {
+      "description": "实体域（projects / stages / tags / events / todos …）",
+      "name": "entities"
+    },
+    {
+      "description": "捕获与操作卡片",
+      "name": "capture"
+    }
+  ]
+}

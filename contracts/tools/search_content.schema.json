@@ -1,0 +1,54 @@
+{
+  "description": "检索请求（GET /api/search 查询参数；同时作为 search_content 工具的参数 Schema）。",
+  "properties": {
+    "after": {
+      "description": "时间范围下界（含）",
+      "examples": [
+        "2025-06-12T06:32:00Z"
+      ],
+      "format": "date-time",
+      "type": "string"
+    },
+    "before": {
+      "description": "时间范围上界（含）",
+      "examples": [
+        "2025-06-12T06:32:00Z"
+      ],
+      "format": "date-time",
+      "type": "string"
+    },
+    "project_id": {
+      "description": "按项目过滤",
+      "examples": [
+        "prj_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+      ],
+      "pattern": "^prj_[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    },
+    "q": {
+      "description": "检索词（口语化问句会被翻译为可检索词）",
+      "type": "string"
+    },
+    "tags": {
+      "description": "按标签过滤（多选交集）",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "target_dir": {
+      "description": "按目录过滤",
+      "type": "string"
+    },
+    "top_k": {
+      "description": "返回条数上限（默认 10）",
+      "format": "int32",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "q"
+  ],
+  "type": "object"
+}

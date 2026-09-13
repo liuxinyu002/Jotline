@@ -1,0 +1,43 @@
+{
+  "description": "创建笔记请求。",
+  "properties": {
+    "body": {
+      "description": "Markdown 正文",
+      "type": "string"
+    },
+    "format": {
+      "description": "笔记格式。",
+      "enum": [
+        "markdown"
+      ],
+      "type": "string"
+    },
+    "project_id": {
+      "examples": [
+        "prj_01J8Z3A7B4C5D6E7F8G9H0JKMN"
+      ],
+      "pattern": "^prj_[0-9A-HJKMNP-TV-Z]{26}$",
+      "type": "string"
+    },
+    "tags": {
+      "description": "标签（Agent 优先复用已有标签）",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "target_dir": {
+      "description": "目标目录（单归属；缺省落模板默认目录）",
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "title",
+    "body"
+  ],
+  "type": "object"
+}

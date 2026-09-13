@@ -1,0 +1,15 @@
+[package]
+name = "contracts"
+version = "0.1.0"
+edition = "2021"
+description = "Jotline 契约源（唯一事实源）——类型 + utoipa 注解 + path stub + 工具注册表；零 tauri 依赖"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+ulid = { version = "1" }
+serde_json = "1"
+utoipa = { version = "5", features = ["chrono"] }
+
+[lints.rust]
+unsafe_code = "forbid"
