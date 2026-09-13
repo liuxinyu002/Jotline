@@ -40,7 +40,11 @@ const prdCardSample = {
           at_source: "content_time",
         },
         todos: [{ title: "部署手册补充「监听自检」步骤" }],
-        provenance: { source: "paste", origin: "微信群-客户群", imported: false },
+        provenance: {
+          source: "paste",
+          origin: "微信群-客户群",
+          imported: false,
+        },
         body: "## 现象\n…",
       },
     ],
@@ -53,7 +57,8 @@ const prdCardSample = {
 if (prdCardSample.content.type === "card.batch") {
   const entries: number = prdCardSample.content.entries.length;
   const firstTitle: string = prdCardSample.content.entries[0].title;
-  const atSource: "content_time" = prdCardSample.content.entries[0].event?.at_source ?? "capture_time";
+  const atSource: "content_time" =
+    prdCardSample.content.entries[0].event?.at_source ?? "capture_time";
   console.log(entries, firstTitle, atSource);
 }
 

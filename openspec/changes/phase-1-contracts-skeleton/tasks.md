@@ -11,32 +11,32 @@
 
 ## 2. Rust 契约 crate 与 spike
 
-- [ ] 2.1 根虚拟 `Cargo.toml`（members = ["src-tauri/crates/contracts"]）+ 契约 crate 骨架（仅 utoipa + serde + chrono + ulid 依赖，零 tauri）；验证 `cargo check -p contracts` 在 Linux 兼容路径下通过（无平台特定依赖）
-- [ ] 2.2 通用类型基座：`Id<T>` newtype（ULID + 前缀常量表）、`DateTime<Utc>` 别名、错误信封、分页/列表信封；验证 cargo 单测（ULID 前缀、RFC3339 序列化）
-- [ ] 2.3 执行 spike S1（tagged enum 含 `card.batch` 点号 tag → TS union narrowing）：写最小样例类型 + 临时生成脚本，跑 serde↔TS round-trip 类型测试；结论记入 spike 记录（IDR 落档见 8.x）
-- [ ] 2.4 执行 spike S2（Option + skip_serializing_if → `field?: T` 无 `| null`）；不通过则按 design 退路调整标注方式并记录
-- [ ] 2.5 执行 spike S5（生成确定性）与 S7（OpenAPI 3.0 vs 3.1 生态兼容：openapi-typescript / Ajv / openapi-fetch）；定稿输出版本
-- [ ] 2.6 执行 spike S6（utoipa-axum 集成预研，D2 依赖项）：stub 注解可迁至 OpenApiRouter 且零 diff 为通过，不通过则按 D2 退路定为永久 stub；S3/S4 结论分别由 2.2 单测与 4.2 验证承载——S1–S7 结论与任务映射统一交 8.1 IDR 落档
+- [x] 2.1 根虚拟 `Cargo.toml`（members = ["src-tauri/crates/contracts"]）+ 契约 crate 骨架（仅 utoipa + serde + chrono + ulid 依赖，零 tauri）；验证 `cargo check -p contracts` 在 Linux 兼容路径下通过（无平台特定依赖）
+- [x] 2.2 通用类型基座：`Id<T>` newtype（ULID + 前缀常量表）、`DateTime<Utc>` 别名、错误信封、分页/列表信封；验证 cargo 单测（ULID 前缀、RFC3339 序列化）
+- [x] 2.3 执行 spike S1（tagged enum 含 `card.batch` 点号 tag → TS union narrowing）：写最小样例类型 + 临时生成脚本，跑 serde↔TS round-trip 类型测试；结论记入 spike 记录（IDR 落档见 8.x）
+- [x] 2.4 执行 spike S2（Option + skip_serializing_if → `field?: T` 无 `| null`）；不通过则按 design 退路调整标注方式并记录
+- [x] 2.5 执行 spike S5（生成确定性）与 S7（OpenAPI 3.0 vs 3.1 生态兼容：openapi-typescript / Ajv / openapi-fetch）；定稿输出版本
+- [x] 2.6 执行 spike S6（utoipa-axum 集成预研，D2 依赖项）：stub 注解可迁至 OpenApiRouter 且零 diff 为通过，不通过则按 D2 退路定为永久 stub；S3/S4 结论分别由 2.2 单测与 4.2 验证承载——S1–S7 结论与任务映射统一交 8.1 IDR 落档
 
 ## 3. 首批契约域类型与 path stub
 
 > 验证依赖：3.2/3.3/3.4 的「gen 后 / TS 侧」验证与 3.8 的 `contracts:check` 负向测试依赖第 4 章产物（4.1 gen bin / 4.2 TS 组装 / 4.4 check 脚本）——本章执行时以 `cargo check` + 单测为准，产物验证在 4.x 完成后统一复验。
 
-- [ ] 3.1 鉴权与错误域全量：401/404/409/422/500 错误码枚举 + 错误信封响应类型；验证 utoipa schema 生成含全部错误码
-- [ ] 3.2 笔记基础域全量：create_note / read / search 的请求/响应类型 + path stub（`#[utoipa::path]` 空函数）；search 按 SPEC §5 冻结承诺逐字段对齐（请求 query/filters/top_k → 条目 id/title/snippet/provenance/score）；验证 gen 后 openapi.json 含三路径
-- [ ] 3.3 SSE 信封与首批事件类型：信封（type + payload + 事件 id）+ 首批事件（notes/projects/todos 基础变更 + capture 状态）注册进 components + `/api/stream` path stub（GET，响应 media type `text/event-stream`）；验证 TS 侧可导入信封 union、gen 后 openapi.json 含 /api/stream 路径（Mock 仅路由契约内路径，缺此声明 9.1 的 stream 验证将 404）
-- [ ] 3.4 stdio JSON-RPC 域：请求/响应/通知/错误信封 + health 方法类型，注册进 components（`Ipc*` 命名）；验证 TS 侧可导入
-- [ ] 3.5 实体域全量：projects / stages / tags（list / upsert）类型 + path stub；验证 PRD 字段齐备（含 sensitive 标记、阶段序列、标签计数）
-- [ ] 3.6 捕获域全量：capture 提交输入矩阵（text/image/file tagged union）+ card schema（PRD §7.3：entries / event / todos[] / provenance.processing / group_name / at_source）+ path stub；验证样例卡片 JSON 可反序列化为契约类型（cargo 单测）
-- [ ] 3.7 骨架域：events / timeline_groups / templates / todos（todos.status 为可扩展 enum，DEC-09 弹性）核心字段 + list path stub；验证生成 TS 类型不含未定决策字段
-- [ ] 3.8 Wire 禁用清单不涉及：本组全部类型按 D4 机制编写（tagged enum / skip_serializing_if / snake_case）；验证 `contracts:check` 的 grep 检查脚本对故意注入的 `untagged` 样例显红（负向测试）
+- [x] 3.1 鉴权与错误域全量：401/404/409/422/500 错误码枚举 + 错误信封响应类型；验证 utoipa schema 生成含全部错误码
+- [x] 3.2 笔记基础域全量：create_note / read / search 的请求/响应类型 + path stub（`#[utoipa::path]` 空函数）；search 按 SPEC §5 冻结承诺逐字段对齐（请求 query/filters/top_k → 条目 id/title/snippet/provenance/score）；验证 gen 后 openapi.json 含三路径
+- [x] 3.3 SSE 信封与首批事件类型：信封（type + payload + 事件 id）+ 首批事件（notes/projects/todos 基础变更 + capture 状态）注册进 components + `/api/stream` path stub（GET，响应 media type `text/event-stream`）；验证 TS 侧可导入信封 union、gen 后 openapi.json 含 /api/stream 路径（Mock 仅路由契约内路径，缺此声明 9.1 的 stream 验证将 404）
+- [x] 3.4 stdio JSON-RPC 域：请求/响应/通知/错误信封 + health 方法类型，注册进 components（`Ipc*` 命名）；验证 TS 侧可导入
+- [x] 3.5 实体域全量：projects / stages / tags（list / upsert）类型 + path stub；验证 PRD 字段齐备（含 sensitive 标记、阶段序列、标签计数）
+- [x] 3.6 捕获域全量：capture 提交输入矩阵（text/image/file tagged union）+ card schema（PRD §7.3：entries / event / todos[] / provenance.processing / group_name / at_source）+ path stub；验证样例卡片 JSON 可反序列化为契约类型（cargo 单测）
+- [x] 3.7 骨架域：events / timeline_groups / templates / todos（todos.status 为可扩展 enum，DEC-09 弹性）核心字段 + list path stub；验证生成 TS 类型不含未定决策字段
+- [x] 3.8 Wire 禁用清单不涉及：本组全部类型按 D4 机制编写（tagged enum / skip_serializing_if / snake_case）；验证 `contracts:check` 的 grep 检查脚本对故意注入的 `untagged` 样例显红（负向测试）
 
 ## 4. 生成管线与三端生成物
 
-- [ ] 4.1 gen bin（`src/bin/gen.rs`）：组装 ApiDoc → 写 `contracts/openapi.json`（确定性键排序）；验证两次运行 diff 为空（S5 定稿后固化）
-- [ ] 4.2 openapi-typescript 接入：`contracts/generated/` 组装为 `@jotline/contracts` workspace 包（package.json + 导出入口）；验证 `pnpm --filter app typecheck` 导入 HTTP / SSE / Ipc 类型零错误
-- [ ] 4.3 工具注册表 + 工具 Schema 生成：Rust 侧 `ToolSpec` 静态表（list_projects / create_note / search_content 三个样例）→ deref $ref 自包含 JSON Schema 写 `contracts/tools/`；验证生成文件无外部 $ref
-- [ ] 4.4 根脚本 `pnpm contracts:build`（cargo gen + TS 组装 + 场景校验编排）与 `pnpm contracts:check`（重新生成 + `git diff --exit-code` + Wire grep）；验证：改契约类型一个字段名后 check 显红，重新 build 后 check 零 diff
+- [x] 4.1 gen bin（`src/bin/gen.rs`）：组装 ApiDoc → 写 `contracts/openapi.json`（确定性键排序）；验证两次运行 diff 为空（S5 定稿后固化）
+- [x] 4.2 openapi-typescript 接入：`contracts/generated/` 组装为 `@jotline/contracts` workspace 包（package.json + 导出入口）；验证 `pnpm --filter app typecheck` 导入 HTTP / SSE / Ipc 类型零错误
+- [x] 4.3 工具注册表 + 工具 Schema 生成：Rust 侧 `ToolSpec` 静态表（list_projects / create_note / search_content 三个样例）→ deref $ref 自包含 JSON Schema 写 `contracts/tools/`；验证生成文件无外部 $ref
+- [x] 4.4 根脚本 `pnpm contracts:build`（cargo gen + TS 组装 + 场景校验编排）与 `pnpm contracts:check`（重新生成 + `git diff --exit-code` + Wire grep）；验证：改契约类型一个字段名后 check 显红，重新 build 后 check 零 diff
 
 ## 5. 协议文档 PROTOCOL.md
 
