@@ -2,7 +2,7 @@
 
 ## 1. 仓库引导与工作区骨架
 
-- [ ] 1.1 `git init` + `.gitignore`（`target/` `node_modules/` `dist/`）+ 首次空提交；验证 `git log` 有初始提交
+- [ ] 1.1 git init + `.gitignore`（`._*` / `.DS_Store` / `target/` / `node_modules/` / `dist/`）+ 基线提交（准备阶段已完成则跳过，验证 AppleDouble 文件零入库）
 - [ ] 1.2 根 `package.json` + `pnpm-workspace.yaml`（packages: app / sidecar / contracts/mock / contracts/generated）+ 根脚本占位（`contracts:build` / `contracts:check` / `mock`）；验证 `pnpm install` 零错误
 - [ ] 1.3 工具链版本钉死：`rust-toolchain.toml`、`.node-version`、`package.json` engines + packageManager；验证各工具读取各自钉死版本
 - [ ] 1.4 Biome 初始化：根 `biome.json`（三 TS 包共用，排除 `contracts/generated/**`）+ `pnpm lint` / `pnpm format` 脚本；验证 `pnpm lint` 对占位文件通过
