@@ -1,0 +1,2465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目随手记 · 可交互 PRD v2.0（对齐 PRD.refined v2.0）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E9EE; --bg2:#D6DDE4; --surface:#FBFCFE;
+  --ink:#16202B; --ink62:rgba(22,32,43,.62); --ink40:rgba(22,32,43,.40);
+  --ink08:rgba(22,32,43,.08); --ink05:rgba(22,32,43,.05); --ink15:rgba(22,32,43,.15);
+  --champ:#E8D8AB; --glacier:#ADCBE4; --lake:#A9CFC5; --rose:#DFAEC3; --peri:#B9C0E8; --mist:#A9BCCD;
+  --ok:#34C759; --danger:#E5484D;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --r-lg:24px; --r-md:16px; --r-sm:10px;
+  --sh:0 2px 8px rgba(22,32,43,.05),0 12px 32px rgba(22,32,43,.07);
+  --shh:0 4px 12px rgba(22,32,43,.08),0 20px 48px rgba(22,32,43,.13);
+  --fn:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fn);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.6}
+::selection{background:rgba(173,203,228,.5)}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input{font-family:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+.ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none;display:inline-block;vertical-align:-3px}
+.num{font-family:Inter,'Noto Sans SC',sans-serif;font-weight:900;letter-spacing:-.04em}
+/* ---------- 侧栏 ---------- */
+.sidebar{position:fixed;inset:0 auto 0 0;width:264px;background:var(--bg2);border-right:1px solid rgba(22,32,43,.06);padding:28px 18px 22px;display:flex;flex-direction:column;gap:22px;z-index:60;overflow-y:auto}
+.brand{display:flex;gap:12px;align-items:center;padding:0 6px}
+.brand-mark{width:42px;height:42px;border-radius:50%;background:var(--ink);color:#FBFCFE;display:grid;place-items:center;flex:none}
+.brand-mark .ic{width:19px;height:19px}
+.brand b{font-size:15px;font-weight:800;display:block;line-height:1.3}
+.brand span{font-size:11px;color:var(--ink40);font-family:Inter;font-weight:700;letter-spacing:.04em}
+.nav{display:flex;flex-direction:column;gap:3px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink62);transition:all .18s var(--ease)}
+.nav a .no{font-family:Inter;font-weight:800;font-size:10.5px;width:20px;color:var(--ink40);letter-spacing:-.02em}
+.nav a:hover{background:rgba(22,32,43,.05);color:var(--ink)}
+.nav a.act{background:var(--ink);color:#FBFCFE;font-weight:700}
+.nav a.act .no{color:rgba(251,252,254,.55)}
+.nav a.act::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--champ);margin-left:auto;flex:none}
+.side-note{margin-top:auto;font-size:11px;color:var(--ink40);line-height:1.8;padding:0 6px}
+.side-note b{color:var(--ink62)}
+/* ---------- 主区 ---------- */
+.main{margin-left:264px;padding:56px 56px 140px}
+.wrap{max-width:980px;margin:0 auto}
+.sec{margin-top:110px}
+.sec-head{display:flex;align-items:flex-start;gap:18px}
+.sec-no{font-size:46px;line-height:.95;color:rgba(22,32,43,.16);min-width:66px}
+.sec-head h2{font-size:21px;font-weight:900;letter-spacing:-.01em}
+.sec-scene{font-size:13.5px;color:var(--ink62);margin-top:6px;max-width:620px}
+.sec-tags{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;padding-top:6px}
+.ptag{background:rgba(22,32,43,.06);color:var(--ink62);border-radius:999px;padding:3px 11px;font-size:11px;font-weight:700;white-space:nowrap}
+.watch{margin-top:16px;display:grid;gap:7px;list-style:none}
+.watch li{font-size:13px;color:var(--ink62);line-height:1.75;padding-left:2px}
+.watch b{color:var(--ink)}
+.watch .wn{font-weight:900;color:var(--ink);margin-right:6px}
+.watch code,.b code,.md code{background:var(--bg2);padding:1px 6px;border-radius:6px;font-family:ui-monospace,'SF Mono',Consolas,monospace;font-size:.88em}
+.panel{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--sh);border:1px solid rgba(22,32,43,.04)}
+.demo{margin-top:22px;padding:24px}
+.demo-bar{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.demo-title{display:flex;gap:9px;align-items:center;font-weight:800;font-size:14px}
+.demo-title .ic{color:var(--ink40)}
+.bar-r{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border-radius:999px;padding:10px 20px;font-size:13.5px;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:all .18s var(--ease);letter-spacing:.01em}
+.btn-primary{background:var(--ink);color:#FBFCFE}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(22,32,43,.22)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-soft{background:var(--ink08);color:var(--ink)}
+.btn-soft:hover{background:rgba(22,32,43,.13)}
+.btn-ghost{border:1.5px solid rgba(22,32,43,.22);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-sm{padding:7px 14px;font-size:12.5px}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:var(--ink08);display:grid;place-items:center;transition:transform .18s var(--ease),background .18s var(--ease)}
+.icon-btn:hover{transform:rotate(90deg);background:rgba(22,32,43,.14)}
+.icon-btn.sm{width:28px;height:28px}
+.icon-btn.sm .ic{width:13px;height:13px}
+.icon-btn.danger:hover{background:rgba(229,72,77,.12);color:var(--danger)}
+.chip{border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:600;background:var(--ink08);color:var(--ink);transition:all .18s var(--ease)}
+.chip:hover{background:rgba(22,32,43,.14)}
+.chip.on{background:var(--ink);color:#FBFCFE}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.seg{display:inline-flex;background:var(--bg2);border-radius:999px;padding:4px;gap:4px}
+.seg button{border-radius:999px;padding:8px 18px;font-size:12.5px;font-weight:700;color:var(--ink62);transition:all .18s var(--ease)}
+.seg button.on{background:var(--ink);color:#FBFCFE}
+.well{background:var(--bg2);border-radius:var(--r-md);padding:18px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+.pill-ink{background:var(--ink);color:#FBFCFE;border-radius:999px;padding:4px 12px;font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.pill-line{border:1.5px solid rgba(22,32,43,.2);border-radius:999px;padding:3px 11px;font-size:11.5px;font-weight:700;color:var(--ink62);display:inline-flex;align-items:center;gap:5px}
+.pill-danger{border:1.5px solid rgba(229,72,77,.45);color:var(--danger);border-radius:999px;padding:3px 11px;font-size:11px;font-weight:700}
+.pill-ok{border:1.5px solid rgba(52,199,89,.4);color:#1f9d43;border-radius:999px;padding:3px 11px;font-size:11px;font-weight:700}
+.badge{min-width:18px;height:18px;border-radius:999px;background:var(--ink);color:#FBFCFE;font-family:Inter;font-size:11px;font-weight:800;display:grid;place-items:center;padding:0 5px}
+.flash{animation:flash .7s var(--ease)}
+@keyframes flash{0%{background:rgba(22,32,43,.09);border-radius:12px}100%{background:transparent}}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* Hero */
+.hero{padding-top:12px}
+.eyebrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.eyebrow .pill-line{background:var(--surface)}
+.hero h1{font-size:52px;font-weight:900;letter-spacing:-.03em;line-height:1.15}
+.hero-sub{margin-top:16px;font-size:15.5px;color:var(--ink62);max-width:660px;line-height:1.9}
+.hero-sub b{color:var(--ink)}
+.flow-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:26px}
+.fstep{background:var(--surface);border:1px solid rgba(22,32,43,.07);box-shadow:0 1px 4px rgba(22,32,43,.04);border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:700}
+.fstep.hot{background:var(--ink);color:#FBFCFE;border-color:var(--ink)}
+.farr{color:var(--ink40);width:14px;height:14px}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:32px}
+.stat{background:var(--surface);border-radius:20px;padding:20px 22px;box-shadow:var(--sh);border:1px solid rgba(22,32,43,.04);transition:transform .32s var(--ease),box-shadow .32s var(--ease)}
+.stat:hover{transform:translateY(-4px);box-shadow:var(--shh)}
+.stat .v{font-size:44px;line-height:1.05}
+.stat .v small{font-size:22px;font-weight:800}
+.stat .l{font-size:12px;color:var(--ink62);margin-top:8px;font-weight:600}
+.stat .s{font-size:11px;color:var(--ink40);margin-top:2px}
+.principle{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.principle .pill-line{font-weight:600}
+.pain{margin-top:20px;padding:20px 24px;display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.pain .pi{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--ink62);line-height:1.6;flex:1;min-width:200px}
+.pain .pi .ic{color:var(--danger);margin-top:3px;width:14px;height:14px}
+.pain .pc{font-size:13px;font-weight:800;border-left:2px solid var(--ink15);padding-left:20px;flex:1.2;min-width:220px;line-height:1.7}
+.hero-cta{margin-top:30px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hero-cta .hint{font-size:12px;color:var(--ink40)}
+/* ---------- 01 浮窗 ---------- */
+.s1duo{display:grid;grid-template-columns:1fr 1.05fr;gap:22px;margin-top:6px}
+.qpstate{display:flex;gap:12px;padding:14px 16px;background:var(--bg2);border-radius:16px;margin-bottom:10px}
+.qs-ic{width:36px;height:36px;border-radius:50%;background:var(--surface);display:grid;place-items:center;flex:none;box-shadow:0 1px 3px rgba(22,32,43,.08)}
+.qs-ic .ic{width:16px;height:16px}
+.qpstate b{font-size:13px;font-weight:800}
+.qpstate b em{font-style:normal;font-family:Inter;font-weight:800;font-size:10px;color:var(--ink40);margin-left:6px;letter-spacing:.06em}
+.qpstate p{font-size:12px;color:var(--ink62);margin-top:3px;line-height:1.7}
+.keys{display:grid;gap:7px;margin-top:4px}
+.keyrow{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink62);line-height:1.6}
+.keyrow kbd{font-family:Inter;font-weight:800;font-size:10.5px;background:var(--surface);border:1px solid rgba(22,32,43,.14);border-radius:7px;padding:3px 8px;box-shadow:0 1.5px 0 rgba(22,32,43,.08);white-space:nowrap}
+.whylist{margin-top:14px;padding-top:14px;border-top:1px dashed rgba(22,32,43,.1);display:grid;gap:7px}
+.whylist div{font-size:12px;color:var(--ink62);line-height:1.7;display:flex;gap:8px}
+.whylist .ic{width:13px;height:13px;margin-top:3px;color:var(--ink40);flex:none}
+.whylist b{color:var(--ink)}
+.openrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.openrow .note{width:100%;font-size:11px;color:var(--ink40)}
+.subhead{display:flex;align-items:center;gap:12px;margin:28px 0 6px;font-size:12px;font-weight:800;color:var(--ink62)}
+.subhead::after{content:'';flex:1;height:1.5px;background:rgba(22,32,43,.08)}
+.subhead .pill-line{font-weight:600;font-size:10.5px}
+/* ---------- 捕获管线 ---------- */
+.cap-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:start}
+.cap-win{background:var(--surface);border:1px solid rgba(22,32,43,.08);border-radius:18px;box-shadow:var(--sh);overflow:hidden}
+.cap-head{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--bg2);font-size:12px;font-weight:700;color:var(--ink62)}
+.cap-dots{display:flex;gap:5px}
+.cap-dots i{width:9px;height:9px;border-radius:50%;background:rgba(22,32,43,.18)}
+.cap-clock{margin-left:auto;font-family:Inter;font-weight:700;font-size:10.5px;color:var(--ink40);letter-spacing:.03em}
+.cap-body{padding:16px;transition:max-height .32s var(--ease),opacity .32s var(--ease),padding .32s var(--ease);max-height:460px}
+.cap-win.min .cap-body{max-height:0;opacity:0;padding:0 16px;overflow:hidden}
+.minbar{display:none;width:100%;text-align:left;padding:13px 16px;font-size:12px;font-weight:600;color:var(--ink62);transition:background .18s}
+.minbar:hover{background:var(--ink05)}
+.cap-win.min .minbar{display:block}
+.cap-drop{border:2px dashed rgba(22,32,43,.18);border-radius:14px;padding:30px 20px;text-align:center;color:var(--ink40)}
+.cap-drop .ic{width:30px;height:30px;stroke-width:1.6}
+.cap-drop p{font-size:13.5px;font-weight:700;color:var(--ink62);margin-top:10px}
+.cap-drop span{font-size:11.5px;display:block;margin-top:4px}
+.cap-shot{background:#1d2833;border-radius:12px;padding:16px 18px;display:grid;gap:9px}
+.cap-shot i{display:block;height:8px;border-radius:4px;background:rgba(251,252,254,.22)}
+.cap-shot .w70{width:70%}.cap-shot .w50{width:50%}.cap-shot .w80{width:80%}
+.cap-shot .err{background:rgba(229,72,77,.18);color:#f0b6b9;font-family:ui-monospace,monospace;font-size:11.5px;height:auto;width:fit-content;padding:3px 8px;border-radius:6px}
+.cap-txt{background:var(--bg2);border-radius:12px;padding:16px 18px;display:grid;gap:9px}
+.cap-txt i{display:block;height:8px;border-radius:4px;background:rgba(22,32,43,.14)}
+.cap-file{background:var(--bg2);border-radius:12px;padding:16px 18px;display:flex;gap:12px;align-items:center}
+.cap-file .ic{width:26px;height:26px;color:var(--ink62)}
+.cap-file b{font-size:13px;display:block}
+.cap-file span{font-size:11.5px;color:var(--ink40)}
+.cap-agg{margin-top:10px;background:rgba(232,216,171,.5);border-radius:12px;padding:9px 13px;font-size:12px;font-weight:700;display:flex;gap:8px;align-items:center;animation:up .3s var(--ease)}
+.cap-agg .ic{width:13px;height:13px}
+.cap-recv{margin-top:12px;display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:700;animation:up .32s var(--ease)}
+.cap-recv .ic{color:var(--ok)}
+.cap-recv em{font-style:normal;font-family:Inter;font-weight:800;letter-spacing:-.02em}
+.cap-actions{margin-top:14px;display:flex;justify-content:flex-end}
+.pipe{display:flex;margin-top:4px}
+.pstep{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;text-align:center;padding:0 2px}
+.pstep:not(:first-child)::before{content:'';position:absolute;top:8px;right:50%;width:100%;height:2px;background:rgba(22,32,43,.1)}
+.pstep .pdot{width:16px;height:16px;border-radius:50%;background:var(--surface);border:2px solid rgba(22,32,43,.2);position:relative;z-index:1;transition:all .18s var(--ease)}
+.pstep.act .pdot{border-color:var(--ink);animation:pulse 1.1s var(--ease) infinite}
+@keyframes pulse{50%{transform:scale(1.22)}}
+.pstep.done .pdot{background:var(--ink);border-color:var(--ink);box-shadow:inset 0 0 0 3px var(--surface)}
+.pstep.skip .pdot{border-style:dashed}
+.ptxt b{font-size:11px;font-weight:600;color:var(--ink40);display:block;line-height:1.4}
+.pstep.done .ptxt b,.pstep.act .ptxt b{color:var(--ink)}
+.ptime{font-family:Inter;font-weight:800;font-size:10px;color:var(--ink40);font-style:normal;letter-spacing:-.02em;min-height:13px;display:block}
+.cap-note{font-size:11.5px;color:var(--ink40);margin-top:14px;line-height:1.7}
+.cap-result{margin-top:16px;border-top:1px dashed rgba(22,32,43,.12);padding-top:16px;animation:up .4s var(--ease)}
+.okline{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:800}
+.okline .ic{color:var(--ok)}
+.okline em{font-style:normal;font-family:Inter;font-weight:900;letter-spacing:-.03em}
+.mini-card{margin-top:12px;background:var(--bg2);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;font-size:12.5px;font-weight:600}
+.mini-card .dot{background:var(--rose)}
+.mini-card small{color:var(--ink40);font-weight:500;margin-left:auto;font-size:11px}
+.cap-result .btn{margin-top:12px}
+.tray{display:inline-flex;align-items:center;gap:9px;background:var(--bg2);border-radius:999px;padding:8px 15px;margin-top:18px;font-size:12px;font-weight:700;color:var(--ink62)}
+.tray .badge{background:var(--ink)}
+/* ---------- 02 操作卡片 ---------- */
+.card-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:20px;align-items:start}
+.opcard{background:var(--surface);border:1px solid rgba(22,32,43,.08);border-radius:20px;box-shadow:var(--sh);padding:22px;position:relative}
+.opcard::before{content:'';position:absolute;left:22px;right:22px;top:0;height:4px;border-radius:0 0 6px 6px;background:var(--glacier)}
+.op-top{display:flex;align-items:center;gap:10px;padding-top:6px;flex-wrap:wrap}
+.op-id{font-size:13px;color:var(--ink40)}
+.chan{border:1.5px solid rgba(22,32,43,.14);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--ink62);display:inline-flex;gap:6px;align-items:center;background:var(--surface)}
+.chan .ic{width:12px;height:12px}
+.op-rows{margin-top:16px;display:grid;gap:11px}
+.op-row{display:flex;gap:12px;align-items:baseline;padding:8px 12px;border-radius:12px;transition:background .18s}
+.op-row label{font-size:11px;font-weight:800;color:var(--ink40);width:34px;flex:none;letter-spacing:.06em}
+.op-body{flex:1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px}
+.proj-pill{display:inline-flex;align-items:center;gap:7px;background:var(--ink08);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:800;transition:background .18s}
+.proj-pill:hover{background:rgba(22,32,43,.15)}
+.proj-pill .dot{background:var(--glacier)}
+.conf{font-family:Inter;font-weight:800;font-size:10px;letter-spacing:.05em;background:var(--bg2);border-radius:999px;padding:3px 9px;color:var(--ink62);text-transform:uppercase}
+.reason{font-size:12px;color:var(--ink40);width:100%;padding-left:2px}
+.dirv{font-family:ui-monospace,monospace;font-size:12.5px;font-weight:700;background:var(--bg2);padding:5px 12px;border-radius:9px}
+.tagt{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid rgba(22,32,43,.1);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:600}
+.tagt .x{color:var(--ink40);display:grid;place-items:center}
+.tagt .x:hover{color:var(--danger)}
+.tagt .x .ic{width:10px;height:10px}
+.tagadd{border:1.5px dashed rgba(22,32,43,.25);border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--ink62);transition:all .18s}
+.tagadd:hover{border-color:var(--ink);color:var(--ink)}
+.evline{font-size:12.5px;color:var(--ink62);display:flex;gap:7px;align-items:center}
+.evline .dot{background:var(--rose)}
+.op-md{margin-top:14px;background:var(--bg2);border-radius:14px;padding:16px 18px}
+.op-md label{font-size:10.5px;font-weight:800;color:var(--ink40);letter-spacing:.08em}
+.md{margin-top:8px;font-size:13px;color:var(--ink)}
+.md h5{font-size:13px;font-weight:800;margin:8px 0 4px}
+.md ul{padding-left:18px;color:var(--ink62);font-size:12.5px;display:grid;gap:3px}
+.md .todo{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink62);margin-top:6px}
+.md .todo i{width:12px;height:12px;border:2px solid rgba(22,32,43,.3);border-radius:4px;display:inline-block}
+.md .todo .champ{position:relative}
+.md .todo .champ::after{content:'';position:absolute;top:-3px;right:-7px;width:6px;height:6px;border-radius:50%;background:var(--champ);box-shadow:0 0 0 2px var(--bg2)}
+.md .lowconf{font-size:10px;color:var(--ink40);font-weight:700}
+.op-src{margin-top:14px;font-size:11.5px;color:var(--ink40);display:flex;gap:8px;align-items:center;flex-wrap:wrap;line-height:1.8}
+.op-actions{margin-top:16px;display:flex;gap:10px}
+.op-done{margin-top:16px;border-radius:14px;padding:13px 16px;font-size:13px;font-weight:600;display:flex;gap:9px;align-items:flex-start;line-height:1.7;animation:up .4s var(--ease)}
+.op-done.ok{background:rgba(52,199,89,.1)}
+.op-done.off{background:var(--bg2)}
+.op-done .ic{margin-top:4px}
+.op-done a{font-weight:800;text-decoration:underline;text-underline-offset:3px}
+.menu{position:absolute;top:calc(100% + 6px);left:0;background:var(--surface);border-radius:16px;box-shadow:var(--shh);border:1px solid rgba(22,32,43,.06);padding:8px;min-width:300px;z-index:40;display:none}
+.menu.open{display:block;animation:up .28s var(--ease)}
+.menu button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:11px;transition:background .15s}
+.menu button:hover{background:var(--bg2)}
+.menu button b{font-size:13px;display:flex;gap:8px;align-items:center}
+.menu button span{font-size:11.5px;color:var(--ink40);display:block;margin-top:2px}
+.opchat{margin-top:20px;border-top:1px dashed rgba(22,32,43,.12);padding-top:16px}
+.chatlog{display:grid;gap:4px;min-height:24px}
+.msg{display:flex;gap:10px;margin-top:10px;animation:up .32s var(--ease)}
+.msg.user{flex-direction:row-reverse}
+.msg .av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;flex:none}
+.msg.user .av{background:var(--ink);color:#FBFCFE}
+.msg.ai .av{background:var(--surface);border:1.5px solid rgba(22,32,43,.15);color:var(--ink)}
+.msg.ai .av .ic{width:13px;height:13px}
+.msg .b{max-width:80%;padding:10px 15px;border-radius:16px;font-size:13px;line-height:1.7}
+.msg.user .b{background:var(--ink);color:#FBFCFE;border-top-right-radius:6px}
+.msg.ai .b{background:var(--bg2);border-top-left-radius:6px}
+.msg.ai .b b{font-weight:800}
+.chat-in{display:flex;gap:8px;margin-top:14px}
+.chat-in input{flex:1;border:1.5px solid rgba(22,32,43,.15);background:var(--surface);border-radius:999px;padding:11px 18px;font-size:13px;outline:none;transition:border .18s}
+.chat-in input:focus{border-color:var(--ink)}
+.chat-in .btn{padding:11px 18px}
+.chat-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.side-card{background:var(--bg2);border-radius:20px;padding:20px}
+.side-card h4{font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center}
+.side-card h4 .ic{width:14px;height:14px;color:var(--ink40)}
+.side-card p{font-size:12px;color:var(--ink62);margin-top:8px;line-height:1.8}
+.histcard{margin-top:12px;background:var(--surface);border-radius:12px;padding:12px 14px;font-size:12px}
+.histcard .row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.histcard .t{font-weight:700}
+.histcard small{color:var(--ink40);font-size:10.5px;display:block;margin-top:5px;line-height:1.6}
+.switch-row{display:flex;align-items:center;gap:12px;margin-top:12px}
+.switch-row span{font-size:12.5px;font-weight:700}
+.switch{width:44px;height:26px;border-radius:999px;background:rgba(22,32,43,.16);position:relative;transition:background .18s var(--ease);flex:none}
+.switch::after{content:'';position:absolute;width:20px;height:20px;border-radius:50%;background:#FBFCFE;top:3px;left:3px;transition:left .18s var(--ease);box-shadow:0 1px 3px rgba(22,32,43,.25)}
+.switch.on{background:var(--ink)}
+.switch.on::after{left:21px}
+.sw-note{font-size:11px;color:var(--ink40);margin-top:10px;line-height:1.7}
+/* ---------- 03 记忆 ---------- */
+.mem-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:20px;align-items:start}
+.layer-card{border-radius:18px;padding:18px 20px;transition:all .32s var(--ease);border:1.5px solid transparent}
+.layer-card.g{background:var(--surface);box-shadow:var(--sh)}
+.layer-card.p{background:var(--surface);box-shadow:var(--sh);margin-top:14px}
+.layer-card.hl{border-color:var(--ink);transform:translateY(-2px)}
+.layer-card h5{display:flex;gap:9px;align-items:center;font-size:13.5px;font-weight:800;flex-wrap:wrap}
+.layer-card h5 code{font-size:11px;background:var(--bg2);padding:2px 8px;border-radius:7px;font-weight:500;color:var(--ink62)}
+.layer-card ul{list-style:none;margin-top:10px;display:grid;gap:6px}
+.layer-card li{font-size:12.5px;color:var(--ink62);display:flex;gap:8px;align-items:baseline}
+.layer-card li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--ink15);flex:none;position:relative;top:-2px}
+.route-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.route-exp{margin-top:12px;font-size:12.5px;color:var(--ink62);background:var(--bg2);border-radius:12px;padding:12px 14px;line-height:1.8;min-height:64px}
+.fix-box{margin-top:20px;border-top:1px dashed rgba(22,32,43,.12);padding-top:18px}
+.fix-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.fix-dots{display:flex;gap:6px}
+.fix-dots i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(22,32,43,.22);transition:all .18s var(--ease)}
+.fix-dots i.f{background:var(--ink);border-color:var(--ink)}
+.fix-state{font-size:12.5px;font-weight:800;display:flex;gap:8px;align-items:center}
+.fix-state .dot{background:var(--champ);box-shadow:0 0 0 3px var(--bg2)}
+.fix-demo{margin-top:14px;background:var(--bg2);border-radius:14px;padding:14px 16px;font-size:12.5px;display:none;gap:10px;align-items:center;line-height:1.7}
+.fix-demo.show{display:flex;animation:up .4s var(--ease)}
+.mem-list{margin-top:12px;display:grid;gap:8px}
+.mem-row{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid rgba(22,32,43,.05);border-radius:14px;padding:12px 16px;box-shadow:0 1px 4px rgba(22,32,43,.03)}
+.mscope{font-size:10.5px;font-weight:800;border-radius:999px;padding:3px 10px;flex:none;letter-spacing:.02em}
+.mscope.g{background:var(--bg2);color:var(--ink62)}
+.mscope.p{background:rgba(173,203,228,.4);color:var(--ink)}
+.mmain{flex:1;min-width:0}
+.mmain b{font-size:12.5px;display:block}
+.mmain span{font-size:12px;color:var(--ink62);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.medit{width:100%;font-size:12px;border:1.5px solid var(--ink);border-radius:8px;padding:4px 8px;outline:none;background:var(--surface)}
+.msrc{font-size:10.5px;font-weight:700;color:var(--ink40);flex:none}
+.msrc.ex{color:var(--ink)}
+.mn{font-family:Inter;font-weight:800;font-size:11px;color:var(--ink62);flex:none;letter-spacing:-.02em}
+.mem-metrics{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.mm{background:var(--surface);border-radius:16px;padding:16px 20px;box-shadow:var(--sh)}
+.mm .v{font-size:30px}
+.mm .l{font-size:11.5px;color:var(--ink62);margin-top:4px;font-weight:600}
+/* ---------- 04 三视图 ---------- */
+.reach{margin-top:14px;background:var(--bg2);border-radius:14px;padding:13px 16px;font-size:12.5px;color:var(--ink62);display:none;gap:8px;align-items:center;line-height:1.7;animation:up .3s var(--ease)}
+.reach.show{display:flex}
+.reach b{color:var(--ink)}
+.views-panel{margin-top:20px;padding:8px 24px 24px}
+.vp{display:none}
+.vp.on{display:block;animation:up .32s var(--ease)}
+.foldbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 4px}
+.fchip{display:inline-flex;gap:7px;align-items:center;background:#fff;border:1px solid rgba(22,32,43,.12);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all .18s var(--ease)}
+.fchip:hover{border-color:var(--ink)}
+.fchip.on{background:var(--ink);color:#FBFCFE;border-color:var(--ink)}
+.fchip .n{font-family:Inter;font-weight:800;font-size:10px;color:var(--ink40)}
+.fchip.on .n{color:rgba(251,252,254,.6)}
+.fchip .fx{width:15px;height:15px;border-radius:50%;display:grid;place-items:center;color:var(--ink40)}
+.fchip.on .fx:hover{color:#FBFCFE;background:rgba(251,252,254,.18)}
+.fchip .fx .ic{width:9px;height:9px}
+.foldrow{display:flex;gap:10px;align-items:center;background:var(--bg2);border-radius:12px;padding:10px 16px;margin:6px 0;font-size:12.5px;font-weight:700;cursor:pointer;animation:up .3s var(--ease);width:fit-content}
+.foldrow .ic{width:13px;height:13px;color:var(--ink40)}
+.foldrow small{color:var(--ink40);font-weight:600}
+.selmode-bar{display:none;background:var(--ink);color:#FBFCFE;border-radius:14px;padding:10px 14px;margin:10px 0 4px;gap:10px;align-items:center;flex-wrap:wrap;animation:up .3s var(--ease)}
+.selmode-bar.show{display:flex}
+.selmode-bar input{background:rgba(251,252,254,.15);border:0;border-radius:999px;color:#FBFCFE;padding:7px 15px;font-size:12.5px;outline:none;width:200px}
+.selmode-bar input::placeholder{color:rgba(251,252,254,.5)}
+.seltxt{color:rgba(251,252,254,.7);font-size:12px;font-weight:700;padding:6px 10px}
+.seltxt:hover{color:#FBFCFE}
+.stg{display:flex;align-items:center;gap:12px;margin:22px 0 6px;font-size:12px;font-weight:800;color:var(--ink62)}
+.stg::after{content:'';flex:1;height:1.5px;background:rgba(22,32,43,.08)}
+.stg .pill-line{font-weight:600;font-size:10.5px;padding:2px 9px}
+.tl{position:relative}
+.ev{position:relative;display:flex;gap:14px;padding:11px 12px;border-radius:14px;cursor:pointer;transition:background .18s var(--ease),box-shadow .18s var(--ease);align-items:flex-start}
+.ev:hover{background:rgba(22,32,43,.045)}
+.ev::before{content:'';position:absolute;left:17px;top:0;bottom:0;width:2px;background:rgba(22,32,43,.07)}
+.ev:first-child::before{top:18px}
+.ev:last-child::before{bottom:auto;height:18px}
+.ev.sel{background:rgba(22,32,43,.06);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.ev-dot{width:12px;height:12px;border-radius:50%;background:var(--c,var(--mist));margin-top:5px;position:relative;z-index:1;box-shadow:0 0 0 3.5px var(--surface);flex:none}
+.ev-main{flex:1;min-width:0}
+.ev-main b{font-size:13.5px;font-weight:700;display:block}
+.ev-meta{font-size:11.5px;color:var(--ink40);display:block;margin-top:2px}
+.ev-b{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.vchip{font-size:10px;font-weight:800;border-radius:999px;padding:2px 9px;letter-spacing:.03em}
+.ev.void{opacity:.55}
+.ev.void .ev-main b{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:rgba(22,32,43,.35)}
+.void-audit{margin:2px 0 6px 44px;font-size:11.5px;color:var(--ink62);background:var(--bg2);border-radius:10px;padding:10px 14px;line-height:1.7;display:none}
+.void-audit.show{display:block;animation:up .3s var(--ease)}
+.rebuilt{font-size:11px;color:var(--ink40);display:flex;gap:6px;align-items:center;margin-top:3px}
+.rebuilt .ic{width:11px;height:11px}
+.dir-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:20px;margin-top:8px}
+.dtree{list-style:none;display:grid;gap:2px}
+.dtree li{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:11px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+.dtree li:hover{background:rgba(22,32,43,.045)}
+.dtree li.on{background:var(--bg2)}
+.dtree li .ic{width:15px;height:15px;color:var(--ink40)}
+.dtree li .n{margin-left:auto;font-family:Inter;font-weight:800;font-size:11px;color:var(--ink40)}
+.dtree li.sub{padding-left:38px}
+.dtree li .lockdot{margin-left:4px}
+.ditems{display:grid;gap:8px;align-content:start}
+.ditem{background:var(--bg2);border-radius:12px;padding:11px 14px;font-size:12.5px;display:flex;gap:9px;align-items:center;cursor:pointer;transition:all .18s var(--ease)}
+.ditem:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.ditem .ic{width:14px;height:14px;color:var(--ink40)}
+.ditem small{color:var(--ink40);margin-left:auto;font-size:10.5px;flex:none}
+.tagcloud{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.tagc{display:inline-flex;gap:8px;align-items:center;background:#fff;border:1px solid rgba(22,32,43,.1);border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer;transition:all .18s var(--ease)}
+.tagc:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.tagc.on{background:var(--ink);color:#FBFCFE;border-color:var(--ink)}
+.tagc .n{font-family:Inter;font-weight:800;font-size:10.5px;color:var(--ink40)}
+.tagc.on .n{color:rgba(251,252,254,.6)}
+.merge-note{margin-top:14px;font-size:11.5px;color:var(--ink40);display:flex;gap:8px;align-items:center}
+/* ---------- 05 待办中心 ---------- */
+.tstats{display:flex;gap:6px;align-items:baseline;font-size:12.5px;color:var(--ink62);font-weight:600;margin-bottom:14px;flex-wrap:wrap}
+.tstats b{font-family:Inter;font-weight:900;font-size:16px;color:var(--ink);letter-spacing:-.02em}
+.tstats .sep{color:var(--ink40);margin:0 6px}
+.td-hero,.td-med,.td-row{border-radius:24px;padding:22px 24px;position:relative;box-shadow:var(--sh);transition:transform .32s var(--ease),box-shadow .32s var(--ease),opacity .32s var(--ease)}
+.td-hero:hover,.td-med:hover,.td-row:hover{transform:translateY(-4px);box-shadow:var(--shh)}
+.td-hero{background:var(--champ)}
+.c-glacier{background:var(--glacier)}.c-rose{background:var(--rose)}.c-lake{background:var(--lake)}.c-mist{background:var(--mist)}
+.td-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.td-row{margin-top:14px;display:flex;gap:14px;align-items:center;border-radius:20px;padding:16px 20px}
+.td-top{display:flex;align-items:center;gap:10px}
+.tpill{background:rgba(251,252,254,.85);border-radius:999px;padding:5px 13px;font-size:11.5px;font-weight:800;display:inline-flex;gap:7px;align-items:center}
+.tpill .dot{width:7px;height:7px}
+.avars{display:flex;margin-left:auto}
+.avar{width:34px;height:34px;border-radius:50%;background:#FBFCFE;display:grid;place-items:center;font-weight:800;font-size:12px;border:2.5px solid rgba(22,32,43,.12);margin-left:-8px}
+.corbtn{width:32px;height:32px;border-radius:50%;background:rgba(251,252,254,.75);display:grid;place-items:center;transition:transform .18s var(--ease),background .18s var(--ease);flex:none}
+.corbtn:hover{transform:rotate(90deg);background:#FBFCFE}
+.ttime{font-size:48px;line-height:1;margin-top:16px}
+.ttime small{font-size:15px;font-weight:800;margin-left:8px;letter-spacing:0}
+.tsub{font-size:11.5px;color:rgba(22,32,43,.55);font-weight:600;margin-top:3px}
+.tt{font-weight:800;font-size:14.5px;line-height:1.5}
+.td-bot{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.tsrc{background:rgba(251,252,254,.75);border-radius:999px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--ink62);display:inline-flex;gap:6px;align-items:center;transition:background .18s var(--ease)}
+.tsrc:hover{background:#FBFCFE}
+.tsrc .ic{width:11px;height:11px}
+.tcheck{width:38px;height:38px;border-radius:50%;background:rgba(251,252,254,.9);display:grid;place-items:center;transition:all .18s var(--ease);flex:none}
+.tcheck .ic{color:var(--ink62)}
+.tcheck:hover{transform:scale(1.1);background:#FBFCFE}
+.tcheck.sm{width:32px;height:32px}
+.tdone{opacity:.55}
+.tdone .tt{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:rgba(22,32,43,.4)}
+.tdone .tcheck{background:var(--ink)}
+.tdone .tcheck .ic{color:#FBFCFE}
+/* 日历 */
+.cal-head{display:flex;align-items:center;gap:12px;margin:4px 0 16px}
+.cal-head .big{font-size:34px}
+.cal-head .yr{font-family:Inter;font-weight:800;font-size:15px;color:var(--ink40);letter-spacing:-.02em}
+.cal-nav{margin-left:auto;display:flex;gap:8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;max-width:420px}
+.cwd{text-align:center;font-family:Inter;font-size:10px;font-weight:800;color:var(--ink40);letter-spacing:.06em;padding:4px 0}
+.cd{aspect-ratio:1;max-width:52px;width:100%;margin:0 auto;border-radius:50%;display:grid;place-items:center;font-family:Inter;font-weight:700;font-size:12.5px;color:rgba(22,32,43,.38);background:rgba(22,32,43,.045);cursor:pointer;transition:all .18s var(--ease);position:relative}
+.cd:hover{transform:scale(1.1)}
+.cd.blank{visibility:hidden;cursor:default}
+.cd.has{color:var(--ink);font-weight:800}
+.cd.sel{box-shadow:0 0 0 2.5px var(--surface),0 0 0 4.5px var(--ink)}
+.cd.today::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px rgba(251,252,254,.9)}
+.cal-detail{margin-top:18px;background:var(--bg2);border-radius:18px;padding:16px 20px}
+.cd-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.cdi{display:flex;gap:9px;align-items:center;font-size:12.5px;padding:8px 2px;border-bottom:1px dashed rgba(22,32,43,.08)}
+.cdi:last-child{border:0}
+.cdi .t{font-weight:700}
+.cdi small{color:var(--ink40);margin-left:auto;font-size:11px;flex:none}
+/* 图片弹层 */
+.ovl{position:fixed;inset:0;background:rgba(22,32,43,.45);display:none;align-items:center;justify-content:center;z-index:90;padding:24px}
+.ovl.open{display:flex;animation:up .3s var(--ease)}
+.ph{background:var(--surface);border-radius:24px;max-width:780px;width:100%;padding:22px;box-shadow:var(--shh);display:grid;grid-template-columns:1.1fr .9fr;gap:18px;max-height:88vh;overflow:auto}
+.phimg{background:#F1F3F5;border-radius:16px;aspect-ratio:4/3;position:relative;overflow:hidden;border:1px solid rgba(22,32,43,.06)}
+.blframe{position:absolute;inset:13% 9% 32% 9%;border:2px solid rgba(22,32,43,.13);border-radius:10px}
+.bl{position:absolute;height:7px;border-radius:4px;background:rgba(22,32,43,.17)}
+.bl.hl{background:var(--champ);height:10px}
+.blbox{position:absolute;width:12px;height:12px;border:2.5px solid rgba(22,32,43,.45);border-radius:3px}
+.ph-cap{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:ui-monospace,monospace;font-size:10px;color:var(--ink40)}
+.ph h5{font-size:13.5px;font-weight:800;display:flex;gap:8px;align-items:center}
+.ocrbox{background:var(--bg2);border-radius:12px;padding:12px 14px;font-family:ui-monospace,monospace;font-size:11px;line-height:2.1;margin-top:10px;color:var(--ink62)}
+.ocrbox .hl{background:var(--champ);color:var(--ink);border-radius:5px;padding:1px 5px;font-weight:700}
+.ph-note{font-size:11.5px;color:var(--ink62);margin-top:10px;line-height:1.8;display:flex;gap:7px}
+.ph-note .ic{width:13px;height:13px;margin-top:3px;flex:none}
+.ph-btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+/* ---------- 06 问答 ---------- */
+.trace{background:var(--bg2);border-radius:14px;padding:13px 16px;display:grid;gap:6px;margin-top:10px}
+.tline{font-family:ui-monospace,'SF Mono',Consolas,monospace;font-size:11.5px;color:var(--ink62);display:flex;gap:9px;align-items:baseline;animation:up .3s var(--ease);line-height:1.6}
+.tline .ic{width:12px;height:12px;position:relative;top:2px;color:var(--ink40)}
+.tline b{color:var(--ink);font-weight:700}
+.qa-stats{font-family:Inter;font-weight:800;font-size:11px;color:var(--ink40);letter-spacing:.02em;margin-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.cite{margin-top:9px;padding:10px 13px;background:var(--surface);border-left:3px solid var(--glacier);border-radius:10px;font-size:12px;color:var(--ink62);line-height:1.7}
+.msg.ai .b .cite{background:#fff}
+.gapnote{font-size:12px;color:var(--ink40);margin-top:8px}
+.cmd-wrap{margin-top:20px}
+.cmd-bar{display:flex;align-items:center;gap:11px;background:var(--surface);border:1.5px solid rgba(22,32,43,.12);border-radius:999px;padding:11px 20px;box-shadow:var(--sh)}
+.cmd-bar .ic{color:var(--ink40)}
+.cmd-bar input{flex:1;border:0;outline:none;font-size:13.5px;background:transparent}
+.cmd-bar kbd{font-family:Inter;font-weight:800;font-size:10.5px;background:var(--bg2);border-radius:7px;padding:3px 8px;color:var(--ink62)}
+.cmd-list{margin-top:10px;display:grid;gap:6px;max-height:240px;overflow:auto}
+.cmd-item{display:flex;gap:11px;align-items:center;padding:10px 16px;border-radius:12px;font-size:13px;cursor:pointer;transition:background .15s}
+.cmd-item:hover{background:rgba(22,32,43,.05)}
+.cmd-item .ic{width:15px;height:15px;color:var(--ink40)}
+.cmd-item small{margin-left:auto;color:var(--ink40);font-size:11px;flex:none}
+.cmd-detail{margin-top:10px;font-size:12px;color:var(--ink62);background:var(--bg2);border-radius:10px;padding:10px 15px;display:none}
+.cmd-detail.show{display:block;animation:up .3s var(--ease)}
+/* ---------- 07 凭证 ---------- */
+.cred-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:start}
+.cred-step{border-radius:18px;background:var(--bg2);padding:18px 20px;margin-top:14px;transition:opacity .32s}
+.cred-step.first{margin-top:0}
+.cred-step.locked{opacity:.45;pointer-events:none}
+.cred-step h5{font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cred-step h5 .num{font-size:13px;color:var(--ink40)}
+.cred-diff{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-top:14px}
+.cd-box{background:var(--surface);border-radius:12px;padding:13px 15px;font-family:ui-monospace,monospace;font-size:11.5px;line-height:2;min-height:118px}
+.cd-box label{display:block;font-family:var(--fn);font-size:10px;font-weight:800;color:var(--ink40);letter-spacing:.06em;margin-bottom:5px}
+.secret.masked{background:var(--ink);color:transparent;border-radius:5px;user-select:none;transition:all .4s var(--ease)}
+.cred-ref{display:inline-flex;gap:5px;align-items:center;background:var(--ink);color:#FBFCFE;border-radius:8px;padding:2px 9px;font-family:var(--fn);font-size:11px;font-weight:700}
+.cred-ref .ic{width:10px;height:10px}
+.act-swap{margin-top:9px;font-family:var(--fn);font-size:11.5px;display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.act-swap s{color:var(--ink40)}
+.note-render{margin-top:14px;background:var(--surface);border-radius:12px;padding:15px 17px;font-size:12.5px;line-height:2}
+.copy-pill{display:inline-flex;gap:6px;align-items:center;background:#fff;border:1.5px solid rgba(22,32,43,.16);border-radius:999px;padding:3px 6px 3px 12px;font-size:12px;font-weight:700;vertical-align:1px}
+.copy-pill button{background:var(--ink);color:#fff;border-radius:999px;padding:2px 11px;font-size:11px;font-weight:700;display:inline-flex;gap:4px;align-items:center;transition:all .18s}
+.copy-pill button:hover{transform:translateY(-1px)}
+.pop{position:relative;display:inline-block}
+.pop-menu{position:absolute;bottom:calc(100% + 8px);left:0;background:var(--surface);border-radius:14px;box-shadow:var(--shh);padding:14px 16px;width:250px;z-index:40;display:none;font-size:12px;line-height:1.7}
+.pop-menu.open{display:block;animation:up .28s var(--ease)}
+.pop-menu .btns{display:flex;gap:8px;margin-top:10px}
+.agent-view{background:var(--surface);border-radius:18px;padding:18px 20px;box-shadow:var(--sh)}
+.agent-view h5{font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center}
+.codebox{background:#1d2833;color:#c8d4de;border-radius:12px;padding:14px 16px;font-family:ui-monospace,monospace;font-size:11px;line-height:1.9;margin-top:12px;overflow-x:auto}
+.codebox .cm{color:#6d7f8d}
+.codebox .hl{color:#E8D8AB}
+.constraint{display:flex;gap:9px;align-items:flex-start;font-size:12px;color:var(--ink62);margin-top:10px;line-height:1.7}
+.constraint .ic{margin-top:3px;width:14px;height:14px}
+.constraint b{color:var(--ink)}
+.audit{margin-top:14px}
+.audit h6{font-size:11px;font-weight:800;color:var(--ink40);letter-spacing:.08em}
+.audit-log{margin-top:8px;display:grid;gap:5px}
+.audit-log div{font-family:ui-monospace,monospace;font-size:10.5px;color:var(--ink62);background:var(--bg2);border-radius:8px;padding:6px 11px;animation:up .3s var(--ease)}
+/* ---------- 08 统一捕获管线 ---------- */
+.pipe2{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--bg2);border-radius:14px;padding:12px 16px;margin-bottom:18px}
+.pipe2 .pn{background:#fff;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:700;display:inline-flex;gap:6px;align-items:center}
+.pipe2 .pn.hot{background:var(--ink);color:#FBFCFE}
+.pipe2 .pa{color:var(--ink40);font-size:11px;font-weight:800;font-family:Inter}
+.fx-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:20px;align-items:start}
+.mat-in{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.slots{display:grid;gap:8px}
+.slot{display:flex;gap:10px;align-items:flex-start;background:var(--bg2);border-radius:12px;padding:11px 14px;font-size:12.5px;line-height:1.7}
+.slot .si{width:24px;height:24px;border-radius:8px;background:#fff;display:grid;place-items:center;flex:none;box-shadow:0 1px 3px rgba(22,32,43,.08)}
+.slot .si .ic{width:13px;height:13px}
+.slot b{font-size:12px;display:block}
+.slot span{color:var(--ink62)}
+.chain-box{background:var(--bg2);border-radius:14px;padding:14px 16px}
+.chain-steps{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.cstep{display:inline-flex;gap:6px;align-items:center;background:#fff;border:1.5px solid rgba(22,32,43,.14);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;color:var(--ink40);transition:all .18s var(--ease)}
+.cstep .csn{width:15px;height:15px;border-radius:50%;background:rgba(22,32,43,.1);display:grid;place-items:center;font-family:Inter;font-size:9px;font-weight:800}
+.cstep.on{background:var(--ink);border-color:var(--ink);color:#FBFCFE}
+.cstep.on .csn{background:var(--champ);color:var(--ink)}
+.chain-res{margin-top:10px;font-size:12px;color:var(--ink62);line-height:1.9;min-height:44px}
+.chain-res .at{display:inline-flex;gap:5px;align-items:center;background:var(--ink);color:#FBFCFE;border-radius:999px;padding:2px 10px;font-size:10.5px;font-weight:800}
+.attrchat{background:#F1F3F5;border-radius:12px;padding:14px;display:grid;gap:8px}
+.ac{max-width:80%;padding:7px 11px;border-radius:4px 12px 12px 12px;background:#fff;font-size:12px;position:relative;width:fit-content;transition:box-shadow .18s}
+.ac.me{margin-left:auto;border-radius:12px 4px 12px 12px;background:rgba(173,203,228,.55)}
+.ac .aw{font-size:10px;color:var(--ink40);display:block;margin-bottom:1px}
+.ac.anchor{justify-self:center;align-self:center;background:rgba(22,32,43,.06);border-radius:999px;font-family:Inter;font-size:10px;font-weight:700;color:var(--ink40);padding:3px 11px;max-width:none}
+.ac.sys{justify-self:center;align-self:center;background:transparent;color:var(--ink40);font-size:10.5px;max-width:none}
+.attrmode .ac{box-shadow:0 0 0 1.5px var(--ink)}
+.attrmode .ac::after{content:attr(data-tag);position:absolute;top:-9px;right:-4px;background:var(--ink);color:#FBFCFE;font-size:9px;font-weight:800;border-radius:999px;padding:1px 7px;white-space:nowrap}
+.attrmode .ac.me::after{background:var(--glacier);color:var(--ink)}
+.attrmode .ac.anchor::after,.attrmode .ac.sys::after{top:-11px}
+.attr-note{margin-top:10px;font-size:11.5px;color:var(--ink40);line-height:1.8;display:flex;gap:7px}
+.attr-note b{color:var(--ink62)}
+.paste-demo{margin-top:18px;border-top:1px dashed rgba(22,32,43,.12);padding-top:16px}
+.paste-cols{display:grid;grid-template-columns:1fr 1.1fr;gap:16px;margin-top:12px}
+@media (max-width:1024px){.fx-grid,.paste-cols{grid-template-columns:1fr}}
+/* ---------- 旧导入样式（mini-ev / tsp 等仍被 08 复用） ---------- */
+.mini-ev{background:var(--bg2);border-radius:13px;padding:12px 15px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;line-height:1.7}
+.mini-ev .dot{margin-top:6px}
+.mini-ev small{display:block;color:var(--ink40);font-size:11px}
+.tsp{display:inline-flex;gap:5px;align-items:center;border:1.5px solid rgba(22,32,43,.16);border-radius:999px;padding:2px 9px;font-size:10.5px;font-weight:700;color:var(--ink62);margin-top:6px;width:fit-content}
+.tsp .ic{width:10px;height:10px}
+/* ---------- 09 周报 ---------- */
+.wk-grid{display:grid;grid-template-columns:.62fr 1.38fr;gap:20px;align-items:start}
+.wk-doc{background:var(--surface);border:1px solid rgba(22,32,43,.06);border-radius:18px;padding:26px 30px;min-height:380px;box-shadow:var(--sh)}
+.wk-empty{display:grid;place-items:center;min-height:380px;color:var(--ink40);font-size:13px;text-align:center;line-height:2}
+.wk-empty .ic{width:28px;height:28px;stroke-width:1.5;opacity:.5}
+.wk-status{font-size:12px;color:var(--ink62);background:var(--bg2);border-radius:10px;padding:9px 14px;margin-bottom:14px;display:none;gap:8px;align-items:center}
+.wk-status.show{display:flex;animation:up .3s var(--ease)}
+.wk-head{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.wk-head b{font-size:17px;font-weight:900}
+.wk-head span{font-size:11px;color:var(--ink40);font-family:Inter;font-weight:700}
+.wk-doc h4{font-size:13.5px;font-weight:800;margin:18px 0 6px;display:flex;gap:8px;align-items:center}
+.wk-doc h4::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--champ)}
+.wk-doc p,.wk-doc li{font-size:12.5px;color:var(--ink62);line-height:2}
+.wk-doc ul{padding-left:18px}
+.tnum{font-family:Inter;font-weight:800;color:var(--ink);border-bottom:2px dotted rgba(22,32,43,.35);cursor:help;position:relative;letter-spacing:-.02em}
+.tnum .tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);width:230px;background:var(--ink);color:#FBFCFE;font-family:var(--fn);font-weight:500;font-size:11px;line-height:1.7;border-radius:12px;padding:10px 13px;opacity:0;pointer-events:none;transition:opacity .18s;z-index:30;letter-spacing:0}
+.tnum .tip::after{content:'';position:absolute;top:100%;left:50%;margin-left:-5px;border:5px solid transparent;border-top-color:var(--ink)}
+.tnum:hover .tip,.tnum.show .tip{opacity:1}
+.wk-alert{background:var(--bg2);border:1.5px solid rgba(22,32,43,.14);border-radius:14px;padding:13px 16px;font-size:12.5px;display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;line-height:1.7;animation:up .4s var(--ease)}
+.wk-alert .ic{color:var(--ink62);margin-top:3px}
+.wk-todo{display:inline-flex;gap:6px;align-items:center;font-weight:700;color:var(--ink)}
+.wk-todo i{width:7px;height:7px;border-radius:50%;background:var(--champ);box-shadow:0 0 0 2.5px var(--surface)}
+.wk-check{display:flex;gap:10px;align-items:center;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--ink62);cursor:pointer}
+.wk-src{font-size:11px;color:var(--ink40);margin-top:10px;display:flex;gap:6px;align-items:center}
+/* ---------- 10 指标 ---------- */
+.tri-grid{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:stretch;margin-top:22px}
+.tri{background:var(--surface);border-radius:20px;padding:22px;box-shadow:var(--sh)}
+.tri .lab{font-size:11px;font-weight:800;color:var(--ink40);letter-spacing:.08em}
+.tri .v{font-size:36px;margin-top:8px;line-height:1.05}
+.tri .v small{font-size:15px;font-weight:800}
+.tri .d{font-size:11.5px;color:var(--ink62);margin-top:8px;line-height:1.7}
+.tri-arrow{display:grid;place-items:center;color:var(--ink40)}
+.q-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+.dec{display:flex;gap:14px;align-items:flex-start;padding:15px 2px;border-bottom:1px dashed rgba(22,32,43,.1)}
+.dec:last-child{border:0}
+.dec .dn{width:30px;height:30px;border-radius:50%;background:var(--ink);color:#FBFCFE;font-family:Inter;font-weight:800;font-size:13px;display:grid;place-items:center;flex:none}
+.dec b{font-size:13.5px}
+.dec p{font-size:12.5px;color:var(--ink62);margin-top:4px;line-height:1.8}
+.dec .dmap{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap}
+.golden{margin-top:14px;width:100%;border-collapse:collapse;font-size:12.5px}
+.golden th{text-align:left;font-size:11px;color:var(--ink40);font-weight:800;letter-spacing:.05em;padding:8px 12px;border-bottom:1.5px solid rgba(22,32,43,.1)}
+.golden td{padding:9px 12px;border-bottom:1px solid rgba(22,32,43,.05);color:var(--ink62)}
+.golden td:first-child{font-weight:700;color:var(--ink)}
+.golden .num{font-size:12px}
+.rm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.rm{background:var(--surface);border-radius:20px;padding:20px 22px;box-shadow:var(--sh);border-top:4px solid var(--rc,var(--glacier));transition:transform .32s var(--ease),box-shadow .32s var(--ease)}
+.rm:hover{transform:translateY(-4px);box-shadow:var(--shh)}
+.rm h5{font-family:Inter;font-weight:900;font-size:17px;letter-spacing:-.02em}
+.rm .goal{font-size:11px;color:var(--ink40);margin-top:2px;font-weight:600}
+.rm ul{list-style:none;margin-top:12px;display:grid;gap:6px}
+.rm li{font-size:12.5px;color:var(--ink62);display:flex;gap:8px;align-items:baseline;line-height:1.65}
+.rm li::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--rc,var(--glacier));flex:none;position:relative;top:-2px}
+.ng-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.ng{display:inline-flex;gap:7px;align-items:center;background:var(--surface);border:1px solid rgba(22,32,43,.08);border-radius:999px;padding:7px 15px;font-size:12px;font-weight:600;color:var(--ink62)}
+.ng .ic{width:12px;height:12px;color:var(--danger)}
+.foot{margin-top:110px;padding-top:28px;border-top:1.5px solid rgba(22,32,43,.1);font-size:12px;color:var(--ink40);display:flex;gap:18px;flex-wrap:wrap;justify-content:space-between}
+/* toast */
+#toasts{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);display:grid;gap:10px;z-index:100;justify-items:center}
+.toast{background:var(--ink);color:#FBFCFE;border-radius:999px;padding:11px 22px;font-size:13px;font-weight:600;display:flex;gap:9px;align-items:center;box-shadow:0 12px 32px rgba(22,32,43,.3);opacity:0;transform:translateY(14px);transition:all .32s var(--ease);max-width:88vw}
+.toast.in{opacity:1;transform:none}
+.toast .ic{width:14px;height:14px;color:var(--champ)}
+/* ================= 随手浮窗（默认落位：顶部居中） ================= */
+.trig{position:fixed;right:24px;bottom:24px;width:54px;height:54px;border-radius:50%;background:var(--ink);color:#FBFCFE;display:grid;place-items:center;z-index:94;box-shadow:0 10px 26px rgba(22,32,43,.3);transition:transform .18s var(--ease),box-shadow .18s var(--ease)}
+.trig:hover{transform:translateY(-3px) scale(1.04)}
+.trig .ic{width:21px;height:21px}
+.trig-kbd{position:absolute;top:calc(100% + 7px);left:50%;transform:translateX(-50%);font-family:Inter;font-weight:800;font-size:9.5px;letter-spacing:.05em;color:var(--ink40);white-space:nowrap}
+@keyframes trigp{0%{box-shadow:0 0 0 0 rgba(22,32,43,.28)}100%{box-shadow:0 0 0 20px rgba(22,32,43,0)}}
+.trig.pulse{animation:trigp 1.6s var(--ease) 2}
+.qp{position:fixed;left:50%;top:84px;width:392px;max-width:calc(100vw - 24px);background:var(--surface);border:1px solid rgba(22,32,43,.09);border-radius:22px;box-shadow:var(--shh);z-index:96;overflow:hidden;opacity:0;pointer-events:none;transition:opacity .32s var(--ease),transform .32s var(--ease)}
+.qp.open{opacity:1;pointer-events:auto}
+.qp.dragging{transition:none}
+.qp-hd{display:flex;align-items:center;gap:9px;padding:12px 14px 11px 16px;background:var(--bg2);cursor:grab;user-select:none}
+.qp-hd:active{cursor:grabbing}
+.qp-dot{width:9px;height:9px;border-radius:50%;background:var(--ink);flex:none}
+.qp-hd b{font-size:13.5px;font-weight:800;letter-spacing:-.01em}
+.qp-hd .chan{padding:3px 10px;font-size:10px}
+.qp-ib{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--ink40);transition:all .18s var(--ease);flex:none}
+.qp-ib:hover{background:rgba(22,32,43,.1);color:var(--ink)}
+.qp-ib.on{background:var(--ink);color:#FBFCFE}
+.qp-ib .ic{width:13px;height:13px}
+.qp-tabs{display:flex;gap:4px;background:var(--bg2);border-radius:999px;padding:4px;margin:12px 14px 0}
+.qp-tabs button{flex:1;display:flex;gap:6px;align-items:center;justify-content:center;border-radius:999px;padding:8px 0;font-size:12.5px;font-weight:700;color:var(--ink62);transition:all .18s var(--ease)}
+.qp-tabs button.on{background:var(--ink);color:#FBFCFE}
+.qp-tabs kbd{font-family:Inter;font-size:9px;font-weight:800;opacity:.5;letter-spacing:.03em}
+.qp-tabs .badge{background:rgba(22,32,43,.14);color:var(--ink)}
+.qp-tabs button.on .badge{background:#FBFCFE;color:var(--ink)}
+.qp-body{padding:14px 16px 8px;max-height:min(460px,60vh);overflow:auto}
+.qp-body::-webkit-scrollbar{width:6px}
+.qp-body::-webkit-scrollbar-thumb{background:rgba(22,32,43,.15);border-radius:3px}
+.qp-v{display:none}
+.qp-v.on{display:block;animation:up .28s var(--ease)}
+.qp-slogan{font-size:14.5px;font-weight:900;text-align:center;letter-spacing:-.01em;margin-bottom:8px}
+.qp-slogan .ic{width:13px;height:13px;color:var(--ink);vertical-align:-1px}
+.qp-tri{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;font-size:10.5px;color:var(--ink40);margin-bottom:12px;align-items:center;font-weight:600}
+.qp-tri b{display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;background:var(--champ);color:var(--ink);font-family:Inter;font-size:9px;margin-right:3px}
+.qp-inputrow{display:flex;gap:8px}
+.qp-inputrow input{flex:1;border:1.5px solid transparent;background:var(--bg2);border-radius:999px;padding:10px 15px;font-size:13px;outline:none;transition:all .18s}
+.qp-inputrow input:focus{background:var(--surface);border-color:var(--ink)}
+.qp-send{width:38px;height:38px;border-radius:50%;background:var(--ink);color:#FBFCFE;display:grid;place-items:center;flex:none;transition:transform .18s var(--ease)}
+.qp-send:hover{transform:translateY(-1px)}
+.qp-send .ic{width:15px;height:15px}
+.qp-srcs{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.qp-srcs button{display:flex;gap:6px;align-items:center;border:1.5px solid rgba(22,32,43,.14);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;color:var(--ink62);transition:all .18s var(--ease)}
+.qp-srcs button:hover{border-color:var(--ink);color:var(--ink)}
+.qp-srcs button.hot{border-color:var(--ink);color:var(--ink);background:rgba(232,216,171,.35)}
+.qp-srcs .ic{width:12px;height:12px}
+.qp-prog{margin-top:12px;display:grid;gap:5px}
+.qp-prow{display:flex;gap:8px;align-items:center;font-size:11.5px;color:var(--ink40);animation:up .25s var(--ease)}
+.qp-prow .ic{width:12px;height:12px}
+.qp-prow.done{color:var(--ink);font-weight:700}
+.qp-prow em{font-style:normal;font-family:Inter;font-weight:800;font-size:10px;margin-left:auto;letter-spacing:-.02em}
+.qp-last{margin-top:10px;background:var(--bg2);border-radius:12px;padding:10px 13px;font-size:12px;display:flex;gap:8px;align-items:center;animation:up .3s var(--ease);line-height:1.6}
+.qp-last a{font-weight:800;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+.qp-aggline{margin-top:8px;background:rgba(232,216,171,.5);border-radius:10px;padding:7px 12px;font-size:11px;font-weight:700;display:flex;gap:7px;align-items:center;animation:up .3s var(--ease)}
+.qp-aggline .ic{width:12px;height:12px}
+.qp-hintline{margin-top:10px;font-size:10.5px;color:var(--ink40);text-align:center;line-height:1.7}
+.qp-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.qp-chips button{border-radius:999px;padding:6px 13px;font-size:11.5px;font-weight:700;background:var(--bg2);color:var(--ink62);transition:all .18s}
+.qp-chips button:hover{background:var(--ink);color:#FBFCFE}
+.qp-ansline{margin-top:12px;font-size:12.5px;line-height:1.85;color:var(--ink62);animation:up .3s var(--ease)}
+.qp-ansline b{color:var(--ink)}
+.qp-ansline code{background:var(--bg2);padding:1px 6px;border-radius:6px;font-family:ui-monospace,monospace;font-size:.9em}
+.qp-cite{margin-top:8px;padding:9px 12px;background:var(--bg2);border-left:3px solid var(--glacier);border-radius:9px;font-size:11px;color:var(--ink62);line-height:1.7}
+.qp-meta{margin-top:8px;font-family:Inter;font-weight:800;font-size:10px;color:var(--ink40);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.qp-meta a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.qp-res{display:flex;gap:9px;align-items:center;padding:8px 11px;border-radius:10px;cursor:pointer;font-size:12px;transition:background .15s}
+.qp-res:hover{background:var(--bg2)}
+.qp-res .ic{width:13px;height:13px;color:var(--ink40)}
+.qp-res small{margin-left:auto;color:var(--ink40);font-size:10.5px;flex:none}
+.qp-sec{margin-bottom:13px}
+.qp-sec h6{font-size:10.5px;font-weight:800;color:var(--ink40);letter-spacing:.08em;display:flex;gap:8px;align-items:center;margin-bottom:7px}
+.qp-crow,.qp-trow{display:flex;gap:9px;align-items:center;padding:8px 10px;background:var(--bg2);border-radius:11px;margin-bottom:6px;animation:up .25s var(--ease)}
+.qp-crow .dot{background:var(--c,var(--mist))}
+.qp-crow>.ic{color:var(--ink40);width:14px;height:14px}
+.qp-crow b,.qp-trow b{font-size:12px;font-weight:700;display:block;line-height:1.4}
+.qp-crow small,.qp-trow small{font-size:10.5px;color:var(--ink40)}
+.qp-mid{flex:1;min-width:0}
+.qp-qa{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--ink40);transition:all .15s;flex:none}
+.qp-qa:hover{background:rgba(22,32,43,.12);color:var(--ink)}
+.qp-qa.ok:hover{color:#1f9d43;background:rgba(52,199,89,.14)}
+.qp-qa.no:hover{color:var(--danger);background:rgba(229,72,77,.12)}
+.qp-qa .ic{width:12px;height:12px}
+.qp-copybtn{border-radius:999px;background:var(--ink);color:#FBFCFE;font-size:10.5px;font-weight:800;padding:5px 13px;flex:none;transition:transform .15s var(--ease),opacity .15s}
+.qp-copybtn:hover{transform:translateY(-1px)}
+.qp-copybtn.copied{background:rgba(52,199,89,.16);color:#1f9d43}
+.qp-cf{display:inline-flex;gap:6px;align-items:center;font-size:10.5px;font-weight:700;color:var(--ink62);flex:none;flex-wrap:wrap}
+.qp-cf button{border-radius:999px;padding:3px 10px;font-size:10.5px;font-weight:800}
+.qp-cf .qp-cy{background:var(--ink);color:#FBFCFE}
+.qp-cf .qp-cn{background:rgba(22,32,43,.08);color:var(--ink)}
+.qp-crednote{margin-top:9px;font-size:10.5px;color:var(--ink40);line-height:1.7}
+.qp-chk{width:20px;height:20px;border-radius:7px;border:2px solid rgba(22,32,43,.25);flex:none;display:grid;place-items:center;transition:all .15s;cursor:pointer}
+.qp-chk.on{background:var(--ink);border-color:var(--ink)}
+.qp-chk.on::after{content:'';width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+.qp-empty{font-size:11.5px;color:var(--ink40);padding:6px 2px}
+.qp-ft{display:flex;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid rgba(22,32,43,.07);font-size:11px;color:var(--ink40);font-weight:600;flex-wrap:wrap}
+.qp-ft b{font-family:Inter;font-weight:800;color:var(--ink)}
+.qp-ft .lnk{margin-left:auto;color:var(--ink40);cursor:pointer}
+.qp-ft .lnk:hover{color:var(--ink)}
+/* 响应式 */
+@media (max-width:1180px){.stat-grid,.q-grid{grid-template-columns:repeat(2,1fr)}.tri-grid{grid-template-columns:1fr}.tri-arrow{transform:rotate(90deg)}}
+@media (max-width:1024px){
+ .sidebar{position:static;width:auto;flex-direction:row;align-items:center;overflow-x:auto;padding:14px 18px;gap:14px}
+ .nav{flex-direction:row}.nav a{white-space:nowrap}.nav a.act::after{display:none}
+ .side-note{display:none}.main{margin-left:0;padding:32px 22px 100px}
+ .cap-grid,.card-grid,.mem-grid,.cred-grid,.wk-grid,.dir-grid,.ph,.s1duo{grid-template-columns:1fr}
+ .hero h1{font-size:38px}
+}
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><path d="M7 7h.01"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></symbol>
+<symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+<symbol id="i-out" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></symbol>
+<symbol id="i-cmd" viewBox="0 0 24 24"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-rotate" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 4h6l-1 6 4 4H6l4-4-1-6z"/></symbol>
+</svg>
+
+<aside class="sidebar">
+  <div class="brand">
+    <span class="brand-mark"><svg class="ic"><use href="#i-zap"/></svg></span>
+    <div><b>项目随手记</b><span>Interactive PRD · v2.0</span></div>
+  </div>
+  <nav class="nav">
+    <a href="#s0" class="act"><span class="no">00</span>总览 · 10 秒看懂</a>
+    <a href="#s1"><span class="no">01</span>随手浮窗 · 记/查/看</a>
+    <a href="#s2"><span class="no">02</span>操作卡片 · 口头调整</a>
+    <a href="#s3"><span class="no">03</span>记忆机制 · 越用越准</a>
+    <a href="#s4"><span class="no">04</span>三视图 · 目录/标签/时间线</a>
+    <a href="#s5"><span class="no">05</span>待办中心 · 今日与日历</a>
+    <a href="#s6"><span class="no">06</span>问答检索 · 拒绝考古</a>
+    <a href="#s7"><span class="no">07</span>凭证库 · 零明文</a>
+    <a href="#s8"><span class="no">08</span>统一捕获管线 · FR-8</a>
+    <a href="#s9"><span class="no">09</span>周报生成 · 周五一键</a>
+    <a href="#s10"><span class="no">10</span>指标与路线 · 验收口径</a>
+  </nav>
+  <div class="side-note">
+    <b>阅读方式</b><br>
+    随时按 <b>⌥Space</b>（或 ⌥Q）唤起顶部居中的「随手浮窗」。<br>
+    灰蓝底为演示容器，白卡为产品表面。<br><br>
+    <b>对齐 PRD.refined v2.0</b> · 项目「云深 AMS」<br>
+    本页全部数据均为虚构演示。
+  </div>
+</aside>
+
+<main class="main"><div class="wrap">
+
+<!-- ============ 00 总览 ============ -->
+<header class="hero sec" id="s0">
+  <div class="eyebrow">
+    <span class="pill-ink">项目随手记 · 可交互 PRD v2.0</span>
+    <span class="pill-line">对齐 PRD.refined v2.0</span>
+    <span class="pill-line">模拟数据演示</span>
+    <span class="pill-line">本地优先</span>
+    <a class="pill-line" href="#s10" style="cursor:pointer">v2.0 变更 ×5 · 见 10</a>
+  </div>
+  <h1>随手记录，<br>Agent 帮你整理，随用随取。</h1>
+  <p class="hero-sub">「项目随手记」——给多项目并行的前场实施交付人员的<b>项目第二大脑</b>。核心心智：<b>看到什么，截什么</b>——⌘⇧⌃4 截屏 → 按 <b>⌥Space</b> 唤起随手浮窗（顶部居中落位）→ ⌘V 粘贴。丢图、问一句、瞄一眼待办，不打断原工作；<b>10 秒入库</b>，随时可查，周报自动成稿。</p>
+  <div class="flow-strip">
+    <span class="fstep hot">⌘⇧⌃4 截屏</span><svg class="ic farr"><use href="#i-arrow"/></svg>
+    <span class="fstep">⌥Space 唤起</span><svg class="ic farr"><use href="#i-arrow"/></svg>
+    <span class="fstep">⌘V 粘贴</span><svg class="ic farr"><use href="#i-arrow"/></svg>
+    <span class="fstep">本地 OCR</span><svg class="ic farr"><use href="#i-arrow"/></svg>
+    <span class="fstep">脱敏闸门</span><svg class="ic farr"><use href="#i-arrow"/></svg>
+    <span class="fstep">操作卡片</span><svg class="ic farr"><use href="#i-arrow"/></svg>
+    <span class="fstep">口头调整 → 入库</span>
+  </div>
+  <div class="stat-grid">
+    <div class="stat"><div class="v num">&lt;1<small>s</small></div><div class="l">丢入到可收起</div><div class="s">丢入即视为记录成功</div></div>
+    <div class="stat"><div class="v num">10<small>s</small></div><div class="l">卡片就绪 p50</div><div class="s">p95 ≤ 25s · 性能预算</div></div>
+    <div class="stat"><div class="v num">≤5</div><div class="l">Agent 问答工具调用</div><div class="s">超限说明信息缺口 · 本地检索 &lt;1s</div></div>
+    <div class="stat"><div class="v num">100<small>%</small></div><div class="l">周报数字可溯源</div><div class="s">每个数字来自本地时间线</div></div>
+  </div>
+  <div class="principle">
+    <span class="pill-line">截图第一捕获路径 · 看到什么截什么</span>
+    <span class="pill-line">统一管线 · 原件+摘要+事件+待办</span>
+    <span class="pill-line">OCR 全离线 · 主进程 /api/ocr</span>
+    <span class="pill-line">文件为真相源 · SQLite 可重建</span>
+    <span class="pill-line">捕获与整理分离</span>
+    <span class="pill-line">Agent 即接口（工具层 = 领域 API）</span>
+    <span class="pill-line">通道如实标注 · 事实 grounding</span>
+  </div>
+  <div class="pain panel">
+    <div class="pi"><svg class="ic"><use href="#i-x"/></svg><div><b>共享表格</b>：结构先行，异构信息塞不进统一 schema</div></div>
+    <div class="pi"><svg class="ic"><use href="#i-x"/></svg><div><b>在线文档</b>：叙事流水账，检索靠 Ctrl+F 和记忆</div></div>
+    <div class="pi"><svg class="ic"><use href="#i-x"/></svg><div><b>微信群</b>：即存即逝，翻记录 = 考古</div></div>
+    <div class="pc">全部失败于同一个原因——<br>它们都要求「人」来做结构化。</div>
+  </div>
+  <div class="hero-cta">
+    <button class="btn btn-primary" onclick="qpShow('j',true)">唤起随手浮窗 · ⌥Space <svg class="ic"><use href="#i-arrow"/></svg></button>
+    <a class="btn btn-soft" href="#s1">先看三态设计 <svg class="ic"><use href="#i-arrow"/></svg></a>
+    <span class="hint">全程约 7 分钟 · 浮窗可随时唤出，与页面演示实时同步</span>
+  </div>
+</header>
+
+<!-- ============ 01 随手浮窗 ============ -->
+<section class="sec" id="s1">
+  <div class="sec-head">
+    <div class="sec-no num">01</div>
+    <div>
+      <h2>随手浮窗 · 记 / 查 / 看</h2>
+      <p class="sec-scene">场景：你在客户的远程会议里共享着屏幕——群里弹出关键信息。⌘⇧⌃4 一截，⌥Space 唤起浮窗，⌘V：整段对话连人带时间进了管线；Esc 一收，回到原工作。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">FR-1</span><span class="ptag">FR-8</span><span class="ptag">US-1 · US-3</span><span class="ptag">§3.1 · §6.8</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar">
+      <span class="demo-title"><svg class="ic"><use href="#i-zap"/></svg>随手浮窗 · 顶部居中落位 · 可拖拽 / 置顶 · 与主窗状态同源</span>
+      <div class="bar-r"><span class="pill-line">⌥Space / ⌥Q 本页已绑定 · 现在就能按</span></div>
+    </div>
+    <div class="s1duo">
+      <div>
+        <div class="qpstate"><span class="qs-ic"><svg class="ic"><use href="#i-inbox"/></svg></span><div><b>记<em>CAPTURE</em></b><p>截图粘贴（⌘⇧⌃4 → ⌘V）/ 随手记一句 / 粘贴文本 / 拖入文件；<b>连续多图 10s 窗口归并</b>（投递聚合）。丢入 &lt;1s 可收起，浮窗内迷你进度，就绪托盘 + 角标提醒。<b>卡片永不自动入库</b>。</p></div></div>
+        <div class="qpstate"><span class="qs-ic"><svg class="ic"><use href="#i-search"/></svg></span><div><b>查<em>ASK</em></b><p>口语化提问，回答附原文引用与时间；<b>凭证 list 与主窗同源</b>（§3.11），复制经按钮确认后仅进剪贴板。</p></div></div>
+        <div class="qpstate"><span class="qs-ic"><svg class="ic"><use href="#i-eye"/></svg></span><div><b>看<em>PEEK</em></b><p>待审卡片可就地执行 / 丢弃；今日待办可勾销；与主窗<b>实时同步</b>（试试在浮窗里勾掉待办，05 的统计会变）。</p></div></div>
+        <div class="whylist">
+          <div><svg class="ic"><use href="#i-image"/></svg><div><b>看到即截</b>：聊天记录、报错弹窗、终端输出、配置页面——截图是唯一同时保住<b>时间戳（画面内）+ 图片上下文 + 完整画面信息</b>的入口；说话人等细节由你在卡片审查时一句话补充。</div></div>
+          <div><svg class="ic"><use href="#i-zap"/></svg><div><b>不打断</b>：「丢入即可关窗」升级为「Esc 即回原工作」——捕获流不要求切走任何 App。</div></div>
+          <div><svg class="ic"><use href="#i-tag"/></svg><div><b>状态同源</b>：浮窗与主窗共用工具层（Agent 即接口），操作结果一致率 100% 由架构保证（§6 说明 7）。</div></div>
+          <div><svg class="ic"><use href="#i-folder"/></svg><div><b>主窗做重活</b>：深度审查、三视图、批量导入、周报、凭证与设置留主窗——捕获与整理分离。</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:800;margin-bottom:10px">快捷键体系（默认值 · 设置页可改键）</div>
+        <div class="keys">
+          <div class="keyrow"><kbd>⌥ Space</kbd><kbd>⌥ Q</kbd>全局唤起 / 收起浮窗（双绑定，⌥Q 规避系统占用；托盘同效）</div>
+          <div class="keyrow"><kbd>⌥1</kbd><kbd>⌥2</kbd><kbd>⌥3</kbd>打开并切换 记 / 查 / 看（切态判定用 <code>e.code</code>，规避 macOS ⌥+数字特殊字符 · §6.8）</div>
+          <div class="keyrow"><kbd>⌘⇧⌃4</kbd>系统截屏 → <kbd>⌘V</kbd> 粘贴（剪贴板为图片时唤起<b>自动进入投递预览</b> · Enter 确认）</div>
+          <div class="keyrow"><kbd>Enter</kbd>发送（记：随手记一句；查：提问）</div>
+          <div class="keyrow"><kbd>Esc</kbd>收起（输入中先失焦；置顶钉住时不受影响）</div>
+          <div class="keyrow"><kbd>📌</kbd>置顶钉住 · 标题栏拖拽移动（拖后记忆位置）· 默认落位<b>屏幕顶部居中</b> · <kbd>⌘P</kbd> 主窗切换器不变</div>
+        </div>
+        <div class="openrow">
+          <button class="btn btn-primary btn-sm" onclick="qpShow('j',true)">唤起「记」</button>
+          <button class="btn btn-primary btn-sm" onclick="qpShow('c',true)">唤起「查」</button>
+          <button class="btn btn-primary btn-sm" onclick="qpShow('k',true)">唤起「看」</button>
+          <span class="note">浮窗是全局的——唤起后滚动到任何章节它都在，试看 05 待办中心再勾一条。</span>
+        </div>
+      </div>
+    </div>
+    <div class="subhead">「记」态管线细节<span class="pill-line">浮窗内为迷你进度条 · 此处展开步骤</span></div>
+    <div class="demo-bar" style="margin-bottom:12px">
+      <div class="cap-kinds" style="display:flex;gap:8px">
+        <button class="chip" data-kind="shot">粘贴截图</button>
+        <button class="chip" data-kind="text">粘贴文本</button>
+        <button class="chip" data-kind="file">拖入文件</button>
+      </div>
+      <button class="icon-btn" id="capReset" title="重置演示"><svg class="ic"><use href="#i-rotate"/></svg></button>
+    </div>
+    <div class="cap-grid">
+      <div class="cap-win" id="capWin">
+        <div class="cap-head"><span class="cap-dots"><i></i><i></i><i></i></span>随手浮窗 ·「记」<span class="cap-clock">THU 14:29 · 置顶悬浮</span></div>
+        <div class="cap-body" id="capBody">
+          <div class="cap-drop" id="capDrop">
+            <svg class="ic"><use href="#i-inbox"/></svg>
+            <p>把截图 / 文本 / 文件丢进来</p>
+            <span>选一种方式开始 · 丢入即可收起</span>
+          </div>
+          <div id="capPrev" hidden></div>
+          <div class="cap-recv" id="capRecv" hidden><svg class="ic"><use href="#i-check"/></svg>已接收 · <em>0.3s</em>&nbsp;—— 现在收起也不影响</div>
+          <div class="cap-actions"><button class="btn btn-primary btn-sm" id="capClose" disabled><svg class="ic"><use href="#i-check"/></svg>收起，回到原工作</button></div>
+        </div>
+        <button class="minbar" id="capReopen">浮窗已收起 · 后台解析继续中…… 点击恢复</button>
+      </div>
+      <div>
+        <div class="pipe" id="capPipe">
+          <div class="pstep"><span class="pdot"></span><div class="ptxt"><b>接收</b><i class="ptime"></i></div></div>
+          <div class="pstep"><span class="pdot"></span><div class="ptxt"><b>OCR 识别</b><i class="ptime"></i></div></div>
+          <div class="pstep"><span class="pdot"></span><div class="ptxt"><b>出站脱敏</b><i class="ptime"></i></div></div>
+          <div class="pstep"><span class="pdot"></span><div class="ptxt"><b>Agent 解析</b><i class="ptime"></i></div></div>
+          <div class="pstep"><span class="pdot"></span><div class="ptxt"><b>卡片就绪</b><i class="ptime"></i></div></div>
+        </div>
+        <p class="cap-note">OCR 位于 <b>Rust 主进程 /api/ocr</b>（macOS Vision + RapidOCR·ort），全离线，sidecar 保持纯 JS；文字交主模型后，<b>云端路径在工具层出口强制过脱敏闸门</b>（凭证精确匹配 + 秘密模式正则），敏感项目整条走本地模型（不出机、不脱敏保真）。JSON 校验失败重试 1 次，仍失败降级原文入库——<b>永不阻塞捕获</b>。</p>
+        <div class="cap-result" id="capResult" hidden>
+          <div class="okline"><svg class="ic"><use href="#i-check"/></svg>卡片就绪 · 全程 <em>8.2s</em>（p50 ≤ 10s 达标）</div>
+          <div class="mini-card"><span class="dot"></span><span id="capMini">UAT 库存查询 ORA-12541 处理记录</span><small>待审 · 永不自动入库</small></div>
+          <a class="btn btn-soft btn-sm" href="#s2">去看这张操作卡片 <svg class="ic"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="tray"><svg class="ic"><use href="#i-inbox"/></svg>托盘<b class="badge" id="trayBadge" hidden>0</b></div>
+      </div>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span><b>⌥Space / ⌥Q</b> 任何应用里唤起——顶部居中落位，不切 App、不打断原工作；<b>Esc</b> 即回原工作（FR-1）。</li>
+    <li><span class="wn">②</span><b>截图是第一捕获路径</b>：空态引导「看到什么，截什么」+ 首次三步卡；剪贴板为图片时唤起自动进入投递预览。</li>
+    <li><span class="wn">③</span>记：<b>投递聚合</b>——10s 窗口内连续多图归并为同一捕获单元（下方试两次「粘贴截图」）；丢入 &lt;1s 可收起，托盘 + 角标提醒；<b>卡片永不自动入库</b>，超 7 天未审提醒一次（§5.2）。</li>
+    <li><span class="wn">④</span>查：凭证 <b>list 与主窗同源</b>、复制走按钮显式确认 → 仅进剪贴板 + 审计；深度检索回主窗。批量 / 三视图 / 周报等重活留主窗——<b>捕获与整理分离</b>。</li>
+  </ol>
+</section>
+
+<!-- ============ 02 操作卡片 ============ -->
+<section class="sec" id="s2">
+  <div class="sec-head">
+    <div class="sec-no num">02</div>
+    <div>
+      <h2>操作卡片 · 像说话一样改</h2>
+      <p class="sec-scene">场景：忙完了回头，浮窗「看」态里有两张群聊截图（已投递聚合归并）。点开主窗深度审查——Agent 已推断好项目、目录、标签；不学表单，直接说一句话调整。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">US-2</span><span class="ptag">FR-2</span><span class="ptag">§3.1</span><span class="ptag">§4.4</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar">
+      <span class="demo-title"><svg class="ic"><use href="#i-zap"/></svg>操作卡片 #C-0612-03 · Agent 动作的结构化载体</span>
+      <div class="bar-r"><span class="pill-line" id="opStatus">待审</span><button class="icon-btn" id="cardReset" title="重置演示"><svg class="ic"><use href="#i-rotate"/></svg></button></div>
+    </div>
+    <div class="card-grid">
+      <div class="opcard" id="opCard">
+        <div class="op-top">
+          <span class="op-id num">#C-0612-03</span>
+          <span class="chan" id="chanBadge"><svg class="ic"><use href="#i-cloud"/></svg>deepseek-chat · 已脱敏</span>
+          <span class="pill-line op-status" id="opStatus2">待审</span>
+        </div>
+        <div class="op-rows">
+          <div class="op-row" id="rowProject">
+            <label>项目</label>
+            <div class="op-body" style="position:relative">
+              <button class="proj-pill" id="projPill"><span class="dot"></span><span id="projName">云深 AMS</span><svg class="ic" style="width:12px;height:12px"><use href="#i-chev"/></svg></button>
+              <span class="conf" id="confChip">HIGH</span>
+              <span class="reason" id="projReason">内容提及 AMS 系统 UAT 环境（Agent 推断）</span>
+              <div class="menu" id="projMenu"></div>
+            </div>
+          </div>
+          <div class="op-row" id="rowDir"><label>目录</label><div class="op-body"><span class="dirv" id="dirVal">问题与变更/</span></div></div>
+          <div class="op-row" id="rowTags"><label>标签</label><div class="op-body" id="tagWrap"></div></div>
+          <div class="op-row"><label>事件</label><div class="op-body"><span class="evline"><span class="dot"></span>问题 · 测试验证 · 2025-06-12 14:30</span><span class="tsp"><svg class="ic"><use href="#i-clock"/></svg>① 内容明示（画面时间锚 14:30）· at_source=content_time · 可改</span></div></div>
+        </div>
+        <div class="op-md">
+          <label>MARKDOWN 预览</label>
+          <div class="md">
+            <h5>现象</h5>
+            <div>UAT 环境登录后打开【库存查询】报 <code>ORA-12541: TNS:no listener</code> <span class="lowconf">⚠ 关键字段 conf .88 · 请对照原图核对</span></div>
+            <h5>排查</h5>
+            <ul><li>tnsnames.ora 配置检查：正常</li><li>与客户 DBA 王工确认：UAT 监听未启动</li></ul>
+            <h5>处理</h5>
+            <div><code>lsnrctl start</code> 后恢复访问</div>
+            <div class="todo"><i></i>部署手册补充「监听自检」步骤<span class="champ"></span></div>
+          </div>
+        </div>
+        <div class="op-src"><svg class="ic" style="width:13px;height:13px"><use href="#i-image"/></svg>来源：截图 ×2 · 已按顺序合并（投递聚合）· 微信群-客户群 · 06-12 14:29 · provenance 随卡片落库</div>
+        <div class="op-actions">
+          <button class="btn btn-primary" id="opExec"><svg class="ic"><use href="#i-check"/></svg>执行入库</button>
+          <button class="btn btn-ghost" id="opDrop"><svg class="ic"><use href="#i-x"/></svg>丢弃</button>
+        </div>
+        <div class="op-done" id="opDone" hidden></div>
+      </div>
+      <div class="side-card">
+        <h4><svg class="ic"><use href="#i-eye"/></svg>通道标注 · 如实呈现</h4>
+        <p>卡片标注读取的是<b>执行时的事实</b>（provenance.processing），不是设置页当前值。切一下开关感受差别：</p>
+        <div class="switch-row"><span>敏感项目 · 本地模型</span><button class="switch" id="sensSwitch" aria-label="敏感项目开关"></button></div>
+        <p class="sw-note" id="swNote">当前：云端 DeepSeek，出站强制脱敏。切到敏感项目后，同一条内容将全链路走本地 Ollama——不出机、不脱敏（保真）。</p>
+        <div class="histcard">
+          <div class="row"><span class="t">历史卡片 #C-0605-11</span><span class="chan"><svg class="ic"><use href="#i-cloud"/></svg>deepseek-chat · 已脱敏</span></div>
+          <small>边界用例：项目后来才开敏感开关，历史卡片标注<b>不变</b>——标注与实际通道一致率目标 100%（§2.4）。</small>
+        </div>
+      </div>
+    </div>
+    <div class="opchat">
+      <div class="chatlog" id="chatLog">
+        <div class="msg ai"><span class="av"><svg class="ic"><use href="#i-zap"/></svg></span><div class="b">卡片就绪。推断依据已注明，你可以直接点「执行入库」，或者<b>说句话</b>让我改——下面是几个常用说法：</div></div>
+      </div>
+      <div class="chat-chips">
+        <button class="chip" data-say="放运维目录，加个 oracle 标签">「放运维目录，加个 oracle 标签」</button>
+        <button class="chip" data-say="这是恒达 ERP 的事，不是云深">「这是恒达 ERP 的事」</button>
+        <button class="chip" data-say="以后 oracle 的问题都放运维目录">「以后 oracle 的问题都放运维目录」</button>
+      </div>
+      <form class="chat-in" id="chatForm">
+        <input id="chatInput" placeholder='像说话一样改卡片，回车发送…' autocomplete="off">
+        <button class="btn btn-primary btn-sm" type="submit"><svg class="ic"><use href="#i-arrow"/></svg>发送</button>
+      </form>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span>项目推断<b>附理由</b>、可一键改——三层策略：默认最近活动 → 记忆推断覆盖 → 卡片一键改（§3.1）。</li>
+    <li><span class="wn">②</span>一句话单轮理解：「放运维目录，加个 oracle 标签」即时更新卡片，<b>无需学习表单</b>（US-2 验收标准）。</li>
+    <li><span class="wn">③</span>卡片里的 Markdown 待办行是待办实体来源之一 → <a href="#s5" style="font-weight:800;text-decoration:underline;text-underline-offset:3px">05 待办中心</a>；事件行带 <b>at_source</b> 时间来源标注、可改（FR-8 回退链）。</li>
+    <li><span class="wn">④</span>通道标注 ☁ / 🔒 只陈述事实、不可点击；设置变更后历史卡片不变（§4.4）。</li>
+  </ol>
+</section>
+
+<!-- ============ 03 记忆机制 ============ -->
+<section class="sec" id="s3">
+  <div class="sec-head">
+    <div class="sec-no num">03</div>
+    <div>
+      <h2>Agent 记忆机制 · 越用越准</h2>
+      <p class="sec-scene">场景：同一个客户、同一类问题再次出现——这次 Agent 不再问，直接放对位置。纠正一次即记住、下次生效；「缩短的距离」来自本地可查、可删的记忆，而非模型微调。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">FR-14</span><span class="ptag">§3.2</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar">
+      <span class="demo-title"><svg class="ic"><use href="#i-zap"/></svg>两层记忆 · 纠正类型决定写入层（浮窗与主窗发起的纠正同路由）</span>
+    </div>
+    <div class="mem-grid">
+      <div>
+        <div class="layer-card g" id="memGlobal">
+          <h5>全局层 · 个人私有<code>memory/global.json</code></h5>
+          <ul>
+            <li>关键词 → 项目路由表（AMS / UAT / 库存 → 云深 AMS）</li>
+            <li>人 → 项目映射（王工 · 客户 DBA → 云深 AMS）</li>
+            <li>个人风格偏好、全局标签词汇（含黑名单）</li>
+          </ul>
+        </div>
+        <div class="layer-card p" id="memProj">
+          <h5>项目层 · 跟随项目<code>projects/ams/memory.json</code></h5>
+          <ul>
+            <li>目录惯例（oracle 类问题 → 环境与部署/运维）</li>
+            <li>客户术语（「老系统」= AMS 7.2）、标签偏好、项目级黑名单</li>
+          </ul>
+        </div>
+        <div class="route-bar">
+          <button class="chip" data-r="0">「这属于另一个项目」</button>
+          <button class="chip" data-r="1">「放错目录 / 标签不对」</button>
+          <button class="chip" data-r="2">「以后都这样」</button>
+        </div>
+        <div class="route-exp" id="routeExp">点一句纠正，看它写到哪一层。冷启动时项目层为空——模板供结构、全局层供路由（「默认最近活动项目」即全局层原始形态）；项目结项时项目层归档，可导出为「种子」供同模板新项目复用。</div>
+      </div>
+      <div>
+        <div class="well">
+          <div class="fix-head">
+            <div>
+              <div style="font-size:13px;font-weight:800">纠正即记 · 无固化阈值</div>
+              <div style="font-size:11.5px;color:var(--ink40);margin-top:2px">纠正一次 = 记住 = 下次生效（卡片执行落库时写入）</div>
+            </div>
+          </div>
+          <div class="fix-demo show" id="fixDemo">
+            <svg class="ic" style="color:#1f9d43"><use href="#i-check"/></svg>
+            <div>已记住：今天新捕获的 ORA 报错，卡片<b>自动</b>带上「oracle」标签并归入「环境与部署/运维」——下次同类场景不再需要你说；记忆错了会被下一次纠正自然覆盖。</div>
+          </div>
+        </div>
+        <div class="mem-metrics">
+          <div class="mm"><div class="v num">1 次</div><div class="l">纠正即记 · 下次同类场景生效</div></div>
+          <div class="mm"><div class="v num">0</div><div class="l">固化阈值 / 过期机制 · 覆盖即弃旧</div></div>
+        </div>
+        <div style="margin-top:18px">
+          <div style="font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center">「Agent 记住了什么」<span class="pill-line" style="font-size:10px">设置页 · 可逐条查看 / 编辑 / 删除</span></div>
+          <div class="mem-list" id="memList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span>纠正类型决定写入层：项目归属 → <b>全局路由表</b>；目录/标签 → <b>项目层</b>；显式规则<b>立即生效</b>（§3.2）。</li>
+    <li><span class="wn">②</span>「越用越准」= 记忆机制而非微调（Non-Goal：不做模型微调，§1.7）。V2 起，已执行卡片作为正样本注入 few-shot（FTS 相似检索，无需向量库）。</li>
+    <li><span class="wn">③</span>JSON 文件为真相源、SQLite 索引可重建；记忆不跨用户共享——V3 同步时全局层保持个人私有。</li>
+  </ol>
+</section>
+
+<!-- ============ 04 三视图 ============ -->
+<section class="sec" id="s4">
+  <div class="sec-head">
+    <div class="sec-no num">04</div>
+    <div>
+      <h2>三视图信息组织 · 同一内容，三入口可达</h2>
+      <p class="sec-scene">场景：一周后客户问「打印机那事后来怎么闭环的」——你可以从目录、标签、时间线任何一口进去。时间线折叠 = 阶段预设 + group_name 分组（Agent 建议、你确认），不做手工点选建组。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">FR-3</span><span class="ptag">FR-4</span><span class="ptag">FR-5</span><span class="ptag">§3.3</span></div>
+  </div>
+  <div class="demo panel views-panel">
+    <div class="demo-bar" style="margin-bottom:8px">
+      <div class="seg" id="viewTabs">
+        <button class="on" data-v="tl"><svg class="ic" style="width:13px;height:13px;vertical-align:-2px"><use href="#i-clock"/></svg> 时间线</button>
+        <button data-v="dir"><svg class="ic" style="width:13px;height:13px;vertical-align:-2px"><use href="#i-folder"/></svg> 目录</button>
+        <button data-v="tag"><svg class="ic" style="width:13px;height:13px;vertical-align:-2px"><use href="#i-tag"/></svg> 标签</button>
+      </div>
+      <div class="bar-r"><span class="pill-line">云深 AMS · 测试验证阶段</span></div>
+    </div>
+    <div class="reach" id="reachBar"></div>
+
+    <div class="vp on" id="vp-tl">
+      <div class="foldbar" id="foldBar"></div>
+      <div class="tl">
+        <div class="stg">测试验证<span class="pill-line">当前阶段</span></div>
+        <div class="ev" id="ev-ora" data-reach="<b>UAT 库存查询 ORA-12541 处理记录</b>&nbsp;— 目录 问题与变更/ · 标签 环境 · 数据 · oracle · 时间线 06-12 14:30">
+          <span class="ev-dot" style="--c:var(--rose)"></span>
+          <div class="ev-main"><b>UAT 库存查询报 ORA-12541 处理</b><span class="ev-meta">06-12 14:30（① 内容明示）· 来源 微信群-客户群 · 参与人 你 / 王工（DBA）</span></div>
+          <div class="ev-b"><span class="vchip" style="background:rgba(223,174,195,.45)">问题</span><span class="vchip" style="background:var(--bg2);color:var(--ink62)">笔记 + 截图</span></div>
+        </div>
+        <div class="ev" id="ev-meet" data-reach="<b>UAT 回归测试周会</b>&nbsp;— 目录 会议纪要/ · 标签 验收 · 时间线 06-12 10:00">
+          <span class="ev-dot" style="--c:var(--glacier)"></span>
+          <div class="ev-main"><b>UAT 回归测试周会</b><span class="ev-meta">06-12 10:00 · 纪要 1 篇自动落「会议纪要/」</span></div>
+          <div class="ev-b"><span class="vchip" style="background:rgba(173,203,228,.45)">会议</span></div>
+        </div>
+        <div class="ev" id="ev-report" data-reach="<b>《UAT 测试报告 v0.9》</b>&nbsp;— 目录 交付物/ · 版本链 评审中 · 时间线 06-11 16:20">
+          <span class="ev-dot" style="--c:var(--lake)"></span>
+          <div class="ev-main"><b>《UAT 测试报告 v0.9》</b><span class="ev-meta">06-11 16:20 · SHA-256 指纹已记录 · 来源 手动上传</span></div>
+          <div class="ev-b"><span class="vchip" style="background:rgba(169,207,197,.5)">交付</span><span class="vchip" style="background:var(--bg2);color:var(--ink62)">评审中</span></div>
+        </div>
+        <div class="ev" id="ev-throttle" data-reach="<b>接口超时阈值临时调整</b>&nbsp;— 目录 环境与部署/ · 标签 接口 · 数据 · 时间线 06-11 09:15">
+          <span class="ev-dot" style="--c:var(--mist)"></span>
+          <div class="ev-main"><b>库存接口超时阈值 30s → 60s（临时缓解）</b><span class="ev-meta">06-11 09:15 · 后由 06-13 优化包根治（800ms 内）</span></div>
+          <div class="ev-b"><span class="vchip" style="background:rgba(169,188,205,.5)">变更</span></div>
+        </div>
+        <div class="ev" id="ev-printer2" data-reach="<b>打印机驱动安装包部署</b>&nbsp;— 目录 问题与变更/ · 标签 部署 · 时间线 06-11 09:02 · 重建自已作废事件">
+          <span class="ev-dot" style="--c:var(--mist)"></span>
+          <div class="ev-main"><b>打印机驱动安装包部署</b>
+            <span class="rebuilt"><svg class="ic"><use href="#i-undo"/></svg>重建自 06-10「打印机驱动缺失」（已作废）· 审计轨迹保留</span>
+          </div>
+          <div class="ev-b"><span class="vchip" style="background:rgba(169,188,205,.5)">变更</span></div>
+        </div>
+        <div class="ev void" id="voidRow" data-reach="<b>（已作废）打印机驱动缺失</b>&nbsp;— 作废事件不参与检索默认结果，但审计可查">
+          <span class="ev-dot" style="--c:var(--rose)"></span>
+          <div class="ev-main"><b>打印机驱动缺失</b><span class="ev-meta">06-10 15:12 · 误归档至「上线切换」阶段 → 点击查看作废审计</span></div>
+          <div class="ev-b"><span class="pill-danger">已作废</span></div>
+        </div>
+        <div class="void-audit" id="voidAudit">作废于 06-11 09:00 · 操作人：你 · 原因：阶段误归档。<b>事件只增不改（FR-4）</b>：不提供物理删除，作废标记 + 重建保留完整审计轨迹；同步（V3）时天然低冲突。</div>
+        <div class="stg">上线切换</div>
+        <div class="ev" id="ev-golive" data-reach="<b>上线日期定档 06-28</b>&nbsp;— 时间线 06-10 15:40 · 决策事件 · 已同步进本周周报">
+          <span class="ev-dot" style="--c:var(--champ)"></span>
+          <div class="ev-main"><b>上线日期定档 06-28</b><span class="ev-meta">06-10 15:40 · 决策 · 参与人 你 / 张经理</span></div>
+          <div class="ev-b"><span class="vchip" style="background:rgba(232,216,171,.65)">决策</span></div>
+        </div>
+        <div class="stg">需求调研<span class="pill-line">V2 文件夹导入回填</span></div>
+        <div class="ev" id="ev-import" data-reach="<b>需求调研纪要（导入）</b>&nbsp;— 时间线区分「实时记录 / 导入回填」· 时间戳按回退链回填（provenance.imported = true）">
+          <span class="ev-dot" style="--c:var(--peri)"></span>
+          <div class="ev-main"><b>需求调研纪要（V2 文件夹导入）</b><span class="ev-meta">05-28 · provenance.imported = true · 时间戳回填（回退链）</span></div>
+          <div class="ev-b"><span class="vchip" style="background:rgba(185,192,232,.5)">沟通</span><span class="vchip" style="background:var(--bg2);color:var(--ink62)">导入回填</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vp" id="vp-dir">
+      <div class="dir-grid">
+        <ul class="dtree" id="dirTree"></ul>
+        <div class="ditems" id="dirItems"></div>
+      </div>
+    </div>
+
+    <div class="vp" id="vp-tag">
+      <div class="tagcloud" id="tagCloud"></div>
+      <div class="ditems" id="tagItems" style="margin-top:14px"></div>
+      <div class="merge-note"><svg class="ic"><use href="#i-tag"/></svg>标签为全局池、多归属、支持重命名 / 合并；Agent 优先复用已有标签（复用率目标 ≥ 90%）。示例：「数据库」已并入「数据（+6）」。</div>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span>目录单归属（回答「放哪」）、标签多归属（回答「是什么」）、时间线（回答「何时/谁」）——<b>三入口可达</b>（FR-3）。</li>
+    <li><span class="wn">②</span><b>时间线折叠 = 阶段预设 + group_name 分组</b>：分组名由 Agent 在卡片确认时建议（如「打印机问题闭环」），你确认或改；无组事件不折叠——不做手工点选建组（FR-4 · §3.3）。</li>
+    <li><span class="wn">③</span>错误归档走「<b>作废标记 + 重建</b>」，保留审计轨迹，无物理删除（FR-4）。</li>
+    <li><span class="wn">④</span>版本链状态可见（草稿/评审中/已确认/已作废）；文件 SHA-256 + 文本哈希去重（FR-5）。</li>
+  </ol>
+</section>
+
+<!-- ============ 05 待办中心 ============ -->
+<section class="sec" id="s5">
+  <div class="sec-head">
+    <div class="sec-no num">05</div>
+    <div>
+      <h2>待办中心 · 独立实体，独立页面</h2>
+      <p class="sec-scene">场景：从文本、文件、图片（OCR）解析出的每一件「要处理的事」，都汇聚到同一个今日视图——点开任何一条，都能看到它的来源依据，包括那张现场拍的白板照片。浮窗「看」态可勾销，与此处实时同步。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">FR-17</span><span class="ptag">§3.13</span><span class="ptag">§3.4</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar">
+      <span class="demo-title"><svg class="ic"><use href="#i-check"/></svg>待办中心 · 今日视图 / 日历 · 全来源汇聚</span>
+      <div class="bar-r">
+        <div class="seg" id="tdSeg"><button class="on" data-v="list">进行中</button><button data-v="cal">日历</button></div>
+        <button class="btn btn-soft btn-sm" id="tdRemind"><svg class="ic"><use href="#i-clock"/></svg><span>提醒</span></button>
+        <button class="icon-btn" id="tdReset" title="重置演示"><svg class="ic"><use href="#i-rotate"/></svg></button>
+      </div>
+    </div>
+    <div class="tstats" id="tdStats"></div>
+    <div id="tdList"></div>
+    <div id="tdCal" hidden>
+      <div class="cal-head">
+        <span class="big num">6月</span><span class="yr">2025</span>
+        <div class="cal-nav">
+          <button class="icon-btn sm" id="calPrev"><svg class="ic"><use href="#i-chev"/></svg></button>
+          <button class="icon-btn sm" id="calNext" style="transform:rotate(-90deg)"><svg class="ic"><use href="#i-chev"/></svg></button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-detail" id="calDetail"></div>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span><b>待办 = 独立实体（FR-17 已定案）</b>：文本 / 文件 / 图片 OCR 均可产出；数据模型 <code>Todo { id, project?, title, due_at, status, owner, source, attachments[] }</code>。点「按白板照片…」的<b>查看图片</b>，可看附件原图 + OCR 原文 + 被解析成待办的那一行（bbox 行级溯源）。</li>
+    <li><span class="wn">②</span>每条待办<b>可溯源</b>：来源徽章直跳卡片 / 纪要 / 粘贴捕获——事实 grounding 延伸到待办；日历视图按到期日分布（due 解析失败置 null，只进卡片墙不进日历，不猜日期）。</li>
+    <li><span class="wn">③</span>待办是「活数据」（可完成、可逾期、可提醒），与「<b>事件只增不改</b>」的生命周期严格分离——待办不混入时间线事件类型。</li>
+    <li><span class="wn">④</span>完成行为埋点仅本地记录（FR-13）；逾期 / 今日到期在托盘与浮窗「看」态聚合计数；不做协作指派 / 跨人分派（§1.7）。</li>
+  </ol>
+</section>
+
+<!-- ============ 06 问答检索 ============ -->
+<section class="sec" id="s6">
+  <div class="sec-head">
+    <div class="sec-no num">06</div>
+    <div>
+      <h2>问 Agent · 拒绝翻群考古</h2>
+      <p class="sec-scene">场景：又遇到数据库连接问题。你不想回忆上次是谁说的、在哪个群——直接问一句，答案必须带原文、带时间、带来源。浮窗「查」是这里的轻量版；两层共用同一个 search_content 接口，结果一致。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">US-3</span><span class="ptag">FR-7</span><span class="ptag">§3.12</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar">
+      <span class="demo-title"><svg class="ic"><use href="#i-search"/></svg>Agentic 检索问答 · search_content → read_file → 归纳</span>
+      <div class="bar-r"><button class="icon-btn" id="qaReset" title="清空对话"><svg class="ic"><use href="#i-rotate"/></svg></button></div>
+    </div>
+    <div class="chatlog" id="qaLog"></div>
+    <div class="trace" id="qaTrace" hidden></div>
+    <div class="chat-chips" style="margin-top:16px">
+      <button class="chip" data-k="db">「上次数据库连接问题怎么解决的？」</button>
+      <button class="chip" data-k="printer">「打印机的事最后怎么闭环的？」</button>
+      <button class="chip" data-k="train">「客户培训定在什么时候？」</button>
+    </div>
+    <form class="chat-in" id="qaForm">
+      <input id="qaInput" placeholder="直接问，或点上面的预设问题…" autocomplete="off">
+      <button class="btn btn-primary btn-sm" type="submit"><svg class="ic"><use href="#i-arrow"/></svg>提问</button>
+    </form>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span>回答附<b>原文引用 + 时间 + 来源卡片</b>——事实 grounding，答案可回查（US-3）。</li>
+    <li><span class="wn">②</span>工具调用 ≤ 5 次，超限基于已有结果作答并<b>明确说明信息缺口</b>；问答成本 &lt; ¥0.1/次（§3.12）。</li>
+    <li><span class="wn">③</span>不建向量 RAG（V1–V3）：FTS + Agent 优先读 Markdown 摘要卡；V3 若引入语义索引，只换 <code>search_content</code> 实现、不换接口。</li>
+  </ol>
+  <div class="cmd-wrap">
+    <div class="cmd-bar">
+      <svg class="ic"><use href="#i-cmd"/></svg>
+      <input id="cmdInput" placeholder="⌘P 快速切换器 · 搜项目 / 目录 / 内容（含 OCR 文本）…" autocomplete="off">
+      <kbd>⌘P</kbd>
+    </div>
+    <div style="margin-top:10px"><button class="chip" id="cmdHint">试试输入「ora」——会命中截图里的 OCR 文本</button></div>
+    <div class="cmd-list" id="cmdList"></div>
+    <div class="cmd-detail" id="cmdDetail"></div>
+  </div>
+</section>
+
+<!-- ============ 07 凭证库 ============ -->
+<section class="sec" id="s7">
+  <div class="sec-head">
+    <div class="sec-no num">07</div>
+    <div>
+      <h2>凭证库 · 密码永不落明文</h2>
+      <p class="sec-scene">场景：现场拿到 UAT 数据库账号密码，随手丢给 Agent——它必须认出这是密码、加密入库、原文只留占位符，且 Agent 永远读不到明文。随手浮窗「查」可 list 同一批凭证（同源），复制需确认。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">US-4</span><span class="ptag">FR-15</span><span class="ptag">§3.11</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar"><span class="demo-title"><svg class="ic"><use href="#i-lock"/></svg>捕获联动 → 占位符 → 复制与审计</span>
+      <div class="bar-r"><span class="pill-ink">OS 凭证存储 · Keychain</span><span class="pill-line">与随手浮窗同源 ✓</span></div>
+    </div>
+    <div class="cred-grid">
+      <div>
+        <div class="cred-step first">
+          <h5><span class="num">①</span>捕获联动<span class="pill-line" style="font-size:10px">正则检测到凭证形态</span></h5>
+          <button class="btn btn-soft btn-sm" id="credRun" style="margin-top:10px">模拟粘贴含密码文本</button>
+          <div class="cred-diff">
+            <div class="cd-box"><label>你粘贴的原文</label>UAT 环境信息<br>主机 10.20.6.31<br>DB 账号 ams_uat / 密码 <span class="secret" id="credSecret">Ora_UAT#2025s</span><br>端口 1521</div>
+            <svg class="ic" style="color:var(--ink40)"><use href="#i-arrow"/></svg>
+            <div class="cd-box" id="credAfter" style="display:none">UAT 环境信息<br>主机 10.20.6.31<br>DB 账号 ams_uat / 密码 <span class="cred-ref"><svg class="ic"><use href="#i-lock"/></svg>凭证:CRED-017</span><br>端口 1521
+              <div class="act-swap">action：<s>create_note</s><svg class="ic" style="width:12px;height:12px;color:var(--ink40)"><use href="#i-arrow"/></svg><span class="pill-ink">save_credential</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="cred-step locked" id="credStep2">
+          <h5><span class="num">②</span>笔记中只渲染占位符</h5>
+          <div class="note-render">## UAT 环境信息<br>DB：ams_uat@10.20.6.31:1521<br>密码：<span class="copy-pill"><svg class="ic" style="width:11px;height:11px"><use href="#i-lock"/></svg>UAT 数据库密码<span class="pop"><button id="credCopyBtn" type="button"><svg class="ic" style="width:10px;height:10px"><use href="#i-copy"/></svg>复制</button><div class="pop-menu" id="credPop">确认复制到剪贴板？<br><span style="color:var(--ink40)">明文只进剪贴板——不进对话、不进上下文、不进任何笔记。</span><div class="btns"><button class="btn btn-primary btn-sm" id="credYes">确认复制</button><button class="btn btn-ghost btn-sm" id="credNo">取消</button></div></div></span></span></div>
+        </div>
+        <div class="cred-step locked" id="credStep3">
+          <h5><span class="num">③</span>审计日志 · 本地记录<span class="pill-line" style="font-size:10px">主窗与浮窗触发汇聚同一日志</span></h5>
+          <div class="audit-log" id="auditList" style="margin-top:10px">
+            <div>06-12 14:31&nbsp; save_credential&nbsp; CRED-017「UAT 数据库密码」· 来源 捕获联动</div>
+            <div>06-12 14:32&nbsp; reveal_credential&nbsp; CRED-017 · 用户确认 · 仅进剪贴板</div>
+          </div>
+        </div>
+      </div>
+      <div class="agent-view">
+        <h5><svg class="ic"><use href="#i-eye"/></svg>Agent 眼中的凭证库（工具层双约束）</h5>
+        <div class="codebox"><span class="cm">// list_credentials —— 写死在工具层（主窗与浮窗共用）</span><br>list_credentials(project="云深 AMS")<br>→ [<br>&nbsp;&nbsp;{ name: <span class="hl">"UAT 数据库密码"</span>, user: "ams_uat", url: "10.20.6.31" },<br>&nbsp;&nbsp;{ name: <span class="hl">"堡垒机 VPN"</span>, user: "wang.im" }<br>]<br><span class="cm">// secret 字段：永不返回明文 —— 防密码写进周报</span></div>
+        <div class="constraint"><svg class="ic"><use href="#i-lock"/></svg><div><b>list_credentials</b> 只返回名称 / 元数据，永不返回明文。</div></div>
+        <div class="constraint"><svg class="ic"><use href="#i-eye"/></svg><div><b>reveal_credential</b> 需用户<b>按钮显式确认</b>；输出只进剪贴板，不进上下文、不进任何 note；本地记审计日志（浮窗触发来源标注「随手浮窗」）。</div></div>
+        <div class="constraint"><svg class="ic"><use href="#i-cloud"/></svg><div><b>出站脱敏闸门</b>：云端路径强制经过（凭证精确匹配 + 秘密模式正则）；本地路径不出机、不脱敏保真。</div></div>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><span class="pill-ok">30 条含秘密测试集 · 0 泄漏</span><span class="pill-line">SQLCipher / libsodium 加密库 · 主密码恢复路径</span></div>
+      </div>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span>捕获含密码文本 → 卡片 action 自动 <code>create_note → save_credential</code>，原文该段替换为占位符（US-4）。</li>
+    <li><span class="wn">②</span>查看密码需<b>按钮显式确认</b>、只进剪贴板、写审计日志；主密钥经 keyring 抽象存 OS 凭证存储（macOS Keychain / Windows Credential Manager 同一接口），换机有主密码恢复路径。</li>
+    <li><span class="wn">③</span><b>浮窗「查」开放 list</b>（与主窗同一 list_credentials 工具，仅元数据）；复制走「复制按钮 → 确认 → 仅进剪贴板」，浮窗触发同样落审计日志——去按 <b>⌥Space → 查 → 「凭证库」</b>体验。</li>
+    <li><span class="wn">④</span>同一检测驱动云端出站脱敏兜底，并复用于 OCR 关键字段置信校验——「出站零泄漏 / 通道标注一致 100%」为隐私双指标（§1.5）。</li>
+  </ol>
+</section>
+
+<!-- ============ 08 统一捕获管线 ============ -->
+<section class="sec" id="s8">
+  <div class="sec-head">
+    <div class="sec-no num">08</div>
+    <div>
+      <h2>统一捕获管线 · 任何输入 = 原件 + 摘要 + 事件 + 待办</h2>
+      <p class="sec-scene">不存在专门的导入通道。任何能被捕获的东西（粘贴文本 / 截图 / 文件）都走同一条管线，产出同一张操作卡片；IM 记录的导出由用户自行解决，产品只处理捕获进来的内容。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">FR-8</span><span class="ptag">§3.4</span><span class="ptag">§5.4</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar">
+      <span class="demo-title"><svg class="ic"><use href="#i-zap"/></svg>一条管线，四种输入，同一张操作卡片</span>
+      <div class="bar-r"><span class="pill-line">宁缺勿滥 · 低置信条目留在摘要正文，不强行结构化</span></div>
+    </div>
+    <div class="pipe2">
+      <span class="pn hot">任何输入</span><span class="pa">→</span>
+      <span class="pn">确定性预处理（主进程）</span><span class="pa">→</span>
+      <span class="pn">Agent 结构化</span><span class="pa">→</span>
+      <span class="pn">操作卡片确认</span><span class="pa">→</span>
+      <span class="pn">入库：原件+笔记+索引+待办+时间线事件</span>
+    </div>
+    <div class="fx-grid">
+      <div>
+        <div class="mat-in" id="matIn">
+          <button class="chip on" data-m="text">文本粘贴</button>
+          <button class="chip" data-m="shot">图片 · 截图</button>
+          <button class="chip" data-m="file">文件</button>
+          <button class="chip" data-m="multi">连续多图</button>
+        </div>
+        <div class="slots" id="matSlots"></div>
+        <div class="attr-note"><svg class="ic"><use href="#i-image"/></svg><div><b>为什么截图是第一捕获路径</b>：粘贴类路径丢时间与画面；截图是唯一同时保住<b>时间戳（画面内）+ 图片上下文 + 完整画面信息</b>的入口（§3.4），说话人由你审查卡片时人工补充。OCR 走本地引擎全离线。</div></div>
+      </div>
+      <div>
+        <div class="chain-box">
+          <div style="font-size:13px;font-weight:800">时间取值回退链 · 全部内容通用（导入 / 捕获一视同仁）</div>
+          <div class="mat-in" style="margin:10px 0 0" id="chainIn">
+            <button class="chip on" data-c="0">画面时间锚「昨天 14:30」</button>
+            <button class="chip" data-c="1">相对指称「今天上午」</button>
+            <button class="chip" data-c="2">没有任何时间线索</button>
+          </div>
+          <div class="chain-steps">
+            <span class="cstep" data-s="0"><span class="csn">①</span>内容明示</span>
+            <svg class="ic" style="width:12px;height:12px;color:var(--ink40)"><use href="#i-arrow"/></svg>
+            <span class="cstep" data-s="1"><span class="csn">②</span>内容可推导</span>
+            <svg class="ic" style="width:12px;height:12px;color:var(--ink40)"><use href="#i-arrow"/></svg>
+            <span class="cstep" data-s="2"><span class="csn">③</span>捕获时间</span>
+          </div>
+          <div class="chain-res" id="chainRes"></div>
+        </div>
+        <div class="chain-box" style="margin-top:14px">
+          <div style="font-size:13px;font-weight:800">时间锚行 · 唯一自动提取的布局信号（纯规则）</div>
+          <div class="attrchat" style="margin-top:10px">
+            <span class="ac anchor">昨天 14:30</span>
+            <span class="ac"><span class="aw">王工</span>UAT 库连不上了，报 ORA-12541，你们看一下</span>
+            <span class="ac me">收到，在看，应该是监听没起</span>
+            <span class="ac me">已恢复 ✅ 监听已补自启配置</span>
+          </div>
+          <div class="attr-note"><svg class="ic"><use href="#i-eye"/></svg><div>时间锚行（<code>昨天 14:30</code> 等正则）喂时间回退链 ①。<b>不做说话人自动归因</b>：气泡布局因 IM 而异、规则脆弱且收益低——说话人由你在卡片审查时一句话补充（Non-Goals）。</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="paste-demo">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:800">示例 · 粘贴一段客户群消息（张经理 / 李工 / 王工 · 06-13）</span>
+        <span class="pill-line" style="font-size:10.5px">长文本 &gt;8K 字符 → 分块（~4K）逐块提取 → 合并单卡片多 entries · 超时降级原文入库</span>
+      </div>
+      <div class="paste-cols">
+        <div class="well" style="font-size:12px;line-height:2">
+          <b>张经理</b> 09:16　下周三培训的事定了吗？车间要排班<br>
+          <b>王工</b>　09:20　培训材料我今天给你，<b>周三上午 10 点，一号会议室</b><br>
+          <b>张经理</b> 09:21　行。[文件] 培训签到表v2.xlsx<br>
+          <b>李工</b>　14:05　<b>接口新包已上 UAT，超时降到 800ms 以内</b><br>
+          <b>张经理</b> 14:08　确认没问题，这个变更就算闭环了
+        </div>
+        <div>
+          <div class="mini-ev"><span class="dot" style="background:rgba(169,188,205,.6)"></span><div>事件 · 变更 · 06-13 14:05「接口新包部署 UAT」<span class="tsp"><svg class="ic"><use href="#i-clock"/></svg>① 内容明示 14:05（at_source=content_time）</span></div></div>
+          <div class="mini-ev"><span class="dot" style="background:rgba(173,203,228,.6)"></span><div>事件 · 会议 · 06-18（周三）10:00 一号会议室<span class="tsp"><svg class="ic"><use href="#i-clock"/></svg>① 内容明示「周三上午 10 点」</span></div></div>
+          <div class="mini-ev"><span class="dot" style="background:rgba(232,216,171,.8)"></span><div>待办 ·「培训材料发给张经理」→ 待办中心（05 的今日主卡）<span class="tsp"><svg class="ic"><use href="#i-clock"/></svg>截止 = 今日（明示「今天」）· due 解析失败置 null 只进卡片墙</span></div></div>
+          <div class="mini-ev"><span class="dot" style="background:rgba(185,192,232,.6)"></span><div>纪要 · 沟通记录/06-13 客户群纪要 · [文件] 占位待回链补传（05 的 t5）</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span><b>统一等式</b>：任何输入 = 原件（如有）+ 一份摘要 Markdown + 已发生事件[] + 未来待办[]，一张操作卡片承载确认（FR-8）。</li>
+    <li><span class="wn">②</span><b>时间回退链</b>：① 内容明示 → ② 内容可推导 → ③ 捕获时间（capture_time）；凡 at ≠ capture_time，at_source 必填、卡片标注且可改——适用于全部内容（导入 / 捕获一视同仁）。</li>
+    <li><span class="wn">③</span><b>宁缺勿滥</b>：低置信条目不结构化，留在摘要正文，用户可手动转事件/待办；due_at 解析失败置 null（不猜日期）。</li>
+    <li><span class="wn">④</span><b>长文本</b>（&gt;8K 字符或检出多消息结构）：分块逐块提取 → 合并单卡多 entries；V2 渐进卡片（首块完成即出摘要）；超时降级原文入库进待处理队列，不阻塞捕获。</li>
+    <li><span class="wn">⑤</span><b>IM 边界</b>：不做聊天记录导入、不做自动监听；微信等导出由用户自行解决（截图 / 粘贴），飞书（V2 验证项）定位为用户主动「转发捕获」。</li>
+  </ol>
+</section>
+
+<!-- ============ 09 周报生成 ============ -->
+<section class="sec" id="s9">
+  <div class="sec-head">
+    <div class="sec-no num">09</div>
+    <div>
+      <h2>周报生成 · 周五一键成稿 <b style="font-size:11px;background:var(--bg2);border-radius:999px;padding:2px 10px;vertical-align:3px;font-family:Inter">V2</b></h2>
+      <p class="sec-scene">场景：周五下午 5 点。过去你要回忆一整周；现在本地时间线直接取数，DeepSeek 按模板章节成稿——<b>每个数字悬停即可溯源</b>。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">US-5</span><span class="ptag">FR-10</span><span class="ptag">§3.6</span></div>
+  </div>
+  <div class="demo panel">
+    <div class="demo-bar" id="wkBar">
+      <span class="demo-title"><svg class="ic"><use href="#i-doc"/></svg>周报草稿 · 本地取数 grounding</span>
+      <div class="bar-r">
+        <div class="seg" id="wkSeg"><button class="on" data-t="p">个人周报</button><button data-t="prj">项目周报</button></div>
+        <label class="wk-check" style="margin-top:0"><button class="switch" id="sparseChk" aria-label="记录不足模式"></button>记录不足模式预览</label>
+      </div>
+    </div>
+    <div class="wk-grid">
+      <div class="well">
+        <div style="font-size:13px;font-weight:800">本周材料</div>
+        <div style="font-size:12px;color:var(--ink62);margin-top:8px;line-height:2">
+          时间线事件 <b class="num">23</b> 条<br>覆盖项目 <b class="num">3</b> 个 · 云深 AMS / 恒达 ERP / 华康 CRM<br>周期 06-09 ~ 06-13
+        </div>
+        <button class="btn btn-primary" id="wkGen" style="margin-top:14px;width:100%;justify-content:center"><svg class="ic"><use href="#i-zap"/></svg>一键生成草稿</button>
+        <div class="wk-src"><svg class="ic"><use href="#i-check"/></svg>数字可溯源率目标 100%（§2.4 自动校验）</div>
+        <div class="wk-src"><svg class="ic"><use href="#i-check"/></svg>「风险与求助」含待办中心未完成 / 逾期（来源标注待办中心）</div>
+        <div class="wk-src"><svg class="ic"><use href="#i-lock"/></svg>凭证受工具层双约束保护——密码不可能被写进周报</div>
+        <div class="wk-src">支持「粘贴公司现有周报格式 → 一键生成模板」（V2）</div>
+      </div>
+      <div class="wk-doc" id="wkDoc">
+        <div class="wk-empty" id="wkEmpty"><div><svg class="ic"><use href="#i-doc"/></svg><br>点击「一键生成草稿」<br>观看本地取数 → 章节成稿过程</div></div>
+        <div id="wkBody"></div>
+      </div>
+    </div>
+  </div>
+  <ol class="watch">
+    <li><span class="wn">①</span>本地时间线取数 → 按章节成稿 → 可编辑 → 一键复制 Markdown；<b>悬停数字看溯源</b>（US-5）。</li>
+    <li><span class="wn">②</span>记录不足时草稿顶部提示，<b>反向激励记录习惯</b>——周报是采纳的留存钩子（附录 A：人均捕获目标 ≥ 3 次/日）。</li>
+    <li><span class="wn">③</span>待办完成情况自动汇入「风险与求助」章节（来源：待办中心，非凭空生成）；凭证受工具层双约束保护，密码不可能被写进周报。</li>
+  </ol>
+</section>
+
+<!-- ============ 10 指标与路线 ============ -->
+<section class="sec" id="s10">
+  <div class="sec-head">
+    <div class="sec-no num">10</div>
+    <div>
+      <h2>指标与路线 · 验收口径</h2>
+      <p class="sec-scene">功能验收制：每个功能以「能用 / 不能用」验收，不为评估筹备数据集；性能是预算不是闸门——量化问题在使用中发现、迭代中改进。</p>
+    </div>
+    <div class="sec-tags"><span class="ptag">§1.5</span><span class="ptag">§1.6</span><span class="ptag">§1.8</span></div>
+  </div>
+
+  <div class="tri-grid">
+    <div class="tri"><div class="lab">① 捕获反馈</div><div class="v num">&lt;1s</div><div class="d">丢入到可收起（浮窗）/ 可关窗 · 丢入即视为记录成功</div></div>
+    <div class="tri-arrow"><svg class="ic"><use href="#i-arrow"/></svg></div>
+    <div class="tri"><div class="lab">② 卡片就绪</div><div class="v num">10<small>s</small> <small>/ 25s</small></div><div class="d">p50 / p95 · OCR + DeepSeek JSON 输出为主要环节（性能预算）</div></div>
+    <div class="tri-arrow"><svg class="ic"><use href="#i-arrow"/></svg></div>
+    <div class="tri"><div class="lab">③ 确认执行</div><div class="v num" style="font-size:26px;padding-top:6px">趋势观测</div><div class="d">不设指标；对话轮数、撤销/移动率周趋势必须下降</div></div>
+  </div>
+
+  <div class="q-grid" style="margin-top:14px">
+    <div class="mm"><div class="v num">&lt;1s</div><div class="l">本地检索延迟 · 回答附原文引用</div></div>
+    <div class="mm"><div class="v num">≤¥0.1</div><div class="l">Agent 问答成本 · 单次归档 &lt;¥0.01</div></div>
+    <div class="mm"><div class="v num">≤5 次</div><div class="l">Agent 工具调用上限 · 超限说明缺口</div></div>
+    <div class="mm"><div class="v num">100%</div><div class="l">通道标注一致 · 浮窗/主窗结果一致率</div></div>
+  </div>
+
+  <div class="demo panel" style="margin-top:32px">
+    <div class="demo-bar"><span class="demo-title"><svg class="ic"><use href="#i-edit"/></svg>v2.0 refine 关键变更 · v1.4 → v2.0（已全部落入演示）</span>
+      <div class="bar-r"><span class="pill-line">5 项</span></div>
+    </div>
+    <div class="dec">
+      <span class="dn">1</span>
+      <div>
+        <b>删除聊天布局归因启发式——说话人改为你审查时人工补充</b>
+        <p>bbox 气泡归属、群昵称识别、系统消息分类等布局推断因 IM 而异、规则脆弱，收益只是省几次手动修改。保留时间锚行正则（纯规则，喂时间回退链 ①）；说话人由你在卡片审查时一句话补充。</p>
+        <div class="dmap"><span class="pill-line">演示 → 08 时间锚行</span></div>
+      </div>
+    </div>
+    <div class="dec">
+      <span class="dn">2</span>
+      <div>
+        <b>时间线折叠组机制收敛为 Event.group_name</b>
+        <p>删除独立实体、预设/自定义两套机制与手工点选建组 UI——不要求用户当整理工。分组由 Agent 在卡片确认时建议（「这是上次系统升级的后续事件」），你确认或改；无组事件不折叠。</p>
+        <div class="dmap"><span class="pill-line">演示 → 04 group_name 折叠</span></div>
+      </div>
+    </div>
+    <div class="dec">
+      <span class="dn">3</span>
+      <div>
+        <b>删除黄金集评估体系，改为功能验收制</b>
+        <p>每个功能以「能用 / 不能用」验收，不为评估筹备数据集；安全底线（出站脱敏）上线前人工冒烟；量化问题在使用中发现、迭代中改进。</p>
+        <div class="dmap"><span class="pill-line">见下方功能验收口径</span></div>
+      </div>
+    </div>
+    <div class="dec">
+      <span class="dn">4</span>
+      <div>
+        <b>「看到什么，截什么」升为全产品仪式</b>
+        <p>三键肌肉记忆（⌘⇧⌃4 → ⌥Space → ⌘V）在空态、三步卡、托盘 tooltip、卡片标注行、设置页页脚统一复述——产品压缩成一句可背诵的动词序列。</p>
+        <div class="dmap"><span class="pill-line">演示 → 00 仪式 · 01 空态</span></div>
+      </div>
+    </div>
+    <div class="dec" style="border:0">
+      <span class="dn">5</span>
+      <div>
+        <b>Tech Stack 收敛定案</b>
+        <p>前端 React 定案（消除「待团队确认」矛盾）；OCR 平台默认引擎唯一化——macOS 用 Vision（系统原生、零模型分发），Windows 适配期用 RapidOCR ONNX，统一经主进程 <code>/api/ocr</code> 接口。</p>
+        <div class="dmap"><span class="pill-line">PRD.refined §9</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo panel" style="margin-top:32px">
+    <div class="demo-bar"><span class="demo-title"><svg class="ic"><use href="#i-chart"/></svg>功能验收口径 · 功能验收制（不筹备评估数据集）</span>
+      <div class="bar-r"><span class="pill-line">能用 / 不能用 · 使用中改进</span></div>
+    </div>
+    <table class="golden">
+      <tr><th>验收对象</th><th>口径</th></tr>
+      <tr><td>每个功能</td><td>真实使用中「能用 / 不能用」即验收；不预设量化目标值，量化问题在使用中发现、迭代中改进</td></tr>
+      <tr><td>安全底线 · 出站脱敏</td><td>上线前人工冒烟：30 条含秘密形态文本 0 泄漏，不通过不上线</td></tr>
+      <tr><td>诚实承诺 · 通道标注</td><td>卡片标注与实际处理通道一致（架构保证，设置变更后历史卡片标注不变）</td></tr>
+      <tr><td>事实 grounding · 周报</td><td>每个数字来自本地取数，悬停可溯源（100%）</td></tr>
+      <tr><td>性能预算</td><td>捕获反馈 &lt;1s · 浮窗唤起 &lt;300ms · 卡片就绪 p50 ≤10s / p95 ≤25s · 本地检索 &lt;1s（预算而非闸门）</td></tr>
+    </table>
+  </div>
+
+  <div class="rm-grid">
+    <div class="rm" style="--rc:var(--glacier)"><h5>V1</h5><div class="goal">验证「丢给 Agent」是否成立</div>
+      <ul><li>随手浮窗（记 / 查 / 看）+ 统一内容解析（截图 OCR / 文本 / 文件 · 投递聚合 · 时间锚行提取）</li><li>操作卡片 + 记忆机制 + 模板系统</li><li>时间线（阶段折叠 + group_name 分组）+ 检索 + 凭证库（浮窗 list 同源）</li><li>待办中心基础版（FR-17：卡片待办行 + 手动创建）</li><li>OCR 不达标降级：原图进待处理队列，OCR 随 V2 补——主流程不受影响</li></ul></div>
+    <div class="rm" style="--rc:var(--lake)"><h5>V2</h5><div class="goal">存量低成本进库 · 周报钩子</div>
+      <ul><li>文件夹批量导入（SHA-256 去重 → 队列解析）</li><li>PDF / Office 解析器 + 长文本渐进渲染</li><li>周报生成（留存钩子）</li><li>飞书实时转发捕获验证（只收不写 · WebSocket 长连接）</li><li>待办批量来源接入（文件夹 / 图片解析）</li></ul></div>
+    <div class="rm" style="--rc:var(--peri)"><h5>V3</h5><div class="goal">团队复用发生</div>
+      <ul><li>局域网 hub 同步 · 项目成员制可见性</li><li>经验沉淀 + 跨项目推荐</li><li>跨项目 RAG 问答（只换 search_content 实现）</li><li>验证：≥2 个项目引用同一经验条目</li></ul></div>
+  </div>
+
+  <div style="margin-top:34px">
+    <div style="font-size:13px;font-weight:800">Non-Goals · 明确不做什么</div>
+    <div class="ng-wrap">
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>项目管理（甘特图 / 任务分派）——不是 PM 工具</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>群消息自动监听 / IM 聊天记录导入——仅用户主动捕获</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>会议实时转写 / 录音</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>模型微调——越用越准靠记忆</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>记忆跨用户共享——全局层保持个人私有</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>浮窗不承载批量 / 深度操作——保持轻量</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>待办协作指派 / 跨人分派——个人执行视图</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>聊天截图说话人自动归因——审查时人工补充</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>时间线手工折叠组——分组由 Agent 建议 group_name</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>黄金集评估体系——功能验收制 + 使用中改进</span>
+      <span class="ng"><svg class="ic"><use href="#i-x"/></svg>V1 不做 Windows / 移动端 / 多语言</span>
+    </div>
+  </div>
+
+  <div style="margin-top:26px;font-size:12px;color:var(--ink40);line-height:2">
+    <b style="color:var(--ink62)">风险速览</b>：采纳风险（最大产品风险——埋点漏斗观察人均捕获频次；「看到什么截什么」空态引导降低捕获门槛）· OCR 可读性实测：不达标走降级路径（原图进待处理队列，OCR 随 V2 补，主流程不受影响）· 成本护栏：单次归档 &lt;¥0.01、问答 &lt;¥0.1/次、千文件导入 &lt;¥10。
+  </div>
+
+  <div class="foot">
+    <span>项目随手记 · 可交互 PRD v2.0 —— 对齐 PRD.refined v2.0 · 全部数据为模拟</span>
+    <span>随手记录 · Agent 帮你整理 · 随用随取</span>
+  </div>
+</section>
+
+</div></main>
+
+<!-- ============ 随手浮窗（全局 · 默认顶部居中） ============ -->
+<div class="qp" id="qp" role="dialog" aria-label="随手浮窗">
+  <div class="qp-hd" id="qpHd">
+    <span class="qp-dot"></span>
+    <b>项目随手记</b>
+    <span class="chan" id="qpChan"><svg class="ic"><use href="#i-cloud"/></svg>☁ 已脱敏</span>
+    <span style="flex:1"></span>
+    <button class="qp-ib" id="qpPin" title="置顶钉住（Esc 将不收起）"><svg class="ic"><use href="#i-pin"/></svg></button>
+    <button class="qp-ib" id="qpClose" title="收起 Esc"><svg class="ic"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="qp-tabs" id="qpTabs">
+    <button class="on" data-t="j"><kbd>⌥1</kbd>记</button>
+    <button data-t="c"><kbd>⌥2</kbd>查</button>
+    <button data-t="k"><kbd>⌥3</kbd>看<span class="badge" id="qpBadgeK">2</span></button>
+  </div>
+  <div class="qp-body">
+    <!-- 记 -->
+    <div class="qp-v on" id="qv-j">
+      <div class="qp-slogan">看到什么，截什么 <svg class="ic"><use href="#i-zap"/></svg></div>
+      <div class="qp-tri"><span><b>1</b>⌘⇧⌃4 截屏</span>→<span><b>2</b>⌥Space 唤起</span>→<span><b>3</b>⌘V 粘贴</span></div>
+      <div class="qp-inputrow">
+        <input id="qpCapIn" placeholder="随手记一句… / 直接粘贴文本" autocomplete="off">
+        <button class="qp-send" id="qpCapSend" title="随手记"><svg class="ic"><use href="#i-arrow"/></svg></button>
+      </div>
+      <div class="qp-srcs">
+        <button class="hot" data-s="shot"><svg class="ic"><use href="#i-image"/></svg>粘贴截图</button>
+        <button data-s="text"><svg class="ic"><use href="#i-doc"/></svg>粘贴文本</button>
+        <button data-s="file"><svg class="ic"><use href="#i-folder"/></svg>拖入文件</button>
+      </div>
+      <div class="qp-prog" id="qpProg" hidden></div>
+      <div class="qp-aggline" id="qpAgg" hidden><svg class="ic"><use href="#i-copy"/></svg><span id="qpAggTxt"></span></div>
+      <div class="qp-last" id="qpLast" hidden></div>
+      <div class="qp-hintline">丢入即视为记录成功 · 卡片永不自动入库<br>剪贴板为图片时，唤起自动进入投递预览（Enter 确认）</div>
+    </div>
+    <!-- 查 -->
+    <div class="qp-v" id="qv-c">
+      <div class="qp-inputrow">
+        <input id="qpQIn" placeholder="问一句，或搜关键词…" autocomplete="off">
+        <button class="qp-send" id="qpQSend" title="提问"><svg class="ic"><use href="#i-arrow"/></svg></button>
+      </div>
+      <div class="qp-chips">
+        <button data-q="db">数据库连接</button>
+        <button data-q="printer">打印机闭环</button>
+        <button data-q="train">培训时间</button>
+        <button data-q="cred">凭证库</button>
+      </div>
+      <div id="qpAns"></div>
+    </div>
+    <!-- 看 -->
+    <div class="qp-v" id="qv-k">
+      <div class="qp-sec"><h6>待审卡片<span class="num" id="qpN1">2</span></h6><div id="qpCards"></div></div>
+      <div class="qp-sec"><h6>今日待办<span class="num" id="qpN2">2</span></h6><div id="qpTodos"></div></div>
+      <div class="qp-sec"><h6>最近时间线</h6><div id="qpTl"></div></div>
+      <div class="qp-hintline">深度审查 / 批量操作 / 三视图 → 打开主窗</div>
+    </div>
+  </div>
+  <div class="qp-ft" id="qpFt"></div>
+</div>
+
+<!-- 浮窗唤起按钮 -->
+<button class="trig" id="trig" title="随手浮窗 · ⌥Space / ⌥Q"><svg class="ic"><use href="#i-zap"/></svg><span class="trig-kbd">⌥Space</span></button>
+
+<!-- 待办附件图片弹层 -->
+<div class="ovl" id="phOvl">
+  <div class="ph">
+    <div>
+      <div class="phimg">
+        <div class="blframe"></div>
+        <span class="bl" style="top:24%;left:18%;width:42%"></span>
+        <span class="bl" style="top:35%;left:18%;width:55%"></span>
+        <span class="blbox" style="top:48.5%;left:13.5%"></span>
+        <span class="bl hl" style="top:50%;left:18%;width:60%"></span>
+        <span class="bl" style="top:63%;left:18%;width:36%"></span>
+        <div class="ph-cap">IMG_0612_1431.jpg · 1.2 MB · OCR 已入索引</div>
+      </div>
+      <div class="ph-note"><svg class="ic"><use href="#i-image"/></svg><div>现场白板照片 · 随卡片 #C-0612-03 附件落库 · 原图为真相源，OCR 文本仅入索引层</div></div>
+    </div>
+    <div>
+      <h5><svg class="ic"><use href="#i-eye"/></svg>OCR 原文 · 待办解析依据</h5>
+      <div class="ocrbox">UAT 环境参数核对清单（白板）<br>□ lsnrctl status 监听正常<br><span class="hl">□ 核对 tnsnames / 环境参数 → 王工 · 周三前</span><br>□ 培训开始前完成</div>
+      <div class="ph-note"><svg class="ic"><use href="#i-check"/></svg><div>高亮行被解析为待办（FR-17 图片来源待办）——负责人、截止时间均来自 OCR 上下文，可改。</div></div>
+      <div class="ph-note"><svg class="ic"><use href="#i-clock"/></svg><div style="color:var(--ink40)">来源：IMG_0612_1431.jpg · 06-12 14:31 · 卡片 #C-0612-03 附件</div></div>
+      <div class="ph-btns">
+        <button class="btn btn-primary btn-sm" id="phGoto">回看时间线来源</button>
+        <button class="btn btn-ghost btn-sm" id="phClose">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* ============ 工具（全部事件绑定走 safe on()，杜绝空引用中断脚本） ============ */
+const $=(s,c=document)=>c.querySelector(s);
+const $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const ic=n=>`<svg class="ic"><use href="#${n}"/></svg>`;
+const on=(sel,evt,fn)=>{const el=typeof sel==='string'?$(sel):sel;if(el)el.addEventListener(evt,fn);};
+function toast(msg){const t=document.createElement('div');t.className='toast';t.innerHTML=ic('i-check')+`<span>${msg}</span>`;$('#toasts').append(t);requestAnimationFrame(()=>t.classList.add('in'));setTimeout(()=>{t.classList.remove('in');setTimeout(()=>t.remove(),400)},3400);}
+function flash(el){if(!el)return;el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash');}
+function copyText(t,okMsg){
+  const done=()=>toast(okMsg||'已复制');
+  const fb=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.append(ta);ta.select();document.execCommand('copy');ta.remove();done();}catch(e){toast('复制受限（演示环境）')}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(fb);}else fb();
+}
+
+/* ============ 全局状态：待审卡片（浮窗 / 主窗共用） ============ */
+const pendingCards=[
+ {id:'p1',title:'打印机驱动安装包部署（重建）',c:'var(--mist)',t:'06-11'},
+ {id:'p2',title:'UAT 库存查询 ORA-12541 处理记录',c:'var(--rose)',t:'06-12'}
+];
+let pidN=3;
+function syncBadges(){
+  const n=pendingCards.length;
+  const tb=$('#trayBadge');if(tb){tb.hidden=n===0;tb.textContent=n;}
+  const kb=$('#qpBadgeK');if(kb)kb.textContent=n;
+  const t=typeof TODOS!=='undefined'?TODOS.filter(x=>!x.done&&x.day===13).length:0;
+  const n1=$('#qpN1');if(n1)n1.textContent=n;
+  const n2=$('#qpN2');if(n2)n2.textContent=t;
+  const ft=$('#qpFt');if(ft)ft.innerHTML=`待审 <b>${n}</b><span>·</span>今日待办 <b>${t}</b><span>·</span><span>☁ 通道标注与主窗一致</span><span class="lnk" onclick="toast('主窗：完整工作台（演示）')">打开主窗</span>`;
+}
+function addPending(title,c){
+  pendingCards.unshift({id:'p'+(pidN++),title,c,t:'刚刚'});
+  syncBadges();renderQpCards();
+}
+
+/* ============ 滚动高亮 ============ */
+const spy=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id='#'+e.target.id;$$('.nav a').forEach(a=>a.classList.toggle('act',a.getAttribute('href')===id));}})},{rootMargin:'-30% 0px -60% 0px'});
+ $$('.sec').forEach(s=>spy.observe(s));
+
+/* ============ 01 捕获管线（主窗演示 · 顺序：接收→OCR→脱敏→Agent→卡片） ============ */
+let capBusy=false,capShotT=0;
+const capData={
+ shot:{ocr:true,prev:`<div class="cap-shot"><i></i><i class="w80"></i><i class="w70"></i><i class="err">ORA-12541: TNS:no listener</i><i class="w50"></i></div>`},
+ text:{ocr:false,prev:`<div class="cap-txt"><i class="w80"></i><i></i><i class="w70"></i><i class="w50"></i></div>`},
+ file:{ocr:false,prev:`<div class="cap-file">${ic('i-doc')}<div><b>部署手册_v3.pdf</b><span>2.4 MB · SHA-256 指纹 · 未发现重复 ✓</span></div></div>`}
+};
+ $$('.cap-kinds .chip').forEach(b=>on(b,'click',()=>startCap(b.dataset.kind,b)));
+function startCap(kind,btn){
+  if(capBusy)return;capBusy=true;
+  $$('.cap-kinds .chip').forEach(c=>c.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  const d=capData[kind],steps=$$('#capPipe .pstep');
+  /* 投递聚合：10s 窗口内连续两次「粘贴截图」 */
+  const agg=kind==='shot'&&(Date.now()-capShotT<10000);
+  if(kind==='shot')capShotT=Date.now();
+  steps.forEach(s=>{s.className='pstep';s.querySelector('.ptime').textContent=''});
+  steps[1].querySelector('b').textContent=kind==='shot'?'OCR 识别 · 本地':(kind==='file'?'SHA-256 去重':'OCR · 跳过');
+  $('#capResult').hidden=true;$('#capRecv').hidden=true;$('#capClose').disabled=true;
+  $('#capWin').classList.remove('min');
+  $('#capDrop').hidden=true;const pv=$('#capPrev');pv.hidden=false;pv.innerHTML=d.prev;
+  if(agg)pv.insertAdjacentHTML('beforeend',`<div class="cap-agg">${ic('i-copy')}2 张截图 · 10s 窗口已归并为同一捕获单元（投递聚合）· OCR 行流按顺序拼接</div>`);
+  const set=(i,st,t)=>{steps[i].className='pstep '+st;steps[i].querySelector('.ptime').textContent=t||''};
+  setTimeout(()=>{$('#capRecv').hidden=false;$('#capClose').disabled=false;set(0,'done','0.3s');set(1,'act')},350);
+  setTimeout(()=>{set(1,'done',d.ocr?'2.6s':'0.4s');if(!d.ocr)steps[1].classList.add('skip');set(2,'act')},1600);
+  setTimeout(()=>{set(2,'done','0.1s');set(3,'act')},1850);
+  setTimeout(()=>{set(3,'done','5.0s');set(4,'act')},6900);
+  setTimeout(()=>{
+    set(4,'done','8.2s');$('#capResult').hidden=false;
+    const title='UAT 库存查询 ORA-12541 处理记录'+(agg?'（截图 ×2 · 已归并）':'');
+    $('#capMini').textContent=title;
+    addPending(title,'var(--rose)');
+    toast(agg?'投递聚合：连续多图已归并为单张卡片 ✓':'托盘通知：1 张卡片已就绪，待你审查');
+    capBusy=false;
+  },8400);
+}
+on('#capClose','click',()=>{$('#capWin').classList.add('min');toast('浮窗已收起 · 后台解析继续——丢入即成功');});
+on('#capReopen','click',()=>$('#capWin').classList.remove('min'));
+on('#capReset','click',()=>{
+  if(capBusy){toast('解析进行中，稍候再重置');return}
+  capShotT=0;
+  $$('.cap-kinds .chip').forEach(c=>c.classList.remove('on'));
+  $$('#capPipe .pstep').forEach(s=>{s.className='pstep';s.querySelector('.ptime').textContent=''});
+  $('#capPrev').hidden=true;$('#capDrop').hidden=false;$('#capRecv').hidden=true;
+  $('#capClose').disabled=true;$('#capResult').hidden=true;$('#capWin').classList.remove('min');
+});
+
+/* ============ 02 操作卡片 ============ */
+const cState={proj:'云深 AMS',dir:'问题与变更/',tags:['环境','数据'],chan:'cloud',status:'待审'};
+const projDB={
+ '云深 AMS':{r:'内容提及 AMS 系统 UAT 环境（Agent 推断）',c:'HIGH',dot:'var(--glacier)'},
+ '恒达 ERP':{r:'用户指定 · 原推断已覆盖（全局路由 ×1）',c:'MANUAL',dot:'var(--lake)'},
+ '华康 CRM':{r:'用户指定 · 无关联信号，手动选择',c:'MANUAL',dot:'var(--peri)'}
+};
+const tagPool=['oracle','部署','接口','风险','验收','培训'];
+const memCounter={oracle:1};
+function renderTags(){const w=$('#tagWrap');if(!w)return;w.innerHTML=cState.tags.map(t=>`<span class="tagt"><span class="dot" style="background:${t==='oracle'?'var(--champ)':'var(--mist)'}"></span>${t}<button class="x" data-t="${t}" title="移除">${ic('i-x')}</button></span>`).join('')+`<button class="tagadd" id="tagAddBtn" style="position:relative">+ 标签<div class="menu" id="tagMenu" style="left:auto;right:0;min-width:200px">${tagPool.map(t=>`<button data-tg="${t}"><b>${cState.tags.includes(t)?'✓ ':'&nbsp;&nbsp;&nbsp;'}${t}</b><span>已有标签 · 优先复用</span></button>`).join('')}</div></button>`;}
+renderTags();
+function renderProjMenu(){const m=$('#projMenu');if(!m)return;m.innerHTML=Object.keys(projDB).map(p=>`<button data-p="${p}"><b><span class="dot" style="background:${projDB[p].dot}"></span>${p}</b><span>${projDB[p].r}</span></button>`).join('');}
+renderProjMenu();
+function setProj(p){cState.proj=p;$('#projName').textContent=p;$('#projReason').textContent=projDB[p].r;$('#confChip').textContent=projDB[p].c;flash($('#rowProject'));}
+on('#projPill','click',e=>{e.stopPropagation();$('#projMenu').classList.toggle('open');});
+on('#projMenu','click',e=>{
+  const b=e.target.closest('button[data-p]');if(!b)return;
+  $('#projMenu').classList.remove('open');const old=cState.proj;setProj(b.dataset.p);
+  if(old!==cState.proj){say('ai',`已改到「<b>${cState.proj}</b>」。纠正一次即记，下次同类内容直接归对项目。`);toast('纠正写入 → 全局路由表 · 下次生效');}
+});
+on(document,'click',e=>{if(!e.target.closest('#projPill')){const m=$('#projMenu');m&&m.classList.remove('open');}if(!e.target.closest('#tagAddBtn')){const m=$('#tagMenu');m&&m.classList.remove('open');}});
+on('#tagWrap','click',e=>{
+  const x=e.target.closest('.x');if(x){cState.tags=cState.tags.filter(t=>t!==x.dataset.t);renderTags();flash($('#rowTags'));return}
+  if(e.target.closest('#tagAddBtn')){$('#tagMenu').classList.toggle('open');return}
+  const tg=e.target.closest('[data-tg]');
+  if(tg){const t=tg.dataset.tg;$('#tagMenu').classList.remove('open');
+    if(!cState.tags.includes(t)){cState.tags.push(t);renderTags();flash($('#rowTags'));if(t==='oracle'){memCounter.oracle++;toast('纠正写入 → 项目层记忆 · 下次同类场景自动应用');}}
+  }
+});
+on('#sensSwitch','click',function(){
+  this.classList.toggle('on');const onSw=this.classList.contains('on');cState.chan=onSw?'local':'cloud';
+  $('#chanBadge').innerHTML=onSw?ic('i-cpu')+'Ollama · 本地模型':ic('i-cloud')+'deepseek-chat · 已脱敏';
+  $('#swNote').innerHTML=onSw?'当前：<b>本地 Ollama</b>——全链路不出机，不做脱敏（保真）。出站脱敏闸门只挡云端路径。':'当前：云端 DeepSeek，出站强制脱敏。切到敏感项目后，同一条内容将全链路走本地 Ollama——不出机、不脱敏（保真）。';
+  toast(onSw?'已切换：本卡片按本地模型处理，标注 🔒':'已切回云端路径，标注 ☁ 已脱敏');
+});
+function say(who,html){const log=$('#chatLog');if(!log)return;const d=document.createElement('div');d.className='msg '+who;d.innerHTML=(who==='ai'?`<span class="av">${ic('i-zap')}</span>`:`<span class="av">你</span>`)+`<div class="b">${html}</div>`;log.append(d);d.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function chatAct(text){
+  if(cState.status!=='待审'){say('ai','这张卡片已'+cState.status+'了。点右上角 ↻ 重置演示可以再来一遍。');return}
+  let did=false;
+  if(/以后/.test(text)&&/oracle|运维/.test(text)){did=true;say('ai','已作为<b>显式规则</b>写入项目层记忆：<b>「以后 oracle 的问题都放运维目录」</b>，立即生效 ✓');toast('显式规则 · 立即生效 → 项目层记忆');memArr.unshift({scope:'项目 · AMS',key:'显式规则',val:'oracle 类问题 → 环境与部署/运维',src:'显式',n:null,at:'刚刚'});renderMem();}
+  if(/恒达/.test(text)){did=true;setProj('恒达 ERP');say('ai','项目已改为「<b>恒达 ERP</b>」，推断理由同步更新。纠正一次即记，下次同类内容我会直接路由。');toast('纠正写入 → 全局路由表 · 下次生效');}
+  else if(/云深|ams/i.test(text)&&did===false){did=true;setProj('云深 AMS');say('ai','已切回「<b>云深 AMS</b>」。');}
+  if(/运维/.test(text)){did=true;cState.dir='环境与部署/运维/';$('#dirVal').textContent=cState.dir;flash($('#rowDir'));if(!/以后/.test(text)){say('ai','目录已改为 <b>环境与部署/运维/</b>。');memCounter.oracle++;toast('纠正写入 → 项目层记忆 · 下次同类场景自动应用');}}
+  if(/oracle/.test(text)&&/标签|加/.test(text)&&!cState.tags.includes('oracle')){did=true;cState.tags.push('oracle');renderTags();flash($('#rowTags'));if(!/以后/.test(text)&&!/运维/.test(text)){say('ai','已加标签 <b>oracle</b>。');memCounter.oracle++;toast('纠正写入 → 项目层记忆 · 下次同类场景自动应用');}}
+  if(/本地|敏感/.test(text)){did=true;const sw=$('#sensSwitch');if(sw&&!sw.classList.contains('on'))sw.click();say('ai','检测到敏感诉求：本卡片改由<b>本地模型</b>处理，标注 🔒。');}
+  if(!did){say('ai','演示环境支持这些说法：<b>换项目 / 指目录 / 加标签 / 「以后都这样」/ 走本地模型</b>——也可以点下面的快捷指令。');}
+}
+on('#chatForm','submit',e=>{e.preventDefault();const v=$('#chatInput').value.trim();if(!v)return;$('#chatInput').value='';say('user',v);setTimeout(()=>chatAct(v),380);});
+ $$('.chat-chips [data-say]').forEach(b=>on(b,'click',()=>{say('user',b.dataset.say);setTimeout(()=>chatAct(b.dataset.say),380);}));
+function cardDone(ok){
+  cState.status=ok?'已执行':'已丢弃';
+  ['#opStatus','#opStatus2'].forEach(s=>{const el=$(s);if(!el)return;el.textContent=cState.status;el.style.cssText=ok?'background:rgba(52,199,89,.12);border-color:rgba(52,199,89,.4);color:#1f9d43':'';});
+  $('#opExec').disabled=true;$('#opDrop').disabled=true;
+  const d=$('#opDone');d.hidden=false;d.className='op-done '+(ok?'ok':'off');
+  d.innerHTML=ok?ic('i-check')+`<div>已入库：原件（截图 ×2，永不改写）+ 笔记 + 时间线事件（问题 · 测试验证 · at_source=content_time）+ 1 条待办 → <a href="#s4">去 04 看时间线</a> · <a href="#s5">去 05 看待办中心</a>。纠正已沉淀为记忆 → <a href="#s3">03</a>。</div>`
+    :ic('i-x')+`<div>已丢弃。卡片永不自动入库——执行与丢弃都由你决定（§5.2）。</div>`;
+  say('ai',ok?'已执行 ✓ 时间线 / 待办中心已更新，纠正也按类型写入了记忆。':'已丢弃，不会留下任何记录。');
+}
+on('#opExec','click',()=>cardDone(true));
+on('#opDrop','click',()=>cardDone(false));
+on('#cardReset','click',()=>{
+  cState.status='待审';cState.dir='问题与变更/';cState.tags=['环境','数据'];setProj('云深 AMS');cState.chan='cloud';
+  ['rowDir','rowTags','rowProject'].forEach(s=>flash($('#'+s)));
+  $('#dirVal').textContent=cState.dir;renderTags();
+  ['#opStatus','#opStatus2'].forEach(s=>{const el=$(s);if(!el)return;el.textContent='待审';el.style.cssText='';});
+  $('#opExec').disabled=false;$('#opDrop').disabled=false;$('#opDone').hidden=true;
+  const sw=$('#sensSwitch');if(sw&&sw.classList.contains('on'))sw.click();
+  toast('卡片已重置');
+});
+
+/* ============ 03 记忆 ============ */
+const memArr=[
+ {scope:'全局',key:'关键词 → 项目路由',val:'AMS / UAT / 库存 → 云深 AMS',src:'隐式',n:5,at:'05-28'},
+ {scope:'全局',key:'人 → 项目',val:'王工（客户 DBA）→ 云深 AMS',src:'隐式',n:3,at:'06-02'},
+ {scope:'全局',key:'标签黑名单',val:'misc / 其他 / temp 不再自动建议',src:'显式',n:null,at:'05-30'},
+ {scope:'全局',key:'风格偏好',val:'周报以「本周 / 下周」开头',src:'显式',n:null,at:'06-05'},
+ {scope:'项目 · AMS',key:'目录惯例',val:'oracle / 数据库类问题 → 环境与部署/运维',src:'纠正',n:null,at:'06-12'},
+ {scope:'项目 · AMS',key:'客户术语',val:'「老系统」= AMS 7.2',src:'隐式',n:2,at:'06-08'},
+ {scope:'项目 · AMS',key:'标签偏好',val:'环境类优先用「环境」「数据」',src:'隐式',n:4,at:'06-03'}
+];
+function renderMem(){
+  const box=$('#memList');if(!box)return;
+  box.innerHTML=memArr.map((m,i)=>`<div class="mem-row" data-i="${i}">
+    <span class="mscope ${m.scope.includes('全局')?'g':'p'}">${m.scope}</span>
+    <div class="mmain"><b>${m.key}</b><span>${m.val}</span></div>
+    <span class="msrc ${m.src==='显式'?'ex':''}">${m.src}</span>
+    <span class="mn">${m.n?'×'+m.n:''}</span>
+    <button class="icon-btn sm" data-act="edit" title="编辑">${ic('i-edit')}</button>
+    <button class="icon-btn sm danger" data-act="del" title="删除">${ic('i-trash')}</button>
+  </div>`).join('');
+}
+renderMem();
+on('#memList','click',e=>{
+  const btn=e.target.closest('button');if(!btn)return;
+  const row=btn.closest('.mem-row'),i=+row.dataset.i;
+  if(btn.dataset.act==='del'){
+    row.style.transition='all .32s var(--ease)';row.style.opacity=0;row.style.transform='translateX(14px)';
+    setTimeout(()=>{memArr.splice(i,1);renderMem()},320);
+    toast('已删除 · Agent 立即遗忘该条记忆（可随时重建）');
+  }else{
+    const span=row.querySelector('.mmain span'),old=memArr[i].val;
+    span.outerHTML=`<input class="medit" value="${old.replace(/"/g,'&quot;')}">`;
+    const inp=row.querySelector('.medit');inp.focus();inp.select();let saved=false;
+    const save=()=>{if(saved)return;saved=true;memArr[i].val=inp.value.trim()||old;renderMem();toast('记忆已更新');};
+    inp.addEventListener('keydown',ev=>{if(ev.key==='Enter')save();if(ev.key==='Escape'){saved=true;renderMem()}});
+    inp.addEventListener('blur',save);
+  }
+});
+const routeTxt=[
+ '「这属于另一个项目」→ 写入<b>全局层 · 关键词→项目路由表</b>。纠正一次即记，下次同类场景直接应用。',
+ '「放错目录 / 标签不对」→ 写入<b>项目层</b>（目录惯例 / 标签偏好）。项目级差异化习惯，结项时可导出为「种子」。',
+ '「以后都这样」→ <b>显式规则</b>，写入对应层并<b>立即生效</b>，永不自动失效。'
+];
+ $$('.route-bar .chip').forEach(b=>on(b,'click',()=>{
+  $$('.route-bar .chip').forEach(c=>c.classList.remove('on'));b.classList.add('on');
+  const k=+b.dataset.r;$('#routeExp').innerHTML=routeTxt[k];
+  $('#memGlobal').classList.toggle('hl',k===0);$('#memProj').classList.toggle('hl',k!==0);
+}));
+
+/* ============ 04 三视图 + 折叠 ============ */
+ $$('#viewTabs button').forEach(b=>on(b,'click',()=>{
+  $$('#viewTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  $$('.vp').forEach(v=>v.classList.remove('on'));$('#vp-'+b.dataset.v).classList.add('on');
+}));
+const folds=[
+ {name:'打印机问题闭环',ids:['ev-printer2','voidRow'],cols:['var(--mist)','var(--rose)'],custom:false,folded:false},
+ {name:'UAT 周焦点',ids:['ev-ora','ev-meet'],cols:['var(--rose)','var(--glacier)'],custom:false,folded:false}
+];
+function renderFoldBar(){
+  const bar=$('#foldBar');if(!bar)return;
+  bar.innerHTML=`<span class="pill-line" style="font-size:10.5px">阶段折叠 · 模板预设</span>`+
+    folds.map((f,i)=>`<button class="fchip ${f.folded?'on':''}" data-f="${i}">${f.name}<span class="n">×${f.ids.length}</span></button>`).join('');
+}
+function applyFolds(){
+  folds.forEach((f,i)=>{
+    const first=document.getElementById(f.ids[0]);if(!first)return;
+    const oldRow=document.getElementById('fr-'+i);if(oldRow)oldRow.remove();
+    f.ids.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+    if(f.folded){
+      f.ids.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+      const row=document.createElement('div');row.className='foldrow';row.id='fr-'+i;
+      row.innerHTML=`${ic('i-chev')}${f.name}<small>· ${f.ids.length} 条事件已折叠</small>`+f.cols.map(c=>`<span class="dot" style="background:${c};width:7px;height:7px"></span>`).join('');
+      first.parentNode.insertBefore(row,first);
+      row.addEventListener('click',()=>{f.folded=false;applyFolds();renderFoldBar();});
+    }
+  });
+}
+renderFoldBar();applyFolds();
+on('#foldBar','click',e=>{
+  const chip=e.target.closest('.fchip[data-f]');if(!chip)return;
+  const f=folds[+chip.dataset.f];f.folded=!f.folded;applyFolds();renderFoldBar();
+});
+ $$('.ev').forEach(ev=>ev.addEventListener('click',()=>{
+  const r=$('#reachBar');r.innerHTML=ic(ev.classList.contains('void')?'i-alert':'i-check')+`<span>${ev.dataset.reach} —— <b>同一内容，三入口可达（FR-3）</b></span>`;r.classList.add('show');
+  if(ev.id==='voidRow')$('#voidAudit').classList.toggle('show');
+}));
+const dirDB=[
+ {n:'会议纪要',c:12,items:[['UAT 回归测试周会（纪要）','笔记 · 06-12'],['需求澄清快会（纪要）','笔记 · 06-09']]},
+ {n:'需求',c:18,items:[['车间排班需求确认','笔记 · 06-08'],['库存报表字段清单','笔记 · 06-05']]},
+ {n:'方案与设计',c:9,items:[['接口超时优化方案','笔记 · 06-11']]},
+ {n:'环境与部署',c:14,items:[['监听自检步骤','笔记 · 运维/'],['接口超时临时调整','笔记 · 06-11'],['打印机驱动安装包','文件 · 已确认']],sub:[{n:'运维',c:7}]},
+ {n:'问题与变更',c:21,items:[['ORA-12541 处理记录','笔记 · 06-12'],['打印机驱动安装包部署','变更事件 · 06-11'],['接口超时阈值调整','变更事件 · 06-11'],['打印机驱动缺失','已作废 · 06-10']]},
+ {n:'交付物',c:8,items:[['UAT 测试报告 v0.9','文件 · 评审中']]},
+ {n:'账号与凭证',c:1,lock:true,items:[['🔒 占位符说明 + 凭证库入口','凭证本体不入目录树（§3.11）']]},
+ {n:'沟通记录',c:16,items:[['06-13 客户群纪要','文本粘贴捕获 · 06-13']]}
+];
+let curDir='问题与变更';
+function renderDir(){
+  const tree=$('#dirTree');if(!tree)return;
+  tree.innerHTML=dirDB.map(d=>`${d.sub?d.sub.map(s=>`<li class="sub" data-d="${s.n}">${ic('i-folder')}${s.n}<span class="n">${s.c}</span></li>`).join(''):''}<li data-d="${d.n}" class="${d.n===curDir?'on':''}">${ic('i-folder')}${d.n}${d.lock?'<span class="lockdot">'+ic('i-lock')+'</span>':''}<span class="n">${d.c}</span></li>`).join('');
+  const d=dirDB.find(x=>x.n===curDir)||{items:[]};
+  $('#dirItems').innerHTML=(d.items||[['（演示：此目录暂无条目）','']].map(it=>`<div class="ditem">${ic('i-doc')}${it[0]}<small>${it[1]}</small></div>`).join(''));
+}
+renderDir();
+on('#dirTree','click',e=>{const li=e.target.closest('li[data-d]');if(!li)return;curDir=li.dataset.d;renderDir();});
+const tagDB=[
+ ['环境',24,'rgba(173,203,228,.45)',[['ORA-12541 处理记录','笔记 · 06-12'],['监听自检步骤','笔记 · 运维/'],['接口超时临时调整','笔记 · 06-11']]],
+ ['数据',18,'rgba(169,207,197,.5)',[['ORA-12541 处理记录','笔记 · 06-12'],['接口超时临时调整','笔记 · 06-11']]],
+ ['oracle',7,'rgba(232,216,171,.7)',[['ORA-12541 处理记录','记忆自动应用 ✓'],['监听自检步骤','笔记 · 运维/']]],
+ ['接口',12,'rgba(169,188,205,.5)',[['接口超时临时调整','笔记'],['接口超时优化方案','笔记']]],
+ ['部署',11,'rgba(169,188,205,.5)',[['打印机驱动安装包部署','变更事件']]],
+ ['权限',9,'rgba(223,174,195,.45)',[['UAT 账号权限申请','沟通事件']]],
+ ['培训',4,'rgba(185,192,232,.5)',[['06-18 客户培训','会议事件']]],
+ ['验收',6,'rgba(173,203,228,.45)',[['UAT 回归测试周会','纪要']]],
+ ['风险',3,'rgba(223,174,195,.45)',[['培训材料待发','待办 · 今日截止']]]
+];
+let curTag=null;
+function renderTagsView(){
+  const cloud=$('#tagCloud');if(!cloud)return;
+  cloud.innerHTML=tagDB.map(t=>`<button class="tagc ${curTag===t[0]?'on':''}" data-t="${t[0]}"><span class="dot" style="background:${t[2]}"></span>${t[0]}<span class="n">${t[1]}</span></button>`).join('');
+  const t=tagDB.find(x=>x[0]===curTag);
+  $('#tagItems').innerHTML=t?t[3].map(it=>`<div class="ditem">${ic('i-doc')}${it[0]}<small>${it[1]}</small></div>`).join(''):`<div style="font-size:12px;color:var(--ink40);padding:8px 2px">点一个标签，看它挂着的全部内容（多归属）。</div>`;
+}
+renderTagsView();
+on('#tagCloud','click',e=>{const b=e.target.closest('.tagc');if(!b)return;curTag=(curTag===b.dataset.t?null:b.dataset.t);renderTagsView();});
+
+/* ============ 05 待办中心 ============ */
+let TODOS=[
+ {id:'t1',cls:'',hero:true,tag:'客户培训',dot:'#FBFCFE',title:'培训材料发给张经理',time:'18:00',ampm:'PM · 截止',sub:'今日截止 · 负责人 王工',cnt:'剩 3h',src:{t:'来源：06-13 客户群待办 · 文本粘贴捕获（08）',h:'#s8'},av:['王','张'],day:13,dayColor:'var(--champ)',done:false},
+ {id:'t2',cls:'c-glacier',tag:'部署',dot:'var(--glacier)',title:'部署手册补充「监听自检」步骤',time:'14:00',ampm:'明天 06-14',sub:'',src:{t:'来源：卡片 #C-0612-03 · Markdown 待办行',h:'#s2'},day:14,dayColor:'var(--glacier)',done:false},
+ {id:'t3',cls:'c-rose',tag:'个人',dot:'var(--rose)',title:'年度体检 · 预约确认',time:'16:00',ampm:'周一 06-16',sub:'',src:{t:'个人待办 · 手动创建',h:null},day:16,dayColor:'var(--rose)',done:false},
+ {id:'t4',cls:'c-lake',row:true,tag:'阅读',dot:'var(--lake)',title:'阅读《UAT 验收清单》并圈出风险项',time:'周五 06-20 前',src:{t:'来源：UAT 回归周会纪要 · 06-12',h:'#s4'},day:20,dayColor:'var(--lake)',done:false},
+ {id:'t5',cls:'c-mist',row:true,tag:'回链',dot:'var(--mist)',title:'回链补传：培训签到表 v2.xlsx',time:'本周内',src:{t:'来源：粘贴文本 ·「提到的文件」（08）',h:'#s8'},day:13,dayColor:'var(--mist)',done:false},
+ {id:'t6',cls:'c-glacier',row:true,img:true,tag:'现场',dot:'var(--glacier)',title:'按白板照片核对 UAT 环境参数',time:'周三 10:00 · 培训前',src:{t:'来源：现场白板拍照 · OCR',h:null,modal:true},day:18,dayColor:'var(--glacier)',done:false}
+];
+function todoCard(t){
+  const dn=t.done?'tdone':'';
+  if(t.hero)return `<div class="td-hero ${dn}" data-id="${t.id}">
+    <div class="td-top"><span class="pill-ink"><span class="dot" style="background:${t.dot}"></span>${t.tag}</span>
+      <span class="avars">${t.av.map(a=>`<span class="avar">${a}</span>`).join('')}</span></div>
+    <div class="ttime num">${t.time}<small>${t.ampm}</small></div>
+    <div class="tsub" style="font-size:12.5px;color:rgba(22,32,43,.62)">${t.sub}</div>
+    <div class="td-bot">
+      <button class="tcheck" data-act="done" title="完成">${ic('i-check')}</button>
+      ${t.src.h?`<a class="tsrc" href="${t.src.h}">${ic('i-doc')}${t.src.t}</a>`:`<button class="tsrc" data-act="src">${ic('i-doc')}${t.src.t}</button>`}
+      <span class="pill-ink" style="margin-left:auto">${ic('i-clock')}${t.cnt}</span>
+    </div></div>`;
+  if(!t.row)return `<div class="td-med ${t.cls} ${dn}" data-id="${t.id}">
+    <div class="td-top"><span class="tpill"><span class="dot" style="background:${t.dot}"></span>${t.tag}</span>
+      ${t.src.h?`<a class="corbtn" href="${t.src.h}" title="查看来源" style="margin-left:auto">${ic('i-out')}</a>`:`<button class="corbtn" data-act="src" title="来源" style="margin-left:auto">${ic('i-out')}</button>`}</div>
+    <div class="tt" style="margin-top:12px">${t.title}</div>
+    <div class="td-bot" style="align-items:flex-end">
+      <div><div class="ttime num" style="font-size:30px;margin-top:0">${t.time}</div><div class="tsub">${t.ampm}</div></div>
+      <button class="tcheck sm" data-act="done" style="margin-left:auto" title="完成">${ic('i-check')}</button>
+    </div></div>`;
+  return `<div class="td-row ${t.cls} ${dn}" data-id="${t.id}">
+    <button class="tcheck" data-act="done" title="完成">${ic('i-check')}</button>
+    <div style="flex:1;min-width:0"><div class="tt">${t.title}</div><div class="tsub">${t.time} · ${t.src.t}</div></div>
+    ${t.img?`<button class="pill-ink" data-act="img">${ic('i-image')}查看图片</button>`
+      :(t.src.h?`<a class="corbtn" href="${t.src.h}" title="查看来源">${ic('i-out')}</a>`:`<button class="corbtn" data-act="src">${ic('i-out')}</button>`)}
+  </div>`;
+}
+function renderTodos(){
+  const list=$('#tdList');if(!list)return;
+  const order=['t1','t2','t3','t4','t5','t6'];
+  const hero=TODOS.find(t=>t.id==='t1'),meds=order.filter(id=>['t2','t3'].includes(id)).map(id=>TODOS.find(t=>t.id===id)),rows=order.filter(id=>['t4','t5','t6'].includes(id)).map(id=>TODOS.find(t=>t.id===id));
+  list.innerHTML=todoCard(hero)+`<div class="td-grid" style="margin-top:14px">${meds.map(todoCard).join('')}</div>`+rows.map(todoCard).join('');
+}
+function updateStats(){
+  const act=TODOS.filter(t=>!t.done).length,today=TODOS.filter(t=>!t.done&&t.day===13).length,done=TODOS.filter(t=>t.done).length;
+  const st=$('#tdStats');if(st)st.innerHTML=`进行中 <b>${act}</b><span class="sep">·</span>今日到期 <b>${today}</b><span class="sep">·</span>已完成 <b>${done}</b><span class="sep">·</span>逾期 <b>0</b><span class="sep">·</span><span style="color:var(--ink40);font-size:11px">完成行为埋点仅本地记录（FR-13）</span>`;
+  renderCalDetail();syncBadges();
+}
+function toggleTodo(id){
+  const t=TODOS.find(x=>x.id===id);t.done=!t.done;
+  renderTodos();updateStats();renderQpTodos();
+  toast(t.done?'已完成 · 埋点仅本地记录（FR-13）· 浮窗同步':'已恢复为进行中');
+}
+renderTodos();updateStats();
+on('#tdList','click',e=>{
+  const card=e.target.closest('[data-id]');if(!card)return;
+  const t=TODOS.find(x=>x.id===card.dataset.id);
+  const act=e.target.closest('[data-act]');
+  if(act&&act.dataset.act==='done'){toggleTodo(t.id);return}
+  if(act&&act.dataset.act==='img'){$('#phOvl').classList.add('open');return}
+  if(act&&act.dataset.act==='src'){toast('个人待办 · 不关联项目来源（演示）');}
+});
+let calSel=13;
+function renderCal(){
+  const g=$('#calGrid');if(!g)return;
+  let html=['MON','TUE','WED','THU','FRI','SAT','SUN'].map(d=>`<span class="cwd">${d}</span>`).join('');
+  for(let i=0;i<6;i++)html+=`<span class="cd blank"></span>`;
+  for(let d=1;d<=30;d++){
+    const t=TODOS.find(x=>x.day===d);
+    html+=`<button class="cd ${t?'has':''} ${d===calSel?'sel':''} ${d===13?'today':''}" data-d="${d}" ${t?`style="background:${t.dayColor}"`:''}>${d}</button>`;
+  }
+  g.innerHTML=html;
+}
+function renderCalDetail(){
+  const det=$('#calDetail');if(!det||$('#tdCal').hidden)return;
+  const items=TODOS.filter(t=>t.day===calSel);
+  const wk=['周日','周一','周二','周三','周四','周五','周六'][new Date(2025,5,calSel).getDay()];
+  det.innerHTML=`<div class="cd-head"><b class="num" style="font-size:19px">6月${calSel}日</b><span style="font-size:12px;color:var(--ink40);font-weight:700">${wk}</span><span class="pill-line" style="margin-left:auto">${items.length} 项待办</span></div>`+
+    (items.length?items.map(t=>`<div class="cdi"><span class="dot" style="background:${t.dayColor}"></span><span class="t" style="${t.done?'text-decoration:line-through;text-decoration-thickness:2px':''}">${t.title}</span><small>${t.time}${t.done?' · 已完成':''}</small></div>`).join(''):'<div style="font-size:12.5px;color:var(--ink40);padding:8px 0">当天无待办 · 点其他日期看看</div>');
+}
+renderCal();renderCalDetail();
+on('#calGrid','click',e=>{const b=e.target.closest('.cd[data-d]');if(!b)return;calSel=+b.dataset.d;renderCal();renderCalDetail();});
+on('#calPrev','click',()=>toast('演示固定在 2025 年 6 月'));
+on('#calNext','click',()=>toast('演示固定在 2025 年 6 月'));
+ $$('#tdSeg button').forEach(b=>on(b,'click',()=>{
+  $$('#tdSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const cal=b.dataset.v==='cal';$('#tdCal').hidden=!cal;$('#tdList').hidden=cal;
+  if(cal){renderCal();renderCalDetail();}
+}));
+let remindOn=false;
+on('#tdRemind','click',function(){
+  remindOn=!remindOn;
+  this.querySelector('span').textContent=remindOn?'提醒已开':'提醒';
+  this.classList.toggle('btn-primary',remindOn);this.classList.toggle('btn-soft',!remindOn);
+  toast(remindOn?'已开启托盘提醒 · 今日到期 + 逾期将聚合计数（演示）':'已关闭提醒');
+});
+on('#tdReset','click',()=>{TODOS.forEach(t=>t.done=false);renderTodos();updateStats();renderQpTodos();toast('待办中心已重置');});
+on('#phClose','click',()=>$('#phOvl').classList.remove('open'));
+on('#phOvl','click',e=>{if(e.target.id==='phOvl')$('#phOvl').classList.remove('open');});
+on('#phGoto','click',()=>{$('#phOvl').classList.remove('open');location.hash='#s4';toast('演示：来源事件在时间线「测试验证」周（04）');});
+
+/* ============ 06 问答 ============ */
+const QA={
+ db:{q:'上次数据库连接问题怎么解决的？',
+  trace:[['search_content("数据库连接 问题 解决", project="云深 AMS")','命中 3 条 · 0.4s'],
+         ['&nbsp;&nbsp;1. UAT 环境库存查询报 ORA-12541 处理记录','score 0.92'],
+         ['&nbsp;&nbsp;2. 监听自检步骤','score 0.74'],
+         ['read_file("问题与变更/UAT…ORA-12541 处理记录.md")','12 段落 · 0.1s']],
+  ans:`<p>6 月 12 日 UAT 出现过同类问题：库存查询报 <code>ORA-12541</code>（监听未启动）。当时 tnsnames.ora 配置正常，与客户 DBA 王工确认后执行 <code>lsnrctl start</code> 恢复。</p><div class="cite">「与客户 DBA 确认 UAT 数据库监听未启动，执行 lsnrctl start 后恢复」<br>来源：2025-06-12 14:30（① 内容明示 · 画面时间锚）· 微信群-客户群 · 卡片 #C-0612-03 · 时间线「问题 · 测试验证」</div><p class="gapnote">相关：部署手册「监听自检」待办尚未完成（<a href="#s5" style="font-weight:700;text-decoration:underline;text-underline-offset:3px">待办中心</a>），建议本次巡检一并补充。</p>`,
+  stats:['工具调用 2/5','检索 0.4s','< ¥0.1']},
+ printer:{q:'打印机的事最后怎么闭环的？',
+  trace:[['search_content("打印机 驱动 闭环")','命中 2 条 · 0.3s'],
+         ['read_file("时间线 · 06-10 / 06-11 相关事件")','4 段落']],
+  ans:`<p>打印机问题 6 月 10 日首次记录，因<b>误归档到「上线切换」阶段</b>，06-11 已作废并重建（审计轨迹保留）。闭环动作：06-11 09:02 部署打印机驱动安装包，属「变更 · 测试验证」。</p><div class="cite">「重建自：06-10 打印机驱动缺失（已作废）」<br>来源：时间线 06-10 / 06-11 · 变更 #E-0611-02</div>`,
+  stats:['工具调用 3/5','检索 0.5s','< ¥0.1']},
+ train:{q:'客户培训定在什么时候？',
+  trace:[['search_content("客户培训 时间")','命中 2 条 · 0.3s'],
+         ['read_file("沟通记录/06-13 客户群纪要.md")','摘要卡优先 · 0.1s']],
+  ans:`<p>客户培训定在 <b>06-18（周三）10:00</b>，一号会议室；张经理负责车间排班。关联待办：今天内把培训材料发给张经理（当前：未完成，见<a href="#s5" style="font-weight:700;text-decoration:underline;text-underline-offset:3px">待办中心</a>）。</p><div class="cite">「培训材料我今天给你，周三上午 10 点，一号会议室 —— 王工 06-13 09:20」<br>来源：06-13 客户群纪要（文本粘贴捕获 · FR-8 管线）· 事件「会议 · 培训」</div>`,
+  stats:['工具调用 2/5','读摘要卡优先','< ¥0.1']}
+};
+let qaBusy=false;
+function say2(who,html){const el=$('#qaLog');if(!el)return;const d=document.createElement('div');d.className='msg '+who;d.innerHTML=(who==='ai'?`<span class="av">${ic('i-zap')}</span>`:`<span class="av">你</span>`)+`<div class="b">${html}</div>`;el.append(d);d.scrollIntoView({behavior:'smooth',block:'nearest'});}
+function qaAsk(key,text){
+  if(qaBusy)return;const d=QA[key];
+  if(!d){say2('ai','演示环境内置 3 个问题的完整链路（数据库 / 打印机 / 培训），试试点上面的预设问题。');return}
+  qaBusy=true;$('#qaTrace').hidden=true;$('#qaTrace').innerHTML='';
+  say2('user',text||d.q);
+  setTimeout(()=>{
+    const tr=$('#qaTrace');tr.hidden=false;
+    tr.innerHTML=`<div class="tline">${ic('i-search')}<span><b>Agentic 检索</b> · 优先读 Markdown 摘要卡（§3.12 SOP）</span></div>`;
+    d.trace.forEach((l,i)=>setTimeout(()=>{const r=document.createElement('div');r.className='tline';r.innerHTML=ic('i-chev')+`<span>${l[0]}${l[1]?`&nbsp;&nbsp;<b>${l[1]}</b>`:''}</span>`;tr.append(r);},260*(i+1)));
+    setTimeout(()=>{
+      say2('ai',d.ans+`<div class="qa-stats">${d.stats.map(s=>'<span>'+s+'</span>').join('')}</div>`);
+      qaBusy=false;
+    },260*(d.trace.length+1)+300);
+  },420);
+}
+ $$('[data-k]').forEach(b=>on(b,'click',()=>qaAsk(b.dataset.k,b.textContent.trim())));
+on('#qaForm','submit',e=>{e.preventDefault();const v=$('#qaInput').value.trim();if(!v)return;$('#qaInput').value='';
+  const k=/数据库|ora|监听/i.test(v)?'db':(/打印机|驱动/.test(v)?'printer':(/培训/.test(v)?'train':null));qaAsk(k,v);});
+on('#qaReset','click',()=>{$('#qaLog').innerHTML='';$('#qaTrace').hidden=true;});
+const cmdItems=[
+ {t:'UAT 环境库存查询报 ORA-12541 处理记录',m:'笔记 · 问题与变更 · 06-12',icn:'i-doc',kw:'ora ora-12541 数据库 监听 uat 处理'},
+ {t:'ORA-12541 报错截图',m:'图片 · OCR 文本已入索引',icn:'i-image',kw:'ora tns listener 截图 ocr 报错'},
+ {t:'监听自检步骤',m:'笔记 · 环境与部署/运维',icn:'i-doc',kw:'ora lsnrctl 监听 运维 自检'},
+ {t:'UAT 测试报告 v0.9',m:'文件 · 交付物 · 评审中',icn:'i-doc',kw:'uat 测试 报告 评审'},
+ {t:'王工（客户 DBA）',m:'联系人 · 云深 AMS',icn:'i-user',kw:'dba 王 数据库 人'},
+ {t:'06-13 客户群纪要',m:'笔记 · 沟通记录 · 06-13',icn:'i-chat',kw:'聊天 纪要 客户群 粘贴 管线'}
+];
+function renderCmd(q){
+  const box=$('#cmdList');if(!box)return;
+  q=(q||'').toLowerCase();
+  const list=q?cmdItems.filter(it=>(it.t+it.m+it.kw).toLowerCase().includes(q)):cmdItems.slice(0,4);
+  box.innerHTML=list.map(it=>`<div class="cmd-item" data-t="${it.t}">${ic(it.icn)}${it.t}<small>${it.m}</small></div>`).join('')||`<div style="padding:12px 16px;font-size:12.5px;color:var(--ink40)">无结果——全文索引含 OCR 文本，截图里的报错码也能搜到。</div>`;
+}
+renderCmd('');
+on('#cmdInput','input',e=>{renderCmd(e.target.value);$('#cmdDetail').classList.remove('show');});
+on('#cmdInput','keydown',e=>{if(e.key==='Enter'){e.preventDefault();const f=$('#cmdList .cmd-item');if(f){$('#cmdDetail').innerHTML=`<b>将跳转：</b>${f.dataset.t}（演示环境不执行真实跳转）`;$('#cmdDetail').classList.add('show');}}});
+on('#cmdList','click',e=>{const it=e.target.closest('.cmd-item');if(!it)return;$('#cmdDetail').innerHTML=`<b>将跳转：</b>${it.dataset.t}（演示环境不执行真实跳转）`;$('#cmdDetail').classList.add('show');});
+on('#cmdHint','click',()=>{const i=$('#cmdInput');i.value='ora';i.dispatchEvent(new Event('input'));i.focus();});
+
+/* ============ 07 凭证 ============ */
+const CRED_DEMO=[
+ {id:'CRED-017',name:'UAT 数据库密码',user:'ams_uat',host:'10.20.6.31',secret:'Ora_UAT#2025s'},
+ {id:'CRED-021',name:'堡垒机 VPN',user:'wang.im',host:'vpn.yunshen.cn',secret:'Vpn_2025#ys'}
+];
+on('#credRun','click',function(){
+  this.disabled=true;this.textContent='已检测 ✓';
+  const s=$('#credSecret');s.classList.add('masked');s.textContent='█████████████';
+  setTimeout(()=>{$('#credAfter').style.display='block';$('#credStep2').classList.remove('locked');$('#credStep3').classList.remove('locked');toast('检测到凭证形态 · action：create_note → save_credential');},500);
+});
+on('#credCopyBtn','click',e=>{e.stopPropagation();$('#credPop').classList.toggle('open');});
+on('#credNo','click',()=>$('#credPop').classList.remove('open'));
+on('#credYes','click',()=>{
+  $('#credPop').classList.remove('open');
+  logAudit('CRED-017','主窗 · 笔记占位符');
+  copyText('Ora_UAT#2025s','已复制到剪贴板 · 明文不进对话 / 不进笔记 ✓');
+});
+function logAudit(cid,from){
+  const list=$('#auditList');if(!list)return;
+  const d=document.createElement('div');d.textContent=`刚刚　　　 reveal_credential　 ${cid} · 来源 ${from} · 用户确认 · 仅进剪贴板`;
+  list.prepend(d);
+}
+
+/* ============ 08 统一捕获管线（FR-8） ============ */
+const MAT={
+ text:{slots:[
+  ['i-doc','原件','短文本即正文；&gt;8K 字符转存原文附件'],
+  ['i-edit','摘要 Markdown','笔记正文即摘要'],
+  ['i-clock','事件[]','线索：时间指称（昨天 / 上周五 / 3月12日）+ 事实性陈述（开了会 / 已上线 / 已确认）'],
+  ['i-check','待办[]','线索：「需要 / 记得 / 跟进 / 周X前」+ 责任人 + 截止']]},
+ shot:{slots:[
+  ['i-image','原件','原图入附件库 · 永不改写（真相源）'],
+  ['i-edit','摘要','OCR 全文 + Agent 摘要（引用 OCR 行）· OCR 本地引擎全离线'],
+  ['i-clock','事件[]','从 OCR 文本提取；时间锚行来自画面 → 回退链 ①'],
+  ['i-check','待办[]','带 bbox 行级溯源 → 05 待办中心「查看图片」高亮被解析行']]},
+ file:{slots:[
+  ['i-folder','原件','原文件存储 + SHA-256 去重 · 重复投递提示合并 / 跳过'],
+  ['i-edit','摘要','V1：元数据卡（名称/类型/来源/大小）+ 可读文本摘要；V2：PDF/Office 真摘要'],
+  ['i-clock','事件[]','V1 从文件名 / 元数据；V2 起从提取文本'],
+  ['i-check','待办[]','同左，随解析深度升级（V2 批量来源）']]},
+ multi:{slots:[
+  ['i-image','原件','各自存储 · 10s 窗口归并为同一捕获单元（投递聚合）'],
+  ['i-edit','摘要','一张卡 N entries + 一份汇总笔记 · 标注「N 张截图 · 已按顺序合并」'],
+  ['i-clock','事件[]','OCR 行流按投递顺序拼接（相邻图重叠区去重）后整体提取'],
+  ['i-check','待办[]','各自提取 · 逐条可溯源到具体一张图']]}
+};
+function renderMat(k){
+  const box=$('#matSlots');if(!box)return;
+  box.innerHTML=MAT[k].slots.map((s,i)=>`<div class="slot" style="animation:up .3s var(--ease) both;animation-delay:${i*0.05}s"><span class="si">${ic(s[0])}</span><div><b>${s[1]}</b><span>${s[2]}</span></div></div>`).join('');
+}
+renderMat('text');
+ $$('#matIn .chip').forEach(b=>on(b,'click',()=>{$$('#matIn .chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderMat(b.dataset.m);}));
+
+const CHAIN=[
+ {hit:0,txt:'命中 ① 内容明示：画面里的时间锚行「昨天 14:30」直接作为事件时间 · <span class="at">at_source = content_time</span><br>卡片标注「取自内容明示时间」，用户可改。'},
+ {hit:1,txt:'命中 ② 内容可推导：捕获当天解析「今天上午」，相对推出具体时间 · <span class="at">at_source = derived_time</span><br>无明示时间但可推导，仍需标注来源、可改。'},
+ {hit:2,txt:'命中 ③ 捕获时间：内容没有任何时间线索，兜底用 capture_time · <span class="at">at_source = capture_time（默认，无需标注）</span><br>回退链保证每条事件都有时间，且来源可审计。'}
+];
+function setChain(i){
+  $$('#chainIn .chip').forEach((x,k)=>x.classList.toggle('on',k===i));
+  $$('.cstep').forEach(s=>s.classList.toggle('on',+s.dataset.s===CHAIN[i].hit));
+  const r=$('#chainRes');if(r){r.innerHTML=CHAIN[i].txt;r.style.animation='none';void r.offsetWidth;r.style.animation='up .3s var(--ease)';}
+}
+setChain(0);
+ $$('#chainIn .chip').forEach(b=>on(b,'click',()=>setChain(+b.dataset.c)));
+
+
+/* ============ 09 周报 ============ */
+let wkSparse=false,wkTpl='个人周报';
+on('#sparseChk','click',function(){this.classList.toggle('on');wkSparse=this.classList.contains('on');});
+ $$('#wkSeg button').forEach(b=>on(b,'click',()=>{$$('#wkSeg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');wkTpl=b.textContent.trim();}));
+const TN=(v,tip)=>`<span class="tnum">${v}<span class="tip">${tip}</span></span>`;
+const wkDocNormal=`
+ <div class="wk-head"><b>周报 · 王工（实施顾问）</b><span>个人周报模板 · 06-09 ~ 06-13 · 本地取数 ✓</span></div>
+ <h4>本周概览</h4>
+ <p>本周共记录 ${TN('23','来源：时间线 06-09 ~ 06-13 共 23 条事件 · 本地取数，可溯源率 100%')} 条事件，覆盖 ${TN('3','项目总览取数：云深 AMS / 恒达 ERP / 华康 CRM')} 个项目；处理问题 ${TN('6','时间线筛选：类型=问题 · 本周 6 条')} 个、闭环 ${TN('4','问题事件中状态=闭环 4 条 · 规则 R-02')} 个；完成交付物 ${TN('2','交付物目录本周新增 2 个文件')} 份。</p>
+ <h4>云深 AMS（测试验证）</h4>
+ <ul><li>UAT 回归进行中：解决 ORA-12541 监听问题；库存接口超时经优化包根治，降至 ${TN('800ms','引用：06-13 14:05 李工「接口新包已上 UAT，超时降到 800ms 以内」· 客户群纪要')} 内</li>
+ <li>关键决策：上线日期定档 ${TN('06-28','决策事件 06-10 15:40「上线日期定档 06-28」· 参与人 你 / 张经理')}</li>
+ <li>交付：《UAT 测试报告 v0.9》进入评审</li></ul>
+ <h4>恒达 ERP</h4>
+ <ul><li>需求调研完成 ${TN('80%','需求目录 18 条中已确认 14 条 · 取数规则 R-04')}，下周进入方案设计</li></ul>
+ <h4>风险与求助</h4>
+ <ul><li><span class="wk-todo"><i></i>培训材料需今日发给张经理</span>&nbsp;（来源：待办中心 · 06-13 客户群待办 · 未完成）</li></ul>
+ <h4>下周计划</h4>
+ <ul><li>06-18 客户培训执行；AMS 监听自检写入部署手册；验收材料启动准备</li></ul>`;
+const wkDocSparse=`
+ <div class="wk-alert">${ic('i-alert')}<div><b>本周仅 ${TN('3','时间线本周事件 3 条 · 记录偏少')} 条记录</b>——周报数字会比较单薄。建议先去时间线补记几分钟，或直接生成后再补充。<br>（记录不足时顶部提示 · 反向激励记录习惯 §3.6）</div></div>
+ <div class="wk-head"><b>周报 · 王工</b><span>06-09 ~ 06-13 · 记录不足模式</span></div>
+ <h4>本周概览</h4><p>本周记录 ${TN('3','时间线本周仅 3 条 · 建议补记')} 条。</p>
+ <h4>下周计划</h4><ul><li>先补记，再谈周报 → 保持捕获习惯比成稿更重要</li></ul>`;
+let wkBusy=false;
+on('#wkGen','click',()=>{
+  if(wkBusy)return;wkBusy=true;
+  const body=$('#wkBody');$('#wkEmpty').style.display='none';body.innerHTML='';
+  const st=document.createElement('div');st.className='wk-status show';body.append(st);
+  st.innerHTML=ic('i-chart')+'本地取数：时间线 23 事件 · 3 项目 · 06-09 ~ 06-13 · 待办中心未完成 / 逾期 ✓';
+  setTimeout(()=>{st.innerHTML=ic('i-zap')+'DeepSeek 按「'+wkTpl+'」章节结构成稿中…';},700);
+  setTimeout(()=>{
+    st.remove();
+    const doc=document.createElement('div');doc.className='wk-doc';doc.style.padding='0';doc.style.boxShadow='none';doc.style.border='0';
+    doc.innerHTML=wkSparse?wkDocSparse:wkDocNormal;
+    body.append(doc);
+    [...doc.children].forEach((el,i)=>{el.style.animation='up .4s var(--ease) both';el.style.animationDelay=(i*0.09)+'s';});
+    $$('.tnum',doc).forEach(t=>t.addEventListener('click',()=>t.classList.toggle('show')));
+    const cb=$('#wkCopy');if(cb)cb.disabled=false;
+    wkBusy=false;
+  },1500);
+});
+(function(){
+  const bar=$('#wkBar .bar-r');if(!bar)return;
+  const btn=document.createElement('button');btn.className='btn btn-soft btn-sm';btn.id='wkCopy';btn.innerHTML=ic('i-copy')+'复制 Markdown';btn.disabled=true;
+  bar.prepend(btn);
+  btn.addEventListener('click',()=>{
+    const md=wkSparse?'# 周报（06-09~06-13）\n\n本周仅 3 条记录，建议先补记。\n':'# 周报 · 王工（06-09 ~ 06-13）\n\n## 本周概览\n- 记录 23 条事件 · 覆盖 3 个项目\n- 处理问题 6 个、闭环 4 个；交付物 2 份\n\n## 云深 AMS（测试验证）\n- 解决 ORA-12541 监听问题；接口超时优化至 800ms 内\n- 决策：上线定档 06-28\n- 《UAT 测试报告 v0.9》进入评审\n\n## 恒达 ERP\n- 需求调研完成 80%，下周方案设计\n\n## 风险与求助\n- 培训材料今日待发（未完成 · 来源：待办中心）\n\n## 下周计划\n- 06-18 客户培训；监听自检入部署手册；验收材料启动';
+    copyText(md,'已复制 Markdown ✓');
+  });
+})();
+
+/* ================================================================ */
+/* ============ 随手浮窗（顶部居中落位 · 记 / 查 / 看） ============ */
+/* ================================================================ */
+const qp=$('#qp');
+let qpOpen=false,qpPinned=false,qpTab='j',qpDragged=false;
+function qpDefaultPos(){
+  const w=qp.offsetWidth||392;
+  return {x:Math.max(8,Math.round((window.innerWidth-w)/2)),y:84};
+}
+function placeDefault(){
+  const p=qpDefaultPos();
+  qp.style.left=p.x+'px';qp.style.top=p.y+'px';qp.style.transform='translate(0,0)';
+}
+function qpShow(tab,focus){
+  if(tab)qpTab=tab;
+  if(!qpDragged)placeDefault();
+  qp.style.transform='translate(0,-12px)';
+  requestAnimationFrame(()=>{
+    qp.classList.add('open');qpOpen=true;
+    requestAnimationFrame(()=>{qp.style.transform='translate(0,0)';});
+  });
+  renderQpTab();
+  if(focus&&qpTab==='j')setTimeout(()=>{const i=$('#qpCapIn');i&&i.focus()},360);
+  if(focus&&qpTab==='c')setTimeout(()=>{const i=$('#qpQIn');i&&i.focus()},360);
+}
+function qpHide(force){
+  if(qpPinned&&!force){toast('浮窗已置顶钉住 · 点图钉取消后再收起');return}
+  qp.classList.remove('open');qpOpen=false;
+  qp.style.transform='translate(0,-12px)';
+  $$('#qp input').forEach(i=>i.blur());
+}
+function toggleQP(){qpOpen?qpHide(true):qpShow('j',true);}
+function renderQpTab(){
+  $$('#qpTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===qpTab));
+  $$('.qp-v').forEach(v=>v.classList.remove('on'));
+  const v=$('#qv-'+qpTab);if(v)v.classList.add('on');
+  if(qpTab==='k'){renderQpCards();renderQpTodos();}
+  syncBadges();
+}
+on('#qpTabs','click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;qpTab=b.dataset.t;renderQpTab();});
+on('#qpClose','click',()=>qpHide(true));
+on('#qpPin','click',function(){
+  qpPinned=!qpPinned;this.classList.toggle('on',qpPinned);
+  this.title=qpPinned?'已置顶 · 点击取消钉住':'置顶钉住（Esc 将不收起）';
+  toast(qpPinned?'浮窗已置顶钉住 · Esc 不再收起':'已取消置顶');
+});
+on('#trig','click',toggleQP);
+/* 拖拽 */
+(function(){
+  const hd=$('#qpHd');if(!hd)return;let sx,sy,ox,oy,drag=false;
+  hd.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button'))return;
+    drag=true;qpDragged=true;qp.classList.add('dragging');
+    sx=e.clientX;sy=e.clientY;
+    const r=qp.getBoundingClientRect();ox=r.left;oy=r.top;
+    qp.style.left=ox+'px';qp.style.top=oy+'px';qp.style.transform='translate(0,0)';
+    hd.setPointerCapture(e.pointerId);
+  });
+  hd.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const w=qp.offsetWidth,h=qp.offsetHeight;
+    let nx=ox+e.clientX-sx,ny=oy+e.clientY-sy;
+    nx=Math.min(Math.max(8,nx),Math.max(8,window.innerWidth-w-8));
+    ny=Math.min(Math.max(8,ny),Math.max(8,window.innerHeight-h-8));
+    qp.style.left=nx+'px';qp.style.top=ny+'px';
+  });
+  const end=()=>{drag=false;qp.classList.remove('dragging');};
+  hd.addEventListener('pointerup',end);hd.addEventListener('pointercancel',end);
+})();
+window.addEventListener('resize',()=>{
+  if(!qpOpen)return;
+  const w=qp.offsetWidth,h=qp.offsetHeight,r=qp.getBoundingClientRect();
+  const x=Math.min(Math.max(8,r.left),Math.max(8,window.innerWidth-w-8));
+  const y=Math.min(Math.max(8,r.top),Math.max(8,window.innerHeight-h-8));
+  qp.style.left=x+'px';qp.style.top=y+'px';
+});
+/* ============ 全局快捷键（e.code 判定 + ⌥Q 备用 · §6.8） ============ */
+window.addEventListener('keydown',e=>{
+  const mod=e.altKey&&!e.ctrlKey&&!e.metaKey;
+  if(mod&&(e.code==='Space'||e.key===' ')){e.preventDefault();toggleQP();return}
+  if(mod&&e.code==='KeyQ'){e.preventDefault();toggleQP();return}
+  if(mod){
+    const map={'Digit1':'j','Digit2':'c','Digit3':'k','Numpad1':'j','Numpad2':'c','Numpad3':'k'};
+    if(map[e.code]){e.preventDefault();qpShow(map[e.code],true);return}
+  }
+  if(e.key==='Escape'){
+    const ov=$('#phOvl');
+    if(ov&&ov.classList.contains('open')){ov.classList.remove('open');return}
+    if(qpOpen){
+      const ae=document.activeElement;
+      if(ae&&qp.contains(ae)&&ae.tagName==='INPUT'){ae.blur();return}
+      qpHide(false);
+    }
+  }
+});
+/* --- 记（含投递聚合） --- */
+const QP_STEPS=[['接收',0.3],['OCR / 去重',2.6],['脱敏闸门',2.7],['Agent 解析',7.7],['卡片就绪',8.2]];
+let qpCapBusy=false,qpShotT=0,qpShotN=0;
+function qpCapture(kind){
+  if(qpCapBusy){toast('上一条还在解析中…');return}
+  qpCapBusy=true;
+  const agg=kind==='shot'&&(Date.now()-qpShotT<10000);
+  if(kind==='shot'){qpShotN=agg?qpShotN+1:1;qpShotT=Date.now();}
+  const prog=$('#qpProg');prog.hidden=false;prog.innerHTML='';
+  const aggEl=$('#qpAgg');aggEl.hidden=true;
+  $('#qpLast').hidden=true;
+  const icons=['i-inbox','i-image','i-cloud','i-zap','i-check'];
+  const labels=kind==='shot'?['接收','OCR · 本地','脱敏闸门','Agent 解析','卡片就绪']:(kind==='file'?['接收','SHA-256 去重','脱敏闸门','Agent 解析','卡片就绪']:['接收','OCR · 跳过','脱敏闸门','Agent 解析','卡片就绪']);
+  const rows=QP_STEPS.map((s,i)=>{const r=document.createElement('div');r.className='qp-prow';r.innerHTML=ic(icons[i])+`<span>${labels[i]}</span><em></em>`;prog.append(r);return r;});
+  const ts=[150,600,900,2200,3050];
+  ts.forEach((t,i)=>setTimeout(()=>{rows[i].classList.add('done');rows[i].querySelector('em').textContent=QP_STEPS[i][1]+'s';},t));
+  if(agg){aggEl.hidden=false;$('#qpAggTxt').textContent=qpShotN+' 张截图 · 10s 窗口已归并为同一捕获单元（投递聚合）';}
+  setTimeout(()=>{
+    const title=(kind==='shot'?'UAT 库存查询 ORA-12541 处理记录':(kind==='file'?'部署手册_v3.pdf':'随手记文本'))+(agg?'（×'+qpShotN+' 已归并）':'');
+    addPending(title,kind==='shot'?'var(--rose)':(kind==='file'?'var(--lake)':'var(--glacier)'));
+    const last=$('#qpLast');last.hidden=false;
+    last.innerHTML=`<span class="dot" style="background:${kind==='shot'?'var(--rose)':(kind==='file'?'var(--lake)':'var(--glacier)')}"></span><div style="flex:1;min-width:0">已入待审 · 全程 8.2s（演示压缩）<br><small style="color:var(--ink40)">${title}</small></div><a href="#s2">去处理</a>`;
+    toast(agg?'投递聚合 ✓ 连续多图已归并为单张卡片':'托盘通知：1 张卡片就绪 · Esc 可先收起浮窗');
+    qpCapBusy=false;
+    setTimeout(()=>{if(Date.now()-qpShotT>=9900)qpShotN=0;},10100);
+  },3250);
+}
+on('#qpCapSend','click',()=>{
+  const v=$('#qpCapIn').value.trim();
+  if(v){addPending(v.slice(0,16)+(v.length>16?'…':'')+'（随手记）','var(--glacier)');$('#qpCapIn').value='';
+    const last=$('#qpLast');last.hidden=false;last.innerHTML=`<span class="dot" style="background:var(--glacier)"></span><div style="flex:1">已接收 · <b class="num" style="font-size:13px">0.3s</b> —— 现在收起也不影响<br><small style="color:var(--ink40)">Agent 异步解析中 · 就绪后托盘提醒</small></div><a href="#s2">去处理</a>`;
+    toast('丢入即视为记录成功 ✓');
+  }else qpCapture('text');
+});
+on('#qpCapIn','keydown',e=>{if(e.key==='Enter')$('#qpCapSend').click();});
+ $$('.qp-srcs button').forEach(b=>on(b,'click',()=>qpCapture(b.dataset.s)));
+/* --- 查（含凭证 list · §3.11 双约束） --- */
+const QP_ANS={
+ db:{a:`<b>ORA-12541</b>（06-12 UAT · ① 内容明示 14:30）：tnsnames 正常、监听未启动，<code>lsnrctl start</code> 恢复。关联待办「监听自检」未完成。`,
+    c:`来源：卡片 #C-0612-03 · 时间线「问题 · 测试验证」`,m:['2/5 工具调用','0.4s','< ¥0.1']},
+ printer:{a:`<b>打印机闭环</b>：06-11 09:02 部署驱动包；06-10 原事件误归档，已作废重建（审计保留）。`,
+    c:`来源：时间线 06-10 / 06-11 · 变更 #E-0611-02`,m:['3/5 工具调用','0.5s','< ¥0.1']},
+ train:{a:`<b>客户培训 06-18（周三）10:00</b> · 一号会议室。今日待办：发培训材料（未完成）。`,
+    c:`来源：06-13 客户群纪要（文本粘贴捕获 · FR-8）`,m:['2/5 工具调用','读摘要卡','< ¥0.1']}
+};
+function qpQ(k){
+  const box=$('#qpAns');if(!box)return;
+  if(k==='cred'){
+    box.innerHTML=`<div class="qp-sec" style="margin-top:12px"><h6>凭证 · 云深 AMS（list_credentials · 仅元数据）</h6>`+
+      CRED_DEMO.map(c=>`<div class="qp-crow" data-cid="${c.id}">${ic('i-lock')}<div class="qp-mid"><b>${c.name}</b><small>${c.user}@${c.host} · ${c.id}</small></div><button class="qp-copybtn" data-cid="${c.id}">复制</button></div>`).join('')+
+      `</div><div class="qp-crednote">secret 字段永不返回（双约束）· 复制需确认 · 明文仅进剪贴板，不进对话 / 上下文 / 笔记 · 审计落主窗 07（来源标注「随手浮窗」）</div><div class="qp-meta"><span>与主窗同源 ✓</span><a href="#s7">主窗凭证库 →</a></div>`;
+    return;
+  }
+  if(!k){
+    const q=$('#qpQIn').value.toLowerCase();
+    const list=cmdItems.filter(it=>(it.t+it.m+it.kw).toLowerCase().includes(q)).slice(0,4);
+    box.innerHTML=list.length?list.map(it=>`<div class="qp-res" onclick="toast('主窗打开：${it.t.replace(/'/g,'')}（演示）')">${ic(it.icn)}${it.t}<small>${it.m}</small></div>`).join(''):`<div class="qp-empty">没有命中——深度问答与全文筛选请用主窗 ⌘P / 06 问答。</div>`;
+    return;
+  }
+  const d=QP_ANS[k];
+  box.innerHTML=`<div class="qp-ansline">${d.a}</div><div class="qp-cite">${d.c}</div><div class="qp-meta">${d.m.map(x=>'<span>'+x+'</span>').join('')}<a href="#s6">主窗深度模式 →</a></div>`;
+}
+ $$('.qp-chips button').forEach(b=>on(b,'click',()=>qpQ(b.dataset.q)));
+function qpQSubmit(){const v=$('#qpQIn').value.trim();if(!v)return;
+  const k=/凭|密码|密钥|token|账密/i.test(v)?'cred':(/数据库|ora|监听/i.test(v)?'db':(/打印机|驱动/.test(v)?'printer':(/培训/.test(v)?'train':null)));
+  if(k)qpQ(k);else qpQ(null);}
+on('#qpQSend','click',qpQSubmit);
+on('#qpQIn','keydown',e=>{if(e.key==='Enter')qpQSubmit();});
+/* 凭证复制：按钮 → 确认 → 仅进剪贴板 + 审计 */
+on('#qpAns','click',e=>{
+  const cp=e.target.closest('.qp-copybtn');
+  if(cp){
+    const cid=cp.dataset.cid;
+    cp.outerHTML=`<span class="qp-cf">复制明文？<button class="qp-cy" data-cid="${cid}">确认</button><button class="qp-cn">取消</button></span>`;
+    return;
+  }
+  const cy=e.target.closest('.qp-cy');
+  if(cy){
+    const cid=cy.dataset.cid,c=CRED_DEMO.find(x=>x.id===cid);
+    const row=cy.closest('.qp-crow');
+    row.insertAdjacentHTML('beforeend',`<button class="qp-copybtn copied">✓ 已复制</button>`);
+    cy.closest('.qp-cf').remove();
+    logAudit(cid,'随手浮窗 · 查');
+    copyText(c.secret,`已复制「${c.name}」到剪贴板 · 明文不进对话 / 笔记 · 审计已记录 ✓`);
+    setTimeout(()=>{const b=row.querySelector('.qp-copybtn');if(b)b.outerHTML=`<button class="qp-copybtn" data-cid="${cid}">复制</button>`;},2200);
+    return;
+  }
+  const cn=e.target.closest('.qp-cn');
+  if(cn){
+    const cid=cn.closest('.qp-crow').dataset.cid;
+    cn.closest('.qp-cf').outerHTML=`<button class="qp-copybtn" data-cid="${cid}">复制</button>`;
+  }
+});
+/* --- 看 --- */
+function renderQpCards(){
+  const box=$('#qpCards');if(!box)return;
+  box.innerHTML=pendingCards.length?pendingCards.map(c=>`<div class="qp-crow" data-pid="${c.id}">
+    <span class="dot" style="--c:${c.c}"></span>
+    <div class="qp-mid"><b>${c.title}</b><small>${c.t} · 待审</small></div>
+    <button class="qp-qa ok" data-act="ok" title="执行入库">${ic('i-check')}</button>
+    <button class="qp-qa no" data-act="no" title="丢弃">${ic('i-x')}</button>
+  </div>`).join(''):`<div class="qp-empty">待审清空 · 全部已处理 ✓</div>`;
+  syncBadges();
+}
+function renderQpTodos(){
+  const box=$('#qpTodos');if(!box)return;
+  const list=TODOS.filter(t=>t.day===13);
+  box.innerHTML=list.length?list.map(t=>`<div class="qp-trow">
+    <button class="qp-chk ${t.done?'on':''}" data-td="${t.id}" title="完成 / 恢复"></button>
+    <div class="qp-mid"><b>${t.title}</b><small>${t.done?'已完成':'今日截止'} · 与 05 待办中心同步</small></div>
+  </div>`).join(''):`<div class="qp-empty">今日待办已清空 ✓</div>`;
+  syncBadges();
+}
+on('#qpCards','click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const row=b.closest('.qp-crow'),id=row.dataset.pid;
+  const i=pendingCards.findIndex(x=>x.id===id);if(i<0)return;
+  toast(b.dataset.act==='ok'?'已执行入库 · 主窗同步（演示）':'已丢弃 · 主窗同步（演示）');
+  row.style.transition='all .3s var(--ease)';row.style.opacity=0;row.style.transform='translateX(12px)';
+  setTimeout(()=>{pendingCards.splice(i,1);renderQpCards();},300);
+});
+on('#qpTodos','click',e=>{
+  const c=e.target.closest('[data-td]');if(!c)return;
+  toggleTodo(c.dataset.td);
+});
+renderQpCards();renderQpTodos();
+const qpTl=$('#qpTl');
+if(qpTl)qpTl.innerHTML=`
+ <div class="qp-res" onclick="location.hash='#s4'">${ic('i-clock')}打印机驱动安装包部署（重建）<small>06-11 09:02</small></div>
+ <div class="qp-res" onclick="location.hash='#s4'">${ic('i-clock')}UAT 库存查询报 ORA-12541 处理<small>06-12 14:30</small></div>`;
+syncBadges();
+
+/* ============ 首次引导 ============ */
+setTimeout(()=>{const t=$('#trig');t.classList.add('pulse');setTimeout(()=>t.classList.remove('pulse'),3400);},900);
+setTimeout(()=>toast('按 ⌥Space 或 ⌥Q 唤起随手浮窗 · 顶部居中 · Esc 收起'),2400);
+</script>
+</body>
+</html>
