@@ -59,8 +59,8 @@
 
 ## 8. 文档回写与 spike 结论归档
 
-- [ ] 8.1 SPEC §3.2 工具链行修订（移除 tauri-specta 括注）+ 附录 B IDR 登记（工具链定稿 + S1–S7 结论 + D2 演进策略）；验证 SPEC 变更说明遵循「先修订再实施」纪律（本 change 即实施载体）
-- [ ] 8.2 Roadmap Phase-1 勾选 + 总则 4 注明开发环境约定已由 Phase-1 定稿（原标注 Phase-2 定稿；前移后 Phase-2 直接引用）+ spec-driven 存档准备（`openspec validate --strict` 通过）
+- [x] 8.1 SPEC §3.2 工具链行修订（移除 tauri-specta 括注）+ 附录 B IDR 登记（工具链定稿 + S1–S7 结论 + D2 演进策略）；验证 SPEC 变更说明遵循「先修订再实施」纪律（本 change 即实施载体）
+- [x] 8.2 Roadmap Phase-1 勾选 + 总则 4 注明开发环境约定已由 Phase-1 定稿（原标注 Phase-2 定稿；前移后 Phase-2 直接引用）+ spec-driven 存档准备（`openspec validate --strict` 通过）
 
 ## 9. 最终验证（Roadmap Phase-1 完成标准）
 

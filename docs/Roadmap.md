@@ -75,7 +75,7 @@ P20      ← P18, P19
 1. **契约先行（铁律）**：接口定义只存在于 Rust 契约源（schemars/utoipa），经生成管线产出 OpenAPI / 前端 TS 类型 / sidecar 工具 Schema，**禁止手写第二份**。开发期间如需调整契约，流程固定为：**先修改契约源 → 重新生成并 commit → CI diff 检查同步受影响一侧（含 Mock 场景）→ 再实施代码**。严禁绕过契约直接改动任何一侧。
 2. **阶段开工前置**：每个 [BE-Core] / [BE-Agent] / [FE] 阶段开工前，其涉及域的契约与 Mock 场景必须已入库（Phase-1 交付首批核心域；凭证 / 记忆 / 提案等域随对应阶段前的契约增补进入，走同一管线）。FE 阶段所需 Mock 场景数据集缺失时，先补契约场景再开发 UI。
 3. **验证基线**：[BE-Core] / [BE-Agent] 阶段以终端命令（curl / driver 脚本 / sqlite3 / 文件检查）验证真实实现；[FE] 阶段在 Mock 服务上以界面操作路径验证（验证的是「前端行为符合契约场景」，真实行为验收留给 [Integration]）；[Integration] 以完整用户旅程 + 终端核对（audit.jsonl / app.log / pbpaste）验收。
-4. **开发环境约定**（Phase-2 定稿，后续阶段引用）：主进程 `127.0.0.1:4765`，Mock 服务 `127.0.0.1:4766`，前端 dev `:1420`；dev 模式固定 Bearer `dev-token`；数据目录 `JOTLINE_DATA_DIR`（默认 `./vault`）；根脚本 `pnpm dev` / `pnpm mock` / `pnpm contracts:build` / `pnpm contracts:check` 等。
+4. **开发环境约定**（Phase-1 已定稿，后续阶段直接引用）：主进程 `127.0.0.1:4765`，Mock 服务 `127.0.0.1:4766`，前端 dev `:1420`；dev 模式固定 Bearer `dev-token`；数据目录 `JOTLINE_DATA_DIR`（默认 `./vault`）；根脚本 `pnpm dev` / `pnpm mock` / `pnpm contracts:build` / `pnpm contracts:check` 等。
 5. **DEC / IDR 衔接**：SPEC 附录 A 的延期决策在各对应阶段的设计稿中定稿并落 IDR（各阶段「上下文」中标注）。与 ADR 冲突时先修订 ADR 再实施。
 
 ---
@@ -84,7 +84,7 @@ P20      ← P18, P19
 
 ### 轨道 [Shared]：契约与切片
 
-- [ ] **Phase-1 [Shared] 契约与工作区骨架** —— 一切共享物以契约为唯一来源
+- [x] **Phase-1 [Shared] 契约与工作区骨架** —— 一切共享物以契约为唯一来源
 
   - **依赖**：无（起点）
   - **上下文**：SPEC 冻结了 Wire 纪律与「契约单一事实源」机制，但契约源、生成管线、Mock 服务尚不存在。本阶段建立承载全部后续工作的最小工作区，并让「可执行契约」先于任何业务代码存在。工具链按 SPEC 建议默认（utoipa + openapi-typescript + openapi-fetch，IPC 层 tauri-specta），本阶段 spike 验证后以 **IDR 定稿**（对应 SPEC「第一周 D3 spike」）。
