@@ -64,4 +64,4 @@
 
 ## 9. 最终验证（Roadmap Phase-1 完成标准）
 
-- [ ] 9.1 依序执行 Roadmap 验证命令并全部通过：`pnpm contracts:build` 生成三端产物 → `pnpm contracts:check` 零 diff → `pnpm mock` 起服务 → `curl /api/projects`（200，ULID/ISO-8601 抽查）→ `curl /api/search?q=oracle`（snippet+provenance 命中）→ `curl -sN /api/stream`（3 条事件后关闭）→ 无 token curl → 401
+- [x] 9.1 依序执行 Roadmap 验证命令并全部通过：`pnpm contracts:build` 生成三端产物 → `pnpm contracts:check` 零 diff → `pnpm mock` 起服务 → `curl /api/projects`（200，ULID/ISO-8601 抽查）→ `curl /api/search?q=oracle`（snippet+provenance 命中）→ `curl -sN /api/stream`（3 条事件后关闭）→ 无 token curl → 401
