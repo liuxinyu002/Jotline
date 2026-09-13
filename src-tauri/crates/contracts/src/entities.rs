@@ -97,7 +97,7 @@ pub struct Tag {
     pub id: TagId,
     pub name: String,
     /// 使用计数（标签池面板展示）
-    pub usage_count: u64,
+    pub usage_count_x: u64,
     pub created_at: Timestamp,
     pub updated_at: Timestamp,
 }
