@@ -251,10 +251,13 @@ mod tests {
     #[test]
     fn route_registration_matches_doc_registration() {
         let (_, route_doc) = super::api_routes().split_for_parts();
-        let route_paths: BTreeSet<String> =
-            route_doc.paths.paths.keys().cloned().collect();
-        let doc_paths: BTreeSet<String> =
-            super::ServerApiDoc::openapi().paths.paths.keys().cloned().collect();
+        let route_paths: BTreeSet<String> = route_doc.paths.paths.keys().cloned().collect();
+        let doc_paths: BTreeSet<String> = super::ServerApiDoc::openapi()
+            .paths
+            .paths
+            .keys()
+            .cloned()
+            .collect();
 
         let route_only: Vec<_> = route_paths.difference(&doc_paths).collect();
         let doc_only: Vec<_> = doc_paths.difference(&route_paths).collect();

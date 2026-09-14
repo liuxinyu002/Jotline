@@ -140,8 +140,7 @@ mod tests {
         assert_eq!(lines[0], "event: note_created", "信封 type → event 行");
         assert_eq!(lines[1], "id: 7", "event_id → id 行");
         assert!(lines[2].starts_with("data: "), "信封 JSON → data 行");
-        let payload: serde_json::Value =
-            serde_json::from_str(&lines[2]["data: ".len()..]).unwrap();
+        let payload: serde_json::Value = serde_json::from_str(&lines[2]["data: ".len()..]).unwrap();
         assert_eq!(payload["type"], "note_created");
         assert_eq!(payload["event_id"], 7);
         assert_eq!(payload["payload"]["title"], "UAT 冒烟测试记录");

@@ -147,7 +147,11 @@ mod tests {
         let obj = v.as_object().unwrap();
         assert!(!obj.contains_key("oneOf"), "oneOf 应被坍缩移除");
         assert_eq!(obj.get("type"), Some(&json!("string")));
-        assert_eq!(obj.get("description"), Some(&json!("X 描述")), "X 的键应覆盖外层兄弟键");
+        assert_eq!(
+            obj.get("description"),
+            Some(&json!("X 描述")),
+            "X 的键应覆盖外层兄弟键"
+        );
         assert_eq!(obj.get("maxLength"), Some(&json!(10)));
     }
 
@@ -171,7 +175,11 @@ mod tests {
         });
         super::deref_refs(&mut v, &components, 0).unwrap();
         let obj = v.as_object().unwrap();
-        assert_eq!(obj.get("description"), Some(&json!("字段级描述")), "兄弟键应覆盖目标内同名键");
+        assert_eq!(
+            obj.get("description"),
+            Some(&json!("字段级描述")),
+            "兄弟键应覆盖目标内同名键"
+        );
         assert_eq!(obj.get("type"), Some(&json!("object")));
         assert!(obj.get("properties").is_some(), "目标内容应展开");
     }
@@ -216,15 +224,18 @@ mod tests {
         super::enforce_wire_discipline(&mut v);
         let params = &v["paths"]["/api/notes"]["get"]["parameters"];
         assert_eq!(
-            params[0]["schema"]["type"], json!("string"),
+            params[0]["schema"]["type"],
+            json!("string"),
             "剔 null 后坍缩为标量"
         );
         assert_eq!(
-            params[0]["required"], json!(false),
+            params[0]["required"],
+            json!(false),
             "剔 null 的参数 required 应修正为 false"
         );
         assert_eq!(
-            params[1]["required"], json!(true),
+            params[1]["required"],
+            json!(true),
             "未剔 null 的参数 required 不受影响"
         );
     }
