@@ -63,6 +63,21 @@ export class ContractValidator {
     );
   }
 
+  /** 编译响应体 schema（按操作 + 状态码；design D4 响应侧校验用）。 */
+  responseBodyValidator(
+    operation: OpenAPIV3_1.OperationObject,
+    status: number,
+  ): ValidateFn | null {
+    const schema =
+      operation.responses?.[String(status)]?.content?.["application/json"]
+        ?.schema ?? null;
+    if (!schema) return null;
+    return this.getCompiled(
+      `res:${operation.operationId ?? "anon"}:${status}`,
+      schema as never,
+    );
+  }
+
   /** 编译查询参数 schema（由契约参数表合成；缓存键 = 操作 id）。 */
   queryValidator(
     operationId: string,

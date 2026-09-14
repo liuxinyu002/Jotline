@@ -30,13 +30,6 @@ export async function createNote(body: CreateNoteRequest) {
   return client.POST("/api/notes", { body, headers: authHeaders() });
 }
 
-export async function readNote(noteId: string) {
-  return client.GET("/api/notes/{note_id}", {
-    params: { path: { note_id: noteId } },
-    headers: authHeaders(),
-  });
-}
-
 export async function searchNotes(query: { q: string; project_id?: string }) {
   return client.GET("/api/search", {
     params: { query },

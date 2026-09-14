@@ -281,12 +281,12 @@ impl Storage {
         "id, project_id, title, body, target_dir, format, tags, provenance, created_at, updated_at";
 
     /// 读取笔记（从索引行组装响应；真相源在文件）。
-    pub fn read_note(&self, id: &str) -> Result<Option<NoteResponse>, StorageError> {
+    pub fn read_note(&self, id: &NoteId) -> Result<Option<NoteResponse>, StorageError> {
         use rusqlite::OptionalExtension;
         let conn = self.conn.lock().expect("storage mutex poisoned");
         conn.query_row(
             &format!("SELECT {} FROM items WHERE id = ?1", Self::NOTE_COLUMNS),
-            [id],
+            [id.as_str()],
             Self::row_to_note,
         )
         .optional()
@@ -604,7 +604,7 @@ mod tests {
                 .unwrap();
             assert_eq!(fts_count, 1, "FTS 行缺失");
         }
-        let read_back = storage.read_note(note.id.as_str()).unwrap().unwrap();
+        let read_back = storage.read_note(&note.id).unwrap().unwrap();
         assert_eq!(read_back.id, note.id);
         assert_eq!(read_back.title, "切片验证");
         assert_eq!(read_back.body, "hello jotline");
@@ -632,7 +632,8 @@ mod tests {
     #[test]
     fn read_note_missing_returns_none() {
         let (_dir, storage) = temp_storage();
-        let found = storage.read_note("itm_01ZZZZZZZZZZZZZZZZZZZZZZZZ").unwrap();
+        let missing = NoteId::parse("itm_01ZZZZZZZZZZZZZZZZZZZZZZZZ").unwrap();
+        let found = storage.read_note(&missing).unwrap();
         assert!(found.is_none());
     }
 

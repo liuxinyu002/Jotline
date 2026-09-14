@@ -39,7 +39,7 @@ pub async fn require_bearer(
         .is_some_and(|v| v == format!("Bearer {}", state.token));
 
     // SSE 端点：query token 与 Bearer header 等价（EventSource 技术约束）
-    let query_ok = uri.path() == "/api/stream"
+    let query_ok = uri.path() == crate::stream::STREAM_PATH
         && uri
             .query()
             .and_then(query_token)

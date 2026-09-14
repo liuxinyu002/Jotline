@@ -93,7 +93,7 @@ pub async fn read_note(
     let note_id = NoteId::parse(&note_id)
         .map_err(|_| ApiError::NotFound(format!("笔记不存在：{note_id}")))?;
     let storage = state.storage.clone();
-    let id = note_id.as_str().to_owned();
+    let id = note_id.clone();
     let note = tokio::task::spawn_blocking(move || storage.read_note(&id))
         .await
         .map_err(|e| ApiError::Internal(format!("存储任务失败：{e}")))?

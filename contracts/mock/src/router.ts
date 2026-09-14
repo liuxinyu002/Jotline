@@ -7,7 +7,7 @@ import type { SseHub } from "./sse.ts";
 import { ConflictError, NotFoundError, type SemanticState } from "./state.ts";
 import type { OpenAPIV3_1 } from "./types.ts";
 
-export const DEV_TOKEN = "dev-token";
+export const DEV_TOKEN = process.env.JOTLINE_DEV_TOKEN ?? "dev-token";
 
 interface CompiledRoute {
   method: string;
@@ -99,7 +99,7 @@ export class MockEngine {
         401,
         errorEnvelope(
           "unauthorized",
-          "未携带或错误的 Bearer token（dev 模式固定 dev-token）",
+          "未携带或错误的 Bearer token（经 JOTLINE_DEV_TOKEN 注入，缺省 dev-token）",
         ),
       );
       return;
@@ -199,9 +199,32 @@ export class MockEngine {
       );
       if (result === null) {
         res.writeHead(204).end();
-      } else {
-        this.sendJson(res, result.status, result.body);
+        return;
       }
+      // 响应侧契约校验（design D4）：语义内核产出在发送前断言，
+      // 违约不送出 → 500 错误信封（操作 / 状态码 / 违约字段）+ 日志显形
+      const responseValidator = this.validator.responseBodyValidator(
+        route.operation,
+        result.status,
+      );
+      if (responseValidator && !responseValidator(result.body)) {
+        const fields = this.validator.errorsOf(responseValidator);
+        const operation = route.operation.operationId ?? "anon";
+        this.log(
+          `响应违反契约：${operation} ${result.status} 违约字段 ${JSON.stringify(fields)}`,
+        );
+        this.sendJson(
+          res,
+          500,
+          errorEnvelope(
+            "internal",
+            `Mock 响应违反契约（${operation} ${result.status}）`,
+            fields,
+          ),
+        );
+        return;
+      }
+      this.sendJson(res, result.status, result.body);
     } catch (e) {
       if (e instanceof NotFoundError) {
         this.sendJson(res, 404, errorEnvelope("not_found", e.message));
@@ -458,8 +481,12 @@ function compileRoutes(doc: OpenAPIV3_1.Document): CompiledRoute[] {
   return routes;
 }
 
-export function errorEnvelope(code: string, message: string): unknown {
-  return { code, message };
+export function errorEnvelope(
+  code: string,
+  message: string,
+  detail?: { field: string; message: string }[],
+): unknown {
+  return detail === undefined ? { code, message } : { code, message, detail };
 }
 
 export function validationEnvelope(

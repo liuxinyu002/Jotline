@@ -9,6 +9,7 @@
 
 pub mod auth;
 pub mod error;
+pub mod gendoc;
 pub mod notes;
 pub mod projects;
 pub mod sidecar;
@@ -16,7 +17,7 @@ pub mod storage;
 pub mod stream;
 
 use std::net::SocketAddr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
@@ -39,6 +40,19 @@ pub const DEFAULT_PORT: u16 = 4765;
 pub const DEFAULT_TOKEN: &str = "dev-token";
 /// 数据目录默认值（= vault 根，相对启动目录；design D8）。
 pub const DEFAULT_DATA_DIR: &str = "./vault";
+
+/// 仓库根定位（编译期锚定：server crate 上溯三级）+ `pnpm-workspace.yaml` 校验。
+/// gen bin 与 sidecar 共用（design D8：单一 helper，不再各持一份）。
+pub fn repo_root() -> Result<PathBuf, String> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(3)
+        .ok_or("无法定位仓库根目录")?;
+    if !root.join("pnpm-workspace.yaml").exists() {
+        return Err(format!("仓库根定位失败：{}", root.display()));
+    }
+    Ok(root.to_path_buf())
+}
 
 /// 主进程共享状态（领域 API 单实例）。
 pub struct AppState {
@@ -166,12 +180,7 @@ pub async fn serve(config: ServerConfig) -> std::io::Result<Server> {
 /// + 契约外 404 信封 + CORS 外层。
 pub fn router(state: Arc<AppState>) -> axum::Router {
     // utoipa-axum OpenApiRouter：路由与 path 注解同源注册（IDR-03）
-    let api: OpenApiRouter = OpenApiRouter::new()
-        .routes(routes!(notes::create_note))
-        .routes(routes!(notes::read_note))
-        .routes(routes!(notes::search_content))
-        .routes(routes!(projects::list_projects))
-        .routes(routes!(stream::get_stream))
+    let api: OpenApiRouter = api_routes()
         .layer(middleware::from_fn_with_state(
             state.clone(),
             auth::require_bearer,
@@ -182,6 +191,16 @@ pub fn router(state: Arc<AppState>) -> axum::Router {
         .merge(api)
         .fallback(fallback)
         .layer(cors_layer())
+}
+
+/// 契约路由注册链（不含鉴权层与 state 绑定；双注册一致性测试消费，design D3）。
+fn api_routes() -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::new()
+        .routes(routes!(notes::create_note))
+        .routes(routes!(notes::read_note))
+        .routes(routes!(notes::search_content))
+        .routes(routes!(projects::list_projects))
+        .routes(routes!(stream::get_stream))
 }
 
 /// 契约外路由统一 404 错误信封。
@@ -218,4 +237,30 @@ pub fn init_tracing() {
             EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info,rust=debug")),
         )
         .init();
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+
+    use utoipa::OpenApi;
+
+    /// 双注册一致性守卫（design D3）：路由注册（`OpenApiRouter` 拆出的 path 集合）
+    /// == `ServerApiDoc` path 集合。一侧新增或遗漏端点即失败并打印两侧差集，
+    /// 堲「漏登记 = 端点静默从契约消失」。
+    #[test]
+    fn route_registration_matches_doc_registration() {
+        let (_, route_doc) = super::api_routes().split_for_parts();
+        let route_paths: BTreeSet<String> =
+            route_doc.paths.paths.keys().cloned().collect();
+        let doc_paths: BTreeSet<String> =
+            super::ServerApiDoc::openapi().paths.paths.keys().cloned().collect();
+
+        let route_only: Vec<_> = route_paths.difference(&doc_paths).collect();
+        let doc_only: Vec<_> = doc_paths.difference(&route_paths).collect();
+        assert!(
+            route_only.is_empty() && doc_only.is_empty(),
+            "路由注册与文档注册不一致：仅路由注册 = {route_only:?}，仅文档注册 = {doc_only:?}"
+        );
+    }
 }

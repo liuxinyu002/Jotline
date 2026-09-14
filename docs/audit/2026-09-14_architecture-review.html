@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jotline 架构审计 · 2026-09-14</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif; }
+  .mermaid { background: transparent; }
+</style>
+</head>
+<body class="bg-zinc-950 text-zinc-200 antialiased">
+
+<div class="max-w-5xl mx-auto px-6 py-12">
+
+  <!-- ===== Header ===== -->
+  <header class="mb-12">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="text-3xl">🔍</span>
+      <h1 class="text-3xl font-bold text-zinc-50">Jotline 架构审计报告</h1>
+    </div>
+    <p class="text-sm text-zinc-400 mb-2">
+      生成于 <strong class="text-zinc-200">2026-09-14 @ commit cde26cd</strong>
+      ·审计对象为<strong class="text-amber-300">工作区当前状态</strong>（含未提交的 phase-2 垂直切片实现）
+    </p>
+    <p class="text-xs text-zinc-500 border-l-2 border-zinc-700 pl-3">
+      本报告是时点快照，不是当前事实。代码演进后请以新审计为准；本审计为纯诊断，不修改任何应用代码，
+      所有重构经 OpenSpec propose 入口落地。
+    </p>
+  </header>
+
+  <!-- ===== Phase 0 context ===== -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-zinc-100 mb-4 flex items-center gap-2"><span class="text-zinc-500">§0</span> 审计上下文</h2>
+    <div class="grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+        <h3 class="font-semibold text-zinc-200 mb-2">决策基线图（在役）</h3>
+        <ul class="space-y-1 text-zinc-400">
+          <li>· 无持久 <code class="text-zinc-300">adr/</code> 目录；基线 = SPEC.md ADR 表（ADR-1~13）+ IDR-01/02/03 + 归档 change <code class="text-zinc-300">phase-1-contracts-skeleton</code> 的 design D1–D8</li>
+          <li>· 本审计未发现与在役 ADR 冲突的候选（候选 1 明确顺应 IDR-03 而非回退它）</li>
+          <li>· phase-2 design 的显式 Non-Goal（server 不做完整分层、前端不抽组件库）被尊重——相关摩擦仅登记为 Phase-3 / Phase-11 输入</li>
+        </ul>
+      </div>
+      <div class="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+        <h3 class="font-semibold text-zinc-200 mb-2">领域词汇与回避区</h3>
+        <ul class="space-y-1 text-zinc-400">
+          <li>· <code class="text-zinc-300">CONTEXT.md</code>：不存在，待播种（Phase 3 惰性创建）</li>
+          <li>· 回避区：进行中 change <code class="text-amber-300">phase-2-vertical-slice</code>（28/28 任务完成、未归档），覆盖 <code class="text-zinc-300">src-tauri/crates/server/**</code>、<code class="text-zinc-300">app/**</code>、<code class="text-zinc-300">sidecar/src</code>、<code class="text-zinc-300">contracts/mock/**</code>、<code class="text-zinc-300">scripts/dev*</code> 与契约注解迁移面——下述候选大多落在此足迹内，各卡片已标注</li>
+          <li>· 热点（无用户 focus）：contracts crate（18 次触碰）> scripts > contracts/mock > app/src，加工作区未提交的 phase-2 全量实现</li>
+        </ul>
+      </div>
+    </div>
+    <p class="text-xs text-zinc-500 mt-3">方法：两个只读 reviewer 子代理分别走查 Rust 缝（contracts + server crate）与 TS 缝（mock + app + sidecar + 编排脚本），父代理仲裁并抽查全部承重论断（pre-commit 正则、Mock token 硬编码、state.ts created_at 丢失、App.tsx 缺失捕获均已亲自复核）。</p>
+  </section>
+
+  <!-- ===== Synthesis ===== -->
+  <section class="mb-12">
+    <div class="bg-gradient-to-r from-zinc-900 to-zinc-900/50 border border-zinc-800 rounded-xl p-5">
+      <h2 class="text-lg font-semibold text-zinc-100 mb-2">总体判断</h2>
+      <p class="text-sm text-zinc-300 leading-relaxed">
+        垂直切片本身是健康的：依赖方向单向（server → contracts）、SQL 完全收敛在 storage、in-process 测试打真实栈零 mock、契约零漂移管线是全仓最硬的一块骨头。
+        摩擦集中在一条主线上：<strong class="text-amber-300">IDR-03 把契约注解的物理位置从 contracts 迁入 server 后，围绕契约的四道配套防线（pre-commit 触发集、构建边界、端点注册、变换机械）没有跟着迁移边界，各自留下一道缝</strong>。
+        TS 侧的缝则围绕 Mock：唯一不消费生成类型的一端、响应侧零校验（已有两处实际违约）、token 配置链断裂。均为小时级收口修复，无阻断项。
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== Candidates ===== -->
+  <section class="space-y-8 mb-12">
+    <h2 class="text-xl font-semibold text-zinc-100 flex items-center gap-2"><span class="text-zinc-500">§1</span> 候选卡片（8）</h2>
+
+    <!-- Card 1 -->
+    <article id="c1" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 1 · 契约防线与 IDR-03 迁移边界对齐</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Strong</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400"><code class="text-zinc-300">scripts/pre-commit.sh</code> · <code class="text-zinc-300">src-tauri/crates/server/src/bin/gen.rs</code> · <code class="text-zinc-300">src-tauri/crates/server/src/lib.rs</code> · <code class="text-zinc-300">src-tauri/crates/server/tests/</code></p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题</h4>
+          <p class="text-zinc-400 leading-relaxed">同一根因的四道缝泄漏 / 无局部性：IDR-03 把 5 个 <code>#[utoipa::path]</code> 注解与 gen bin 迁入 server crate，但——① pre-commit 触发正则 <code>^(src-tauri/crates/contracts/|contracts/|scripts/|Cargo…)</code> 不含 server，「内环秒级拦截」对契约源现在的物理位置<strong>失明</strong>（改 server 侧注解提交 → 漂移只能靠 CI 兜底）；② 全仓正确性最微妙的 Wire 纪律机械（<code>strip_null</code> 的 oneOf 坍缩与兄弟键提升、<code>deref_refs</code> 的 $ref 解引用 + 32 层防护）困在不可导入的 bin target 里，<strong>零单测</strong>——零漂移 diff 只证明「再生成 == 已提交」，不证明「变换语义正确」；③ 同一事实（端点 ↔ 注解）双注册：<code>routes!()</code> 与 <code>ServerApiDoc</code> 各手写一遍五条，且 <code>split_for_parts()</code> 已积累的文档半边被显式丢弃——漏登记 = 端点<strong>静默从契约消失</strong>，零漂移检查依然绿；④ 契约生成管线现在依赖整个 server 实现 crate 编译（axum / tokio full / rusqlite bundled），该构建耦合是 IDR-03 的内生代价，但无任何文档承认它。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <ul class="list-disc list-inside text-zinc-400 space-y-1">
+            <li>pre-commit 触发正则补上 <code>src-tauri/crates/server/</code>（或收窄为注解所在 handler 文件 + gen bin）</li>
+            <li>三个变换函数从 bin 移入 server lib（如 <code>server::gendoc</code>）+ fixture 单测（oneOf 坍缩 / 兄弟键覆盖 / 循环 $ref / 查询参数 required 修正），bin 只留 main() 装配</li>
+            <li>加一条测试断言「路由表 path 集合 == ServerApiDoc path 集合」，把双注册纳入机器守卫</li>
+            <li>在 design / IDR 登记构建耦合这笔已接受的账（不回迁注解——那与 IDR-03 矛盾）</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">契约防线重新覆盖注解的真实住址（局部性回归）；「发布后契约变更属 breaking」这一承诺的执行机构（变换机械 + 注册守卫）从无守卫状态进入测试网——一处改动，三道防线同时闭合。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  subgraph B["防线停在迁移前"]
+    A["注解×5<br/>@server crate"] -. 不在触发集 .-> P["pre-commit 触发集<br/>contracts|scripts|Cargo"]
+    G["gen bin @server<br/>变换零单测"] -. 依赖全家桶 .-> P
+    R["routes! ×5"] x--x|"双注册<br/>无守卫"| D["ServerApiDoc ×5"]
+  end
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  subgraph B2["防线对齐迁移后"]
+    A2["注解×5<br/>@server crate"] --> P2["pre-commit 触发集<br/>+ server crate"]
+    A2 --> G2["gendoc lib 模块<br/>+ fixture 单测"]
+    R2["routes! ×5"] -->|"断言相等"| D2["ServerApiDoc ×5"]
+  end
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠：本候选落在进行中 change <strong>phase-2-vertical-slice</strong> 的足迹内（server crate、scripts）。该 change 任务已全部完成、待归档——实际冲突低，但落地前应先归档或确认无并行改动。
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 2 -->
+    <article id="c2" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 2 · Mock 契约保真收口：响应侧校验 + 生成类型消费</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Strong</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400"><code class="text-zinc-300">contracts/mock/src/state.ts</code> · <code class="text-zinc-300">contracts/mock/src/ajv.ts</code> · <code class="text-zinc-300">contracts/mock/src/router.ts</code> · <code class="text-zinc-300">contracts/mock/package.json</code></p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题</h4>
+          <p class="text-zinc-400 leading-relaxed">Mock 的契约校验面只覆盖<strong>入口</strong>（请求体 / 查询参数 / 场景种子），<strong>响应侧零校验</strong>——而缝上已经漏出两处实际违约（父代理已复核源码）：① <code>state.ts</code> upsertEntity 更新路径 <code>Object.assign(existing, {…body, id: undefined, created_at: undefined})</code> 后只恢复 id——<code>created_at</code> 留 undefined，<code>JSON.stringify</code> 丢键，PATCH 后的 stage/tag 及后续 list 响应缺必填字段（注释「id / created_at 不被覆盖」与实现相反）；② <code>executeCard</code> 中 <code>note_id: noteIds.at(-1)</code>——entry 只含 event 不含 create_note 时，事件挂到<strong>前一个 entry</strong> 的笔记。同时 Mock 是唯一不依赖 <code>@jotline/contracts</code> 的 TS 端，实体形状在手写镜像里<strong>四重存在</strong>（Rust 契约源 → openapi.json → schema.d.ts / state.ts 镜像 / 场景 JSON），契约加必填字段时 mock 的编译期与运行期都看不见。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <ul class="list-disc list-inside text-zinc-400 space-y-1">
+            <li>修复两处实际违约（解构剔除替代 undefined 赋值；event.note_id 仅在本 entry 创建笔记时关联）</li>
+            <li>响应侧加 Ajv 校验（dev 断言模式：dispatch 后校验 result.body 对契约 schema，违约启动即红）</li>
+            <li>mock 引入 workspace <code>@jotline/contracts</code>，手写镜像改为引用 / <code>satisfies</code> 生成类型，契约变更在 mock 编译期可见</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">「实体形状」的知识从四处收敛回契约单点（局部性）；一个校验点把 Mock 的静默漂移变成启动期红灯（杠杆）——Mock 是 Phase-11 前端连测的唯一替身，它的保真度就是契约测试的价值上限。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  REQ["请求 / 场景种子"] --> V["Ajv 入口校验 ✓"]
+  S["语义内核 state.ts<br/>手写实体镜像"] --> R["响应"]
+  R --> X["✗ 零校验<br/>created_at 已实际丢失"]
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  REQ2["请求 / 场景种子"] --> V2["Ajv 入口校验 ✓"]
+  C["@jotline/contracts<br/>生成类型"] -->|"satisfies"| S2["语义内核"]
+  S2 --> R2["响应"] --> V3["Ajv 响应断言 ✓<br/>违约启动即红"]
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠：落在 <strong>phase-2-vertical-slice</strong> 足迹内（contracts/mock 曾做 CORS / query-token 增补）。change 已完成待归档，实际冲突低。
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 3 -->
+    <article id="c3" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 3 · 前端异步失败路径修补（网络级异常不再卡死交互态）</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Strong</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400"><code class="text-zinc-300">app/src/App.tsx</code>（三处调用点）</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题</h4>
+          <p class="text-zinc-400 leading-relaxed">openapi-fetch 对网络级异常（连接拒绝）是 <strong>rethrow 而非进 error 分支</strong>；App.tsx 三处 async 均无捕获（父代理已复核）：① <code>handleSubmit</code> await 抛错则 <code>submitting</code> 永久 true、按钮永久「保存中…」；② <code>handleSearch</code> 同理；③ <code>useEffect</code> 的 <code>listProjects().then()</code> 无 <code>.catch</code>——unhandled rejection，<code>projectsError</code> 永不触发，UI 静默（下拉禁用、无提示）。tasks 6.3 要求的失败状态只覆盖 HTTP 错误信封路径，不覆盖「服务器不可达」——这恰是 dev 常态（先开页面后起 server）。同一失败处理形态三处内联且漏同一路径（无局部性），但修补本身是三行级 try/finally/.catch，<strong>不是抽象问题</strong>——async triple 的统一形态按 phase-2 Non-Goal 留给 Phase-11。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <p class="text-zinc-400">三处各补捕获（handleSubmit / handleSearch 用 try-finally 复位交互态，useEffect 补 .catch 置 projectsError）；不引入任何抽象，不抽组件。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">切片验证骨架的失败矩阵补齐到「真实 dev 场景可达」——每个状态的失败路径都能被肉眼验证；为 Phase-11 抽象化提供正确的行为基线（先修对，再抽形）。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  U["用户提交"] --> A["await createNote()"]
+  A -->|"HTTP 422/404"| E1["error 分支 ✓<br/>formError 显示"]
+  A -->|"网络拒绝 rethrow"| E2["✗ 异常逃逸<br/>submitting 永久 true"]
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  U2["用户提交"] --> A2["await createNote()"]
+  A2 -->|"HTTP 422/404"| E3["error 分支 ✓"]
+  A2 -->|"网络拒绝"| E4["catch → formError<br/>finally → submitting=false ✓"]
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠：<code>app/src/App.tsx</code> 属 <strong>phase-2-vertical-slice</strong> 足迹（任务 6.3 交付物）。change 已完成待归档，实际冲突低。
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 4 -->
+    <article id="c4" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 4 · dev token / 端口配置链收敛</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Worth exploring</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400"><code class="text-zinc-300">contracts/mock/src/router.ts</code> · <code class="text-zinc-300">contracts/mock/src/server.ts</code> · <code class="text-zinc-300">scripts/mock-smoke.sh</code> · <code class="text-zinc-300">.env.example</code> · <code class="text-zinc-300">README.md</code></p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题</h4>
+          <p class="text-zinc-400 leading-relaxed">同一配置概念（dev token）两条通道，缝在 Mock 处断裂（父代理已复核）：server / sidecar / app / dev.mjs 全部走环境变量注入（<code>JOTLINE_DEV_TOKEN</code> / <code>VITE_DEV_TOKEN</code> / .env），唯 Mock 硬编码 <code>router.ts:10 export const DEV_TOKEN = "dev-token"</code>；<code>mock-smoke.sh</code> 也硬编码 <code>Bearer dev-token</code>。文档自相矛盾：<code>.env.example</code> 说「按需修改」，README 说「固定」。可复现后果：改 .env token 后 <code>pnpm dev</code> 全链生效，但 app 切 Mock（:4766）或跑 mock-smoke → 全量 401，无任何提示指向 token。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <p class="text-zinc-400">二选一收敛（需决策）：Mock 改读 <code>JOTLINE_DEV_TOKEN</code>（与 <code>MOCK_PORT</code> 同法），mock-smoke 同步；或删除「按需修改」声明，dev token 定为文档化固定值。倾向前者（保留 .env 的可配置语义）。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">「dev 凭证」概念回到单通道；Mock 模式（Phase-11 前端连测基线）不再因配置漂移静默 401。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  ENV[".env / 环境变量"] --> S["server ✓"]
+  ENV --> SD["sidecar ✓"]
+  ENV --> AP["app ✓"]
+  M["Mock：硬编码常量 ✗"] -.->|"改 token 后 401"| AP
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  ENV2[".env / 环境变量"] --> S2["server"]
+  ENV2 --> SD2["sidecar"]
+  ENV2 --> AP2["app"]
+  ENV2 --> M2["Mock 读 JOTLINE_DEV_TOKEN ✓"]
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠（部分）：contracts/mock 与 scripts 属 <strong>phase-2-vertical-slice</strong> 足迹边缘。
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 5 -->
+    <article id="c5" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 5 · SSE 帧纪律等价性锚点</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Worth exploring</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400"><code class="text-zinc-300">contracts/mock/src/sse.ts</code> · <code class="text-zinc-300">src-tauri/crates/server/src/stream.rs</code> · <code class="text-zinc-300">scripts/mock-smoke.sh</code> · <code class="text-zinc-300">app/src/use-note-stream.ts</code></p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题</h4>
+          <p class="text-zinc-400 leading-relaxed">一个 wire 概念（SSE 帧）散落三端，契约只钳住 data 行的 JSON 形状：帧构造三处手写（<code>sse.ts:41/60</code>、<code>stream.rs frame_event</code>）；心跳间隔两处独立常量（15s 数值一致<strong>纯靠纪律</strong>）；event_id 单调性三套机制（Rust AtomicU64 / Mock SseHub.nextId / 剧本流字面值，场景校验不查单调唯一）；<code>Last-Event-ID</code> 三处均写了没人读；「SSE 端点识别」两套口径（Mock 按 operationId，Rust 按 path 字面量）。现有等价性锚点只有 mock-smoke 的一条 <code>grep -c '^event:'</code>。双实现本身成立（Mock 与 server 是真缝上的两个 adapter，各有真实调用方）——缺的不是合并，是<strong>可执行的等价性断言</strong>。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <p class="text-zinc-400">把帧纪律升为可执行断言：mock-smoke 补心跳行存在性与 event_id 单调性断言；或将样例帧做成三端共享测试向量（Rust 单测与 Mock 冒烟比对同一文件）。方案有取舍，需验证哪个锚点性价比最高。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">「Mock 与真实主进程行为等价」从一次性人工验证（phase-2 task 4.3）变成每次冒烟自动复验——多窗口同源是产品核心承诺，这条缝值得机器守卫。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  C["StreamEnvelope 契约<br/>（data 行形状）"] --> M["Mock sse.ts<br/>帧拼接 + 15s 心跳"]
+  C --> R["server stream.rs<br/>帧拼接 + 15s 心跳"]
+  M -.->|"等价性：一条 grep"| SM["mock-smoke"]
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  C2["StreamEnvelope 契约"] --> M2["Mock sse.ts"]
+  C2 --> R2["server stream.rs"]
+  M2 --> SM2["mock-smoke 断言：<br/>心跳行 + event_id 单调"]
+  R2 --> UT["Rust 单测比对<br/>共享帧向量"]
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠：contracts/mock 与 server stream.rs 属 <strong>phase-2-vertical-slice</strong> 足迹。
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 6 -->
+    <article id="c6" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 6 · 存储层 init 语义收口（Phase-3 前置输入）</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Worth exploring</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400"><code class="text-zinc-300">src-tauri/crates/server/src/storage.rs</code> · <code class="text-zinc-300">src-tauri/crates/server/src/lib.rs</code></p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题</h4>
+          <p class="text-zinc-400 leading-relaxed">三颗结构性引信（前两颗今天无害，属面向未来的登记）：① dev seed 无门控焊死在 <code>Storage::init</code>——design D4 措辞是「<strong>dev</strong> 首启 seed」，实现是「任何空库首启 seed」，<code>ServerConfig</code> 无 dev 标志，Phase-11 用户真实 vault 首启会得到假项目「切片示例」；② ADR-5 宣称「SQLite 仅索引、可随时重建」，但代码中<strong>不存在任何重建路径</strong>——删掉 index.sqlite 后既有笔记文件全部从 API 消失，无代码扫描文件回填；③ <code>create_note</code> 的崩溃窗口（文件已写、事务未提交时进程死亡）留下孤儿文件，init 不做对账——D9 只处理「事务失败」，没处理「进程死亡」。单文件六关注点本身已获 phase-2 Non-Goal 豁免，不作为问题。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <p class="text-zinc-400">seed 移出 init（独立 <code>dev_seed()</code> 由 bin / dev 编排调用，或 env 门控）；「索引重建 / 孤儿对账」作为 Phase-3 存储层重构的第一公民接口（如 <code>reindex_from_files()</code>），而非散在各 init 分支。门控机制需要决策（env 标志 vs 显式调用点）。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">init 的接口语义回到「调用方可推理」（不藏不可关闭的 dev 行为）；ADR-5 的「可重建」承诺获得实现锚点——这是 Phase-3 立存储架构时的现成设计前提清单。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  I["Storage::init()"] --> MIG["migrate"]
+  I --> SEED["seed（无条件）<br/>任何空库注入假项目"]
+  I -.->|"无重建路径"| ADR5["ADR-5：索引可重建<br/>（仅口头承诺）"]
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  I2["Storage::init()<br/>（纯基础设施）"] --> MIG2["migrate"]
+  BIN["bin / dev 编排"] -->|"显式调用"| DS["dev_seed()"]
+  I2 --> RI["reindex_from_files()<br/>Phase-3 第一公民"]
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠：storage.rs 属 <strong>phase-2-vertical-slice</strong> 核心交付物。时机上建议随 Phase-3 存储层重构一并落地，而非独立先行。
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 7 -->
+    <article id="c7" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 7 · TS 侧测试载体迁移 + sidecar 入口可导入</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Worth exploring</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400"><code class="text-zinc-300">scripts/mock-smoke.sh</code> · <code class="text-zinc-300">scripts/dev-smoke.sh</code> · <code class="text-zinc-300">contracts/mock/package.json</code> · <code class="text-zinc-300">sidecar/src/index.ts</code></p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题</h4>
+          <p class="text-zinc-400 leading-relaxed">难测试的接口形态：Mock 内层模块的可测试性设计其实很好（<code>loadScenarios</code> 注入 readJson/validate、<code>buildEngine</code> DI log、SemanticState 纯内存），但<strong>没有任何单测消费它们</strong>——全部行为断言住在 bash 内联 <code>python3 -c</code> 里（无类型安全、难扩展）；dev-smoke 经系统 <code>sqlite3</code> CLI 读库断言，与「bundled SQLite 避免系统差异」的动机相逆，系统依赖面重新打开；sidecar <code>index.ts</code> 是顶层脚本（import 即启动 readline、零导出），<code>health.ping</code> 分发逻辑无法脱离进程单测——这是 Phase-8 provider 会话运行时的第一块需重构的砖（单 if 分发、未判别 cast、未知方法静默忽略）。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <p class="text-zinc-400">mock-smoke 的 JSON 断言迁入 <code>node --test</code>（mock 包内，复用 buildEngine 的 DI 面）；sidecar 抽 <code>handleLine(msg)</code> 纯函数（仍单文件，不改运行形态）。dev-smoke 的 sqlite 断言可换 bundled 口径或维持（需权衡）。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">已有的 DI 缝获得第二个真实消费者（测试），从假设性缝变成真缝；Phase-8 sidecar 重构从「推倒重写」变成「长出注册表」。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  DI["loadScenarios / buildEngine<br/>DI 设计"] -.->|"零消费者"| NONE["（无测试）"]
+  B["bash + curl + python3<br/>+ 系统 sqlite3"] --> A["行为断言"]
+  SC["sidecar index.ts<br/>顶层脚本"] x--x U["不可导入 / 不可单测"]
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  DI2["loadScenarios / buildEngine<br/>DI 设计"] --> T["node --test<br/>（第二消费者，缝变真）"]
+  SC2["sidecar：handleLine()<br/>纯函数"] --> T
+  B2["bash 冒烟只留<br/>端到端编排"] --> A2["行为断言 @ node"]
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠：sidecar/src 与 scripts 属 <strong>phase-2-vertical-slice</strong> 足迹。
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 8 -->
+    <article id="c8" class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-4">
+        <h3 class="text-lg font-semibold text-zinc-100">候选 8 · 低严重度清理批处理（死代码 / 双份 / 微缝）</h3>
+        <span class="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-zinc-500/15 text-zinc-400 border border-zinc-500/30">Speculative</span>
+      </div>
+      <div class="px-6 py-5 space-y-4 text-sm">
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">涉及文件</h4>
+          <p class="text-zinc-400 text-xs">散布：contracts/src/error.rs · server/src/{error,notes,projects,auth,storage,sidecar}.rs · server/src/bin/gen.rs · contracts/mock/src/{state,sse}.ts · app/src/api-client.ts · Cargo.toml · scripts/mock-smoke.sh</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">问题（逐项，均过低severity单独立项门槛）</h4>
+          <ul class="list-disc list-inside text-zinc-400 space-y-1">
+            <li><strong>死代码（删除测试直接通过）</strong>：<code>contracts::ErrorEnvelope::status()</code> 生产零调用方（错误码→状态映射实际由 ApiError 另一套完成，同一概念两处）；Mock <code>SemanticState.seq</code>（累加但从不被读）与 <code>SseHub.reset()</code>（零调用）；app <code>api-client.readNote</code> 零调用方（投机接口）</li>
+            <li><strong>微双份</strong>：<code>repo_root()</code> 在 gen.rs 与 sidecar.rs 各一份（严谨度还不一致）；<code>"/api/stream"</code> 路径字面量三处；spawn_blocking + 双层 map_err 桥接样板四处</li>
+            <li><strong>微缝</strong>：auth 中间件双职责（鉴权 + sidecar boot 观测，boot 信号可被任何持 token 者伪造，dev 威胁模型可忽略）；AppState 组装双份（serve 内联 + tests 复制）且全 pub 字段削弱「event_id 分配与 send 成对」不变量；<code>read_note(&str)</code> 缝上类型退化（调用方已持有 NoteId 却打回字符串）</li>
+            <li><strong>文档漂移</strong>：根 Cargo.toml 注释描述不存在的 tauri member；CORS 等价性无预检断言（mock-smoke 可补一条）</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">方案（提案级）</h4>
+          <p class="text-zinc-400">一个批处理 change 打包清理：删四处死代码；repo_root / SSE 路径提共享常量；auth 双职责与 AppState 构造器标注为 Phase-8 / Phase-3 输入（不现在动）；微缝按顺手修。价值密度取决于是否与候选 1/2 同期落地（共享同批文件触点）。</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-zinc-300 mb-1">收益（局部性 × 杠杆）</h4>
+          <p class="text-zinc-400">单件价值低、批量价值在「减表面积」：死代码是未来读者的问题来源（status() 的存在暗示错误它不做的映射）；删除后每个概念单点所有。</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">Before</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  EC["错误码→状态"] --> S1["contracts status()<br/>（零调用）"]
+  EC --> S2["server ApiError<br/>（实际映射）"]
+  RR["repo_root ×2<br/>path 字面量 ×3<br/>样板 ×4"]
+            </pre>
+          </div>
+          <div class="bg-zinc-950/60 border border-zinc-800 rounded-lg p-3">
+            <p class="text-xs text-zinc-500 mb-2">After</p>
+            <pre class="mermaid text-xs">
+flowchart LR
+  EC2["错误码→状态"] --> S3["单一映射点"]
+  RR2["共享常量 / helper<br/>单点所有"]
+  DC["死代码：删除"]
+            </pre>
+          </div>
+        </div>
+        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-2 text-xs text-amber-300">
+          ⚠ 回避区重叠（部分）：server crate / mock / api-client 均在 <strong>phase-2-vertical-slice</strong> 足迹内。
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- ===== Health ===== -->
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-zinc-100 mb-4 flex items-center gap-2"><span class="text-zinc-500">§2</span> 健康面（做对了的，值得保持）</h2>
+    <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 text-sm text-zinc-300 space-y-2">
+      <p>· <strong>依赖方向干净单向</strong>：server → contracts，无环；handler 直接用契约类型做 extractor/response，无 DTO 双份。</p>
+      <p>· <strong>contracts crate 是真缝</strong>：Rust / TS（app、sidecar）/ mock / 生成管线四侧真实调用方——「一个 adapter 的缝是假设性缝」的反面正面教材；<code>define_id!</code> 宏 15 个 newtype 一次成型，通过删除测试。</p>
+      <p>· <strong>SQL 完全收敛在 storage.rs</strong>：Connection 私有，handler 无任何绕过拼 SQL 的路径。</p>
+      <p>· <strong>tests/api.rs 是「接口可测」的正面样板</strong>：真实路由 + 真实存储（tempdir）+ oneshot 不占端口，零 mock；SSE 双订阅者同源有真实流断言。</p>
+      <p>· <strong>D9 双写边界三处互证</strong>：doc 注释 / 实现 / 测试一致，422/404 不留痕有断言；错误出口集中在 <code>ApiError::into_response</code> 单点。</p>
+      <p>· <strong>契约确定性 + 零漂移是真杠杆</strong>：BTreeMap 全层键序、无时间戳，注解一处改动三产物联动；<code>wire-grep.sh</code> 把禁用清单机器化。</p>
+      <p>· <strong>sidecar 通道纪律双向守护</strong>：stdout 纯净性观测 + stderr NDJSON 解析转发，与 ADR-2/ADR-10 完全同构；boot 链超时降级不阻塞就绪。</p>
+      <p>· <strong>场景按契约 Schema 启动校验、失败拒绝起服务、固定 ULID 可复述</strong>——契约保真的最强一环。</p>
+    </div>
+  </section>
+
+  <!-- ===== Top recommendation ===== -->
+  <section class="mb-8">
+    <h2 class="text-xl font-semibold text-zinc-100 mb-4 flex items-center gap-2"><span class="text-zinc-500">§3</span> 首要推荐</h2>
+    <div class="bg-gradient-to-r from-emerald-500/10 to-transparent border border-emerald-500/30 rounded-xl p-6">
+      <p class="text-sm text-zinc-200 leading-relaxed">
+        <strong class="text-emerald-400">先做候选 1（契约防线与 IDR-03 迁移边界对齐）。</strong>
+        理由：契约零漂移纪律是这个仓库的地基——phase-2 刚刚把五个注解和 gen bin 迁进 server，而内环防线（pre-commit）、变换机械（零单测）、注册守卫（双注册无断言）全部还站在迁移前的世界里。
+        这不是「未来会痛」的风险，是<strong>当下已在裸奔的缝</strong>：今天改一个 server 侧注解再提交，pre-commit 不会拦你。
+        修复全部是小时级、零行为变更的收口动作，且趁 phase-2 未归档、注解位置的记忆还新鲜时做，成本最低。
+        候选 2（Mock 保真收口）紧随其后——两处实际违约已在缝上漏出来，且它是 Phase-11 前端连测的价值上限。
+      </p>
+    </div>
+  </section>
+
+  <footer class="text-xs text-zinc-600 border-t border-zinc-800 pt-4">
+    本报告由 /opsx:arch-audit 生成 · 四阶段审计（上下文收集 → 只读深模块走查 → 报告 → 烘烤循环）·
+    审计写边界：docs/audit/ 报告、CONTEXT.md 词汇、adr/ 决策记录、openspec/config.yaml 规则行——除此以外零写入。
+    所有重构经 OpenSpec propose 入口落地。<br>
+    尾注：C 级 schema 升级（spec-driven-with-adr）本次未提案——触发条件未满足（本轮未落地 ADR、未记录承重否决，全部延后均为排期性理由）。
+    烘烤结果：8 候选中 6 项并入 change <code>phase-2-audit-hardening</code>，存储 init 收口延后至 Phase-3、sidecar 分发器延后至 Phase-8。
+  </footer>
+</div>
+
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: "dark", themeVariables: { fontSize: "13px", primaryColor: "#27272a", primaryBorderColor: "#52525b", primaryTextColor: "#e4e4e7", lineColor: "#71717a" } });
+</script>
+</body>
+</html>

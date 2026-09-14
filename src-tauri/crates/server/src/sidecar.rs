@@ -8,7 +8,6 @@
 //! stdout 纪律：IPC 流每行必须是可解析 JSON-RPC（reader 任务持续观测，违规记 WARN）；
 //! stderr：NDJSON 日志由主进程解析后按级别转发（target = sidecar，SPEC §5.1 拓扑）。
 
-use std::path::PathBuf;
 use std::process::Stdio;
 use std::sync::Arc;
 use std::time::Duration;
@@ -54,10 +53,19 @@ struct SidecarLogLine {
     level: String,
     msg: String,
 }
-
 /// 拉起 sidecar 并启动 boot 链。失败仅记 WARN 并返回 `None`（不阻塞主进程就绪）。
 pub async fn spawn_and_boot(state: Arc<AppState>, port: u16) -> Option<SidecarHandle> {
-    let repo_root = repo_root();
+    let repo_root = match crate::repo_root() {
+        Ok(root) => root,
+        Err(e) => {
+            tracing::warn!(
+                target: "rust.sidecar",
+                error = %e,
+                "仓库根定位失败，sidecar 不拉起（不影响主进程服务）"
+            );
+            return None;
+        }
+    };
     let mut command = Command::new("bun");
     command
         .args(["run", "sidecar/src/index.ts"])
@@ -205,13 +213,4 @@ async fn read_stderr(stderr: tokio::process::ChildStderr) {
             }
         }
     }
-}
-
-/// 仓库根（编译期锚定，与 gen bin 同规则；开发态 cargo run 场景成立）。
-fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(3)
-        .expect("server crate 位于 src-tauri/crates/server，上溯三级即仓库根")
-        .to_path_buf()
 }

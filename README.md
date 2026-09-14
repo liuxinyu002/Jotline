@@ -82,7 +82,7 @@ curl -s http://127.0.0.1:4766/api/projects    # 无 token → 401
 | 领域 API（真实后端） | `127.0.0.1:4765`（Phase-2 起监听） |
 | 契约 Mock 服务 | `127.0.0.1:4766`（`MOCK_PORT` 可覆盖） |
 | 前端 dev server | `127.0.0.1:1420`（Phase-2 起启用） |
-| dev Bearer token | `dev-token`（固定） |
+| dev Bearer token | `JOTLINE_DEV_TOKEN`（经 `.env` 注入，缺省 `dev-token`；server / app / sidecar / Mock 四端一致） |
 | 数据目录 | `JOTLINE_DATA_DIR`（= vault 根，默认 `./vault`） |
 
 ### 契约变更流程（铁律）

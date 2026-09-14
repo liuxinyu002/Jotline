@@ -5,6 +5,7 @@ import {
   type ServerResponse,
 } from "node:http";
 import { buildEngine } from "./bootstrap.ts";
+import { DEV_TOKEN } from "./router.ts";
 
 const PORT = Number(process.env.MOCK_PORT ?? 4766);
 
@@ -29,7 +30,7 @@ const server = createServer((req, res) => {
 
 server.listen(PORT, "127.0.0.1", () => {
   console.log(
-    `[mock] 契约 Mock 已启动：http://127.0.0.1:${PORT}（Bearer dev-token）`,
+    `[mock] 契约 Mock 已启动：http://127.0.0.1:${PORT}（Bearer ${DEV_TOKEN}）`,
   );
   console.log(
     `[mock] 激活场景：${engine.activeScenario}；控制端点：/_mock/scenarios`,

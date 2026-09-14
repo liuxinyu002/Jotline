@@ -11,6 +11,11 @@ import {
 } from "./api-client";
 import { useNoteStream } from "./use-note-stream";
 
+/** 网络级异常 → 人读消息（fetch 拒绝：连不上 server / 断网 / CORS）。 */
+function networkError(err: unknown): string {
+  return `网络请求失败：${err instanceof Error ? err.message : String(err)}`;
+}
+
 /**
  * Phase-2 单页面三件套（链路验证骨架，显式豁免 DESIGN.md 设计系统）：
  * 笔记列表（SSE 驱动 + 本地创建累积）+ 创建表单（项目下拉）+ 搜索框（snippet 结果）。
@@ -18,6 +23,7 @@ import { useNoteStream } from "./use-note-stream";
 export function App() {
   // —— 项目下拉 ——
   const [projects, setProjects] = useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectsError, setProjectsError] = useState<string | null>(null);
   const [selectedProject, setSelectedProject] = useState("");
 
@@ -45,14 +51,17 @@ export function App() {
   const streamStatus = useNoteStream(addNote);
 
   useEffect(() => {
-    listProjects().then(({ data, error }) => {
-      if (data) {
-        setProjects(data.items);
-        setSelectedProject(data.items[0]?.id ?? "");
-      } else {
-        setProjectsError(errorDetail(error));
-      }
-    });
+    listProjects()
+      .then(({ data, error }) => {
+        if (data) {
+          setProjects(data.items);
+          setSelectedProject(data.items[0]?.id ?? "");
+        } else {
+          setProjectsError(errorDetail(error));
+        }
+      })
+      .catch((err: unknown) => setProjectsError(networkError(err)))
+      .finally(() => setProjectsLoading(false));
   }, []);
 
   async function handleSubmit(e: FormEvent) {
@@ -60,18 +69,23 @@ export function App() {
     if (!selectedProject || !title.trim() || !body.trim() || submitting) return;
     setSubmitting(true);
     setFormError(null);
-    const { data, error } = await createNote({
-      project_id: selectedProject,
-      title: title.trim(),
-      body: body.trim(),
-    });
-    setSubmitting(false);
-    if (data) {
-      addNote(data);
-      setTitle("");
-      setBody("");
-    } else {
-      setFormError(errorDetail(error));
+    try {
+      const { data, error } = await createNote({
+        project_id: selectedProject,
+        title: title.trim(),
+        body: body.trim(),
+      });
+      if (data) {
+        addNote(data);
+        setTitle("");
+        setBody("");
+      } else {
+        setFormError(errorDetail(error));
+      }
+    } catch (err) {
+      setFormError(networkError(err));
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -81,12 +95,17 @@ export function App() {
     setSearching(true);
     setSearchError(null);
     setSearchResults(null);
-    const { data, error } = await searchNotes({ q: query.trim() });
-    setSearching(false);
-    if (data) {
-      setSearchResults(data);
-    } else {
-      setSearchError(errorDetail(error));
+    try {
+      const { data, error } = await searchNotes({ q: query.trim() });
+      if (data) {
+        setSearchResults(data);
+      } else {
+        setSearchError(errorDetail(error));
+      }
+    } catch (err) {
+      setSearchError(networkError(err));
+    } finally {
+      setSearching(false);
     }
   }
 
@@ -112,6 +131,7 @@ export function App() {
               onChange={(e) => setSelectedProject(e.target.value)}
               disabled={projects.length === 0}
             >
+              {projectsLoading && <option>项目加载中…</option>}
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
