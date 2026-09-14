@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jotline Phase-1 契约骨架 · phase-1-contracts-skeleton</title>
+<style>
+  :root {
+    --ink: #1f2430;
+    --ink-soft: #4a5266;
+    --ink-faint: #8a92a6;
+    --paper: #fbfaf7;
+    --card: #ffffff;
+    --line: #e6e2d8;
+    --accent: #b4530a;
+    --accent-soft: #fdf0e4;
+    --green: #2e7d4f;
+    --green-soft: #e9f4ed;
+    --red: #b3382f;
+    --red-soft: #fbeae8;
+    --blue: #2c5f8a;
+    --blue-soft: #e9f1f7;
+    --code-bg: #242933;
+    --code-ink: #e6e9f0;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.75;
+    font-size: 16px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 0 28px 80px; }
+
+  /* ---------- header ---------- */
+  header.hero {
+    background: linear-gradient(135deg, #2b2417 0%, #43301a 60%, #5a3b1c 100%);
+    color: #f7f2e8;
+    padding: 56px 0 48px;
+    margin-bottom: 48px;
+  }
+  .hero .wrap { padding-bottom: 0; }
+  .hero .kicker {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: #e8c496;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .hero h1 { font-size: 34px; font-weight: 700; line-height: 1.3; margin-bottom: 10px; }
+  .hero .sub { font-size: 16px; color: #d9cdb8; max-width: 700px; }
+  .hero .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .badge {
+    font-family: var(--mono); font-size: 12.5px;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 999px; padding: 5px 14px; color: #f0e6d4;
+  }
+  .badge b { color: #ffd9a3; font-weight: 600; }
+
+  /* ---------- TOC ---------- */
+  nav.toc {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 24px; margin-bottom: 56px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 6px 28px;
+  }
+  nav.toc a {
+    color: var(--ink-soft); text-decoration: none; font-size: 14.5px; padding: 4px 0;
+    display: flex; align-items: baseline; gap: 9px;
+  }
+  nav.toc a:hover { color: var(--accent); }
+  nav.toc .n { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+
+  /* ---------- sections ---------- */
+  section { margin-bottom: 72px; }
+  .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px; }
+  .sec-head .num {
+    font-family: var(--mono); font-size: 15px; font-weight: 700;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 8px; padding: 2px 12px; letter-spacing: 0.08em;
+  }
+  .sec-head h2 { font-size: 27px; font-weight: 700; }
+  .sec-lede { color: var(--ink-soft); font-size: 15.5px; margin-bottom: 28px; max-width: 760px; }
+  h3 { font-size: 19.5px; margin: 40px 0 14px; font-weight: 650; }
+  h3 .tag {
+    font-family: var(--mono); font-size: 11.5px; font-weight: 600; color: var(--blue);
+    background: var(--blue-soft); border-radius: 6px; padding: 2px 8px; margin-left: 9px;
+    vertical-align: 2px; letter-spacing: 0.05em;
+  }
+  p { margin-bottom: 14px; }
+  ul.plain { margin: 0 0 16px 22px; }
+  ul.plain li { margin-bottom: 7px; }
+  strong { font-weight: 650; }
+  code.inline {
+    font-family: var(--mono); font-size: 0.86em;
+    background: #efece4; border: 1px solid var(--line); border-radius: 5px;
+    padding: 1px 6px; color: #8a3d10; white-space: nowrap;
+  }
+
+  /* ---------- cards / callouts ---------- */
+  .callout {
+    border-left: 4px solid var(--accent); background: var(--accent-soft);
+    border-radius: 0 12px 12px 0; padding: 16px 22px; margin: 22px 0; font-size: 15px;
+  }
+  .callout.blue { border-left-color: var(--blue); background: var(--blue-soft); }
+  .callout.green { border-left-color: var(--green); background: var(--green-soft); }
+  .callout .t { font-weight: 700; margin-bottom: 4px; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 20px 0; }
+  @media (max-width: 760px) { .duo { grid-template-columns: 1fr; } }
+  .mini {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; font-size: 14.5px;
+  }
+  .mini .t { font-weight: 700; margin-bottom: 6px; font-size: 15px; }
+  .mini.bad { border-color: #e5c4c0; background: #fdf7f6; }
+  .mini.bad .t { color: var(--red); }
+  .mini.good { border-color: #bfd8c8; background: #f6fbf8; }
+  .mini.good .t { color: var(--green); }
+
+  /* ---------- code blocks ---------- */
+  .codecard { margin: 20px 0; border-radius: 12px; overflow: hidden; border: 1px solid #3a4150; }
+  .codecard .bar {
+    background: #2d3340; color: #b9c0d0; font-family: var(--mono); font-size: 12px;
+    padding: 9px 16px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #3a4150;
+  }
+  .codecard .bar .dot { color: #7c869c; }
+  pre {
+    background: var(--code-bg); color: var(--code-ink);
+    font-family: var(--mono); font-size: 13px; line-height: 1.62;
+    padding: 18px 20px; overflow-x: auto; white-space: pre; tab-size: 4;
+  }
+  pre .c { color: #7e8798; font-style: italic; }
+  pre .k { color: #e8a56b; }
+  pre .s { color: #a8c98a; }
+  pre .a { color: #8ab8d8; }
+  pre .fn { color: #d8b8e8; }
+
+  /* ---------- diagrams (HTML/CSS only) ---------- */
+  .diagram {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 26px 22px; margin: 24px 0; overflow-x: auto;
+  }
+  .diagram .cap { text-align: center; font-size: 13.5px; color: var(--ink-faint); margin-top: 16px; }
+
+  .pipe { display: flex; align-items: stretch; gap: 0; min-width: 640px; }
+  .pipe .node {
+    flex: 1; border-radius: 10px; padding: 12px 10px; text-align: center;
+    display: flex; flex-direction: column; justify-content: center; gap: 3px;
+  }
+  .pipe .node .t { font-weight: 700; font-size: 13.5px; }
+  .pipe .node .d { font-size: 11.5px; opacity: 0.85; line-height: 1.45; }
+  .pipe .node.src  { background: #efe6d8; border: 1.5px solid #c99a5b; color: #6b4a1c; }
+  .pipe .node.gen  { background: var(--accent-soft); border: 1.5px solid var(--accent); color: #7c3a0a; }
+  .pipe .node.art  { background: var(--blue-soft); border: 1.5px solid var(--blue); color: #22496a; }
+  .pipe .node.cons { background: var(--green-soft); border: 1.5px solid var(--green); color: #235a3b; }
+  .pipe .arrow {
+    align-self: center; width: 34px; flex: none; position: relative; height: 2px;
+    background: #b9b2a3; margin: 0 2px;
+  }
+  .pipe .arrow::after {
+    content: ""; position: absolute; right: -1px; top: -4px;
+    border-left: 8px solid #b9b2a3; border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+  }
+  .pipe .arrow .lbl {
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 10px; color: var(--ink-faint); white-space: nowrap;
+  }
+
+  .stack { display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 520px; margin: 0 auto; }
+  .stack .layer {
+    width: 100%; max-width: 560px; border-radius: 10px; padding: 10px 18px;
+    display: flex; align-items: center; gap: 14px; justify-content: space-between;
+  }
+  .stack .layer .t { font-weight: 700; font-size: 14px; }
+  .stack .layer .d { font-size: 12px; opacity: 0.85; }
+  .stack .down { width: 2px; height: 18px; background: #b9b2a3; position: relative; }
+  .stack .down::after {
+    content: ""; position: absolute; bottom: -1px; left: -4px;
+    border-top: 8px solid #b9b2a3; border-left: 5px solid transparent; border-right: 5px solid transparent;
+  }
+  .stack .l1 { background: #f1eef7; border: 1.5px solid #8a7bb0; color: #4d4170; }
+  .stack .l2 { background: var(--blue-soft); border: 1.5px solid var(--blue); color: #22496a; }
+  .stack .l3 { background: #fdeee0; border: 1.5px solid #cf7a2e; color: #7a4212; }
+  .stack .l4 { background: #fdf3f1; border: 1.5px solid #c05c52; color: #7c332c; }
+  .stack .l5 { background: var(--accent-soft); border: 1.5px solid var(--accent); color: #7c3a0a; }
+  .stack .l6 { background: var(--green-soft); border: 1.5px solid var(--green); color: #235a3b; }
+
+  .loopgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; min-width: 560px; }
+  .loopgrid .cell {
+    border-radius: 10px; padding: 13px 16px; font-size: 13px;
+  }
+  .loopgrid .cell .t { font-weight: 700; margin-bottom: 3px; font-size: 14px; }
+  .loopgrid .ok  { background: var(--green-soft); border: 1.5px solid var(--green); color: #235a3b; }
+  .loopgrid .no  { background: var(--red-soft); border: 1.5px solid var(--red); color: #6e2c25; }
+
+  /* ---------- tables ---------- */
+  table.spec { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+  table.spec th {
+    text-align: left; font-size: 12.5px; letter-spacing: 0.04em; color: var(--ink-faint);
+    border-bottom: 2px solid var(--line); padding: 8px 12px; font-weight: 600;
+  }
+  table.spec td { border-bottom: 1px solid var(--line); padding: 9px 12px; vertical-align: top; }
+  table.spec td:first-child code, table.spec td code {
+    font-family: var(--mono); font-size: 12.5px; background: #efece4;
+    border-radius: 4px; padding: 1px 5px; white-space: nowrap;
+  }
+  table.spec tr:last-child td { border-bottom: none; }
+
+  /* ---------- quiz ---------- */
+  .quiz-intro {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 22px; margin-bottom: 24px; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px 26px; margin-bottom: 22px; }
+  .q .qh { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+  .q .qn { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 7px; padding: 2px 10px; flex: none; }
+  .q .qt { font-size: 16.5px; font-weight: 650; }
+  .q .opt {
+    display: block; width: 100%; text-align: left; font-family: var(--sans); font-size: 14.5px;
+    background: #faf8f3; border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 11px 16px 11px 46px; margin-bottom: 10px; cursor: pointer;
+    position: relative; transition: border-color 0.15s, background 0.15s; line-height: 1.6;
+  }
+  .q .opt:hover { border-color: #c9b892; }
+  .q .opt::before {
+    content: attr(data-letter); position: absolute; left: 14px; top: 12px;
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    width: 22px; height: 22px; line-height: 22px; text-align: center;
+    background: #ece8de; border-radius: 6px; color: var(--ink-soft);
+  }
+  .q .opt.correct { background: var(--green-soft); border-color: var(--green); }
+  .q .opt.correct::before { background: var(--green); color: #fff; }
+  .q .opt.wrong { background: var(--red-soft); border-color: var(--red); }
+  .q .opt.wrong::before { background: var(--red); color: #fff; }
+  .q .opt:disabled { cursor: default; }
+  .q .expl {
+    display: none; margin-top: 14px; border-radius: 10px; padding: 13px 18px;
+    font-size: 14px; border: 1px solid #bfd8c8; background: #f6fbf8; color: #2a5c40;
+  }
+  .q .expl.show { display: block; }
+  .q .verdict { font-weight: 700; }
+  #quiz-score {
+    text-align: center; font-size: 15.5px; padding: 18px; border-radius: 12px;
+    background: var(--card); border: 1px dashed var(--line); color: var(--ink-soft);
+  }
+  #quiz-score b { color: var(--accent); }
+  #quiz-reset {
+    display: block; margin: 18px auto 0; font-family: var(--sans); font-size: 14px;
+    background: var(--accent); color: #fff; border: none; border-radius: 9px;
+    padding: 10px 26px; cursor: pointer;
+  }
+  #quiz-reset:hover { background: #94460a; }
+
+  footer.foot { border-top: 1px solid var(--line); padding-top: 26px; color: var(--ink-faint); font-size: 13.5px; }
+  footer.foot code { font-family: var(--mono); font-size: 12.5px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">OpenSpec Change Explanation · 教学文档</div>
+    <h1>phase-1-contracts-skeleton<br>让「可执行契约」先于一切业务代码存在</h1>
+    <p class="sub">Jotline 是一个本地优先的记录型应用（Tauri + Rust 主进程 + 前端 + LLM sidecar）。Phase-1 不写任何业务功能——它建立的是三轨并行开发的公共地基：单一契约源、机械生成管线、语义 Mock、CI 防漂移闭环。</p>
+    <div class="badges">
+      <span class="badge">任务 <b>37 / 37</b> 完成</span>
+      <span class="badge">OpenAPI <b>3.1.0</b></span>
+      <span class="badge"><b>16</b> 路径 · <b>20</b> 操作 · <b>78</b> Schema</span>
+      <span class="badge">ID 前缀注册表 <b>15</b> 实体</span>
+      <span class="badge">Mock 场景 <b>4</b> 个</span>
+      <span class="badge">diff 基线 <b>73cfab8…dd337bf</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <a href="#bg"><span class="n">01</span>背景</a>
+  <a href="#intuition"><span class="n">02</span>直觉</a>
+  <a href="#code"><span class="n">03</span>代码</a>
+  <a href="#quiz"><span class="n">04</span>测验</a>
+</nav>
+
+<!-- ================================================================ -->
+<section id="bg">
+  <div class="sec-head"><span class="num">01</span><h2>背景</h2></div>
+  <p class="sec-lede">Phase-1 之前仓库里只有文档（PRD v2.1 / SPEC v0.7 / Roadmap），没有一行代码。这个 change 要回答的问题是：三个团队（后端、Agent、前端）即将并行开工，如何保证他们对「接口」的理解在三个月后仍然一致？</p>
+
+  <h3>项目处于什么阶段</h3>
+  <p>Jotline 的整体架构是 Tauri 桌面应用：<strong>Rust 主进程</strong>持有 SQLite 与文件库，对外暴露 localhost HTTP 领域 API（127.0.0.1:4765）；<strong>前端</strong>（主窗 + 浮窗）消费这些 API 并通过 SSE 订阅变更；<strong>LLM sidecar</strong> 经 stdio JSON-RPC 与主进程通信。SPEC 已经冻结了大量协议决策（ADR-1~13），Roadmap 把开发切成了 20 个 Phase，其中 <strong>Phase-2 起 BE-Core / BE-Agent / FE 三轨并行</strong>。</p>
+  <p>并行意味着风险：后端改了一个字段名，前端和 Agent 轨不知道；前端按想象中的接口写了代码，联调时才发现两边的「契约」从来不是同一份。Roadmap 把它列为头号风险——<strong>契约漂移</strong>。</p>
+
+  <div class="callout">
+    <div class="t">Phase-1 的定位</div>
+    <p>传统项目的对策是「写一份 API 文档，大家遵守」——靠纪律。这个 change 的对策是把契约变成<strong>可执行的机器产物</strong>：接口定义只存在一处（Rust 契约源），三端消费物全部由它机械生成，生成物提交入库，CI 用 <code class="inline">git diff</code> 检查——改了源而不重新生成，物理上无法合入。文档会撒谎，diff 不会。</p>
+  </div>
+
+  <h3>这个 change 交付了什么</h3>
+  <ul class="plain">
+    <li><strong>monorepo 骨架</strong>：pnpm workspace（app / sidecar / contracts/mock / contracts/generated）+ Rust 虚拟 Cargo workspace + 工具链版本钉死 + Biome + README 本地开发节。</li>
+    <li><strong>Rust 契约源 crate</strong>（<code class="inline">src-tauri/crates/contracts</code>，零 tauri 依赖）：78 个 Schema 类型覆盖鉴权/错误/笔记/SSE/stdio JSON-RPC/实体/捕获八个域，20 个路径以 utoipa 注解 stub 承载。</li>
+    <li><strong>生成管线</strong>：<code class="inline">cargo run --bin gen</code> 产出 <code class="inline">openapi.json</code> 与自包含工具 Schema；<code class="inline">openapi-typescript</code> 产出 <code class="inline">@jotline/contracts</code> TS 类型包。</li>
+    <li><strong>协议文档</strong> <code class="inline">contracts/PROTOCOL.md</code>：Wire 纪律、错误码表、鉴权约定、SSE 事件注册表、JSON-RPC 方法注册表、15 个 ID 前缀。</li>
+    <li><strong>契约 Mock 服务</strong>：语义内核（内存状态 + SSE 广播 + 心跳）+ 剧本层（延迟/错误注入）+ 4 个场景数据集。</li>
+    <li><strong>CI 布防</strong>：GitHub Actions 三 job + pre-commit hook + main 分支 required check。</li>
+  </ul>
+
+  <h3>为什么「现在」做</h3>
+  <p>三个理由决定了时序不可交换：其一，Phase-2 的最小垂直切片<strong>立即消费</strong>契约类型与 stdio 协议——没有地基，切片无从开工；其二，双轨并行一旦启动，防漂移机制必须<strong>已经在位</strong>，事后补建意味着漂移已经发生；其三，前端轨到 Phase-11 才需要真实联调，但那时后端未必就绪——Mock 服务让前端在第一天就有可用的「后端」。</p>
+</section>
+
+<!-- ================================================================ -->
+<section id="intuition">
+  <div class="sec-head"><span class="num">02</span><h2>直觉</h2></div>
+  <p class="sec-lede">这一节讲设计判断：四个关键决策各自的「为什么」，以及藏在生成器里那个最容易被忽略的 quirk。</p>
+
+  <h3>核心机制：一条单向管线 + 一个闭环 <span class="tag">防漂移</span></h3>
+  <p>整个 change 的骨架是一条<strong>单向数据流</strong>：Rust 契约源是唯一的「源」，其余一切都是「产物」。产物不允许手写、不允许手改——因为能手写的东西就会有第二份、第三份，然后漂移。</p>
+
+  <div class="diagram">
+    <div class="pipe">
+      <div class="node src"><span class="t">Rust 契约源</span><span class="d">src-tauri/crates/contracts<br>类型 + utoipa 注解 + path stub</span></div>
+      <div class="arrow"><span class="lbl">cargo run --bin gen</span></div>
+      <div class="node gen"><span class="t">gen.rs</span><span class="d">确定性序列化<br>null 剔除 · $ref 解引用</span></div>
+      <div class="arrow"><span class="lbl">openapi-typescript</span></div>
+      <div class="node art"><span class="t">三端产物</span><span class="d">openapi.json · @jotline/contracts<br>tools/*.schema.json</span></div>
+      <div class="arrow"><span class="lbl">workspace 依赖</span></div>
+      <div class="node cons"><span class="t">消费者</span><span class="d">app（openapi-fetch）<br>sidecar · mock · CI</span></div>
+    </div>
+    <div class="cap">图 1 · 契约生成管线：从唯一源到三端消费物，全部 commit 入库</div>
+  </div>
+
+  <p>闭环由 <code class="inline">contracts:check</code> 完成：重新生成全部产物 → 与已提交版本比对 → 有 diff 就非零退出。它在三个位置被触发——pre-commit（本地秒级拦截）、CI contracts job（外部防线）、main 分支 required check（锁）。</p>
+
+  <div class="diagram">
+    <div class="loopgrid">
+      <div class="cell ok"><div class="t">✓ 正常路径</div>改契约源 → <code>pnpm contracts:build</code> 重新生成 → 连同产物一起 commit → CI 重新生成后零 diff → 合并</div>
+      <div class="cell no"><div class="t">✗ 漂移路径</div>改契约源 → <strong>没有</strong>重新生成就 commit → CI 重跑 build 覆盖产物 → <code>git status --porcelain</code> 发现 openapi.json / generated / tools 有变更 → 非零退出，PR 被拒</div>
+    </div>
+    <div class="cap">图 2 · 防漂移闭环：检查范围只覆盖生成物目录（openapi.json / generated / tools）；mock 与 PROTOCOL.md 是手写物，不参与 diff</div>
+  </div>
+
+  <h3>决策一：契约源住在哪里 <span class="tag">D1</span></h3>
+  <p>第一道题看似琐碎，实则卡在「冻结」上。SPEC §3.2 已冻结五目录结构，其中 <code class="inline">contracts/</code> 的描述是「CI 生成物」——把 Rust 源码放进去，目录语义自相矛盾；在顶层新增一个 <code class="inline">crates/</code> 目录，等于给冻结结构加第六目录，程序上需要先修 ADR。唯一合规解：<strong>源住在 Rust workspace 内部但不占 contracts/</strong>——根虚拟 Cargo manifest 把 <code class="inline">src-tauri/crates/contracts</code> 挂为 member。附带一条纪律：这个 crate <strong>零 tauri 依赖</strong>（只依赖 utoipa / serde / chrono / ulid），保证 Linux CI 上秒级编译，不需要装任何平台工具链。</p>
+
+  <h3>决策二：一条管线覆盖三种「线上形态」 <span class="tag">D3</span></h3>
+  <p>项目的线上协议不止 HTTP：SSE 事件流有自己的信封，主进程 ↔ sidecar 走 stdio JSON-RPC，Agent 工具调用需要 JSON Schema。 naive 做法是给每种形态配一条类型链（比如再用 ts-rs 生成一份 Rust→TS）——但每多一条链就多一套工具、多一份漂移面。</p>
+  <p>这个 change 的选择是<strong>全部塞进 OpenAPI components</strong>：SSE 信封（<code class="inline">StreamEnvelope</code>）与 JSON-RPC 消息（<code class="inline">Ipc*</code>）即使没有任何 path 引用它们，也注册进 components——openapi-typescript 会为全部 components 生成 TS 类型，于是 HTTP、SSE、stdio 三种形态共用同一条生成链。代价是 openapi.json 里混入了「非 HTTP 类型」这一 quirk，在 PROTOCOL.md 显式文档化。工具 Schema 则由 gen bin 在生成期把 <code class="inline">$ref</code> 解引用展开成<strong>自包含</strong> JSON Schema 写入 <code class="inline">contracts/tools/</code>——因为消费方（Phase-8/9 的 LLM 工具调用）拿到的是单个独立文件，内含未解析的外部引用就没法用。</p>
+
+  <h3>决策三：Wire 纪律机械化 <span class="tag">D4</span></h3>
+  <p>三端共享协议最怕「语义含糊」。SPEC 冻结了一组 Wire 纪律，这个 change 的任务是让每条纪律都有<strong>机器保证</strong>而不是 code review 肉眼：</p>
+
+  <table class="spec">
+    <tr><th>纪律</th><th>机制</th><th>机器保证</th></tr>
+    <tr><td>ID = <code>&lt;前缀&gt;_&lt;ULID&gt;</code></td><td><code>define_id!</code> 宏生成 newtype（15 实体前缀注册表）</td><td>Schema <code>pattern</code> 正则 + 反序列化校验 + Mock 场景校验</td></tr>
+    <tr><td>时间 = RFC 3339 UTC</td><td><code>Timestamp</code> newtype（chrono <code>DateTime&lt;Utc&gt;</code>）</td><td>Schema <code>format: date-time</code>；带偏移输入归一化为 <code>Z</code> 后缀</td></tr>
+    <tr><td>判别联合 = tagged enum</td><td><code>#[serde(tag = "type")]</code>（含 <code>card.batch</code> 点号 tag，spike S1 验证）</td><td>TS 生成判别 union，可直接 narrowing</td></tr>
+    <tr><td>可选 = 字段省略</td><td><code>skip_serializing_if = "Option::is_none"</code> + 生成期 null 剔除</td><td>TS 得到 <code>field?: T</code> 而非 <code>field?: T | null</code></td></tr>
+    <tr><td>字段命名 snake_case</td><td>Rust 字段天然成立</td><td><code>wire-grep.sh</code> 检查 camelCase rename</td></tr>
+    <tr><td>禁 untagged / flatten</td><td>—</td><td><code>wire-grep.sh</code> 命中即 CI 显红并定位行号</td></tr>
+  </table>
+
+  <h3>生成器里的 quirk：null 剔除 <span class="tag">S2</span></h3>
+  <p>整条管线最微妙的一步藏在 gen bin 里。utoipa 对 Rust <code class="inline">Option&lt;T&gt;</code> 生成的 OpenAPI 形态是「可空联合」——<code class="inline">oneOf: [{type: "null"}, X]</code> 或 <code class="inline">type: [T, "null"]</code>。openapi-typescript 忠实地把它翻译成 <code class="inline">field?: X | null</code>。这与 Wire 纪律「可选 = 字段省略，禁 required-nullable」正面冲突：</p>
+
+  <div class="duo">
+    <div class="mini bad"><div class="t">✗ utoipa 原生产物</div><code>target_dir?: string | null</code><br>消费方必须同时处理「字段不存在」和「字段是 null」两种缺省形态——这正是纪律要消灭的歧义。</div>
+    <div class="mini good"><div class="t">✓ null 剔除后</div><code>target_dir?: string</code><br>缺省只有一种表达：字段省略。Rust 侧 <code>skip_serializing_if</code> 保证序列化时确实省略，两端语义对齐。</div>
+  </div>
+
+  <p>解决位置不在类型标注层，而在<strong>生成期后处理</strong>：gen bin 把整个文档转成 <code class="inline">serde_json::Value</code> 后递归剔除 null 形态（<code class="inline">strip_null</code>），查询参数剔 null 后还要把 <code class="inline">required: true</code> 修正为 <code class="inline">false</code>。选择在这里修而不是换掉 utoipa，是因为剔除规则只有一处、可被「两次生成零 diff」与 TS typecheck 双重验证——修在几十个字段标注上则每个都可能漏。</p>
+
+  <h3>决策四：Mock 为什么是「语义」的 <span class="tag">D5</span></h3>
+  <p>Mock 服务有两种经典形态。<strong>剧本式</strong>：每个路由返回硬编码响应，写起来快，但 Roadmap Phase-11 有个验证——「窗口 A 创建笔记，窗口 B 刷新后可见，双窗一致」。剧本式结构上做不到：要让窗口 B「看到」窗口 A 的写操作，Mock 必须真的维护状态、真的把变更推给 SSE 订阅者；若用剧本模拟，每个场景都要手写一份 SSE 时序，等于在 Mock 里手写第二份领域语义。</p>
+  <p>所以这个 Mock 有一个<strong>语义内核</strong>：内存状态由场景文件播种，写操作（create/upsert/execute）真实变更状态并广播 SSE 事件，读操作反映变更后的状态；其上叠一层<strong>剧本覆写</strong>（延迟注入、错误注入、预定义事件序列），剧本优先于语义。边界被明确钳制：语义只覆盖契约域内实体（projects / notes / todos / cards 等）的基础读写，不实现任何业务规则（推断、聚合、降级）——Mock 越像真后端就越难维护，FE 阶段需求超出时先补场景文件而非扩引擎。</p>
+
+  <div class="diagram">
+    <div class="stack">
+      <div class="layer l1"><span class="t">控制端点 /_mock/*</span><span class="d">场景列表 · 全局切换 · 重置（不在 openapi.json，非契约面）</span></div>
+      <div class="down"></div>
+      <div class="layer l2"><span class="t">路由层</span><span class="d">读 openapi.json 匹配 · 契约外路由 404 错误信封</span></div>
+      <div class="down"></div>
+      <div class="layer l4"><span class="t">鉴权 + 场景选择</span><span class="d">Bearer dev-token（错 token → 401 信封）· X-Mock-Scenario 请求级选择</span></div>
+      <div class="down"></div>
+      <div class="layer l3"><span class="t">剧本层</span><span class="d">延迟注入 · 错误注入 · SSE 预定义序列（优先于语义）</span></div>
+      <div class="down"></div>
+      <div class="layer l5"><span class="t">校验层</span><span class="d">查询参数收敛 · 请求体 Ajv 校验（违反 → 422 信封含字段定位，状态不变）</span></div>
+      <div class="down"></div>
+      <div class="layer l6"><span class="t">语义内核 + SseHub</span><span class="d">内存状态播种/变更 · 事件广播（信封 type + event_id + payload）· 15s 心跳</span></div>
+    </div>
+    <div class="cap">图 3 · Mock 引擎分层：请求自上而下穿过各层，控制端点与剧本层都不是契约面</div>
+  </div>
+
+  <div class="callout blue">
+    <div class="t">为什么 Mock 自己读 openapi.json 来定路由</div>
+    <p>Mock 的路由表不是手写的——启动时读生成的 <code class="inline">openapi.json</code> 编译成正则路由。效果：契约里没有的路由，Mock 物理上不存在（404 信封）；契约新增路由后 Mock 自动「长」出来（未实现的 operation 会显式报错而非静默）。Mock 与真实主进程共享同一份契约定义，前端对着 Mock 调通的行为就是对着真后端的行为。</p>
+  </div>
+
+  <h3>没有被采纳的方案</h3>
+  <ul class="plain">
+    <li><strong>tauri-specta（IPC 类型生成）——不采纳（D6）</strong>：DEC-01 关闭后 IPC 面只剩系统能力（tauri-plugin 官方自带类型），自定义 command 趋近于零——生成器没有可生成的面。按 SPEC 自身决策程序以 IDR-01 定稿，SPEC §3.2 工具链行同步修订。</li>
+    <li><strong>ts-rs 第二条 TS 生成链</strong>：为 SSE / JSON-RPC 单独建链会多一份工具维护成本与漂移面，被「全部并入 components」替代（D3）。</li>
+    <li><strong>utoipa-cli 直接输出</strong>：做不到工具 Schema 的 $ref 解引用、多文件写出与键排序控制，改为 crate 内自写 <code class="inline">gen.rs</code>。</li>
+  </ul>
+</section>
+
+<!-- ================================================================ -->
+<section id="code">
+  <div class="sec-head"><span class="num">03</span><h2>代码</h2></div>
+  <p class="sec-lede">按数据流顺序走一遍关键实现：ID 基座 → 域类型 → 生成器 → 生成物 → Mock → 检查脚本。所有片段取自真实源码。</p>
+
+  <h3>仓库结构与轨道归属</h3>
+
+  <div class="diagram">
+    <div class="loopgrid">
+      <div class="cell ok" style="grid-column: 1 / -1; background: var(--card); border: 1.5px solid var(--line); color: var(--ink);">
+        <div class="t" style="font-family: var(--mono); font-size: 13px;">repo/</div>
+        <div style="font-family: var(--mono); font-size: 12.5px; line-height: 1.9; margin-top: 6px;">
+          Cargo.toml <span style="color: var(--ink-faint)">← 虚拟 manifest：members = ["src-tauri/crates/contracts"]</span><br>
+          ├─ src-tauri/crates/contracts/ <span style="color: var(--ink-faint)">← 契约源（手写，唯一事实源）：src/*.rs + src/bin/gen.rs</span><br>
+          ├─ contracts/ <span style="color: var(--ink-faint)">← 生成物（commit 入库）：openapi.json · generated/ · tools/</span><br>
+          │&nbsp;&nbsp;&nbsp;├─ mock/ <span style="color: var(--ink-faint)">← Mock 引擎（手写）+ scenarios/（手写场景数据）</span><br>
+          │&nbsp;&nbsp;&nbsp;└─ PROTOCOL.md <span style="color: var(--ink-faint)">← 人读协议细则（与契约源同 PR 变更）</span><br>
+          ├─ app/ · sidecar/ <span style="color: var(--ink-faint)">← 最小占位（package.json + tsconfig），脚手架留 Phase-2/8</span><br>
+          ├─ scripts/ <span style="color: var(--ink-faint)">← contracts-build.sh · contracts-check.sh · wire-grep.sh · pre-commit.sh</span><br>
+          └─ .github/workflows/contracts.yml <span style="color: var(--ink-faint)">← 三 job：contracts / rust / ts</span>
+        </div>
+      </div>
+    </div>
+    <div class="cap">图 4 · 关键区分：<b>src-tauri/crates/contracts 是「源」</b>（改这里），<b>contracts/ 下其余是「产物或配套手写物」</b>（生成或文档）</div>
+  </div>
+
+  <h3>ID 基座：宏 + 前缀注册表</h3>
+  <p>15 个实体的 ID 类型由同一个宏生成。每个 newtype 都是字符串包装，但反序列化时校验前缀与 ULID 格式（Crockford Base32，26 字符，去 I L O U），Schema 层带 <code class="inline">pattern</code> 正则——同一份约束同时活在三处：Rust 解析、JSON Schema 校验、Mock 场景校验。</p>
+
+  <div class="codecard">
+    <div class="bar"><span>src-tauri/crates/contracts/src/ids.rs</span><span class="dot">节选</span></div>
+<pre><span class="c">/// ULID 主体的正则片段（Crockford Base32）。</span>
+<span class="k">pub const</span> ULID_BODY: &<span class="k">str</span> = <span class="s">"[0-9A-HJKMNP-TV-Z]{26}"</span>;
+
+<span class="a">macro_rules!</span> define_id {
+    ($name:<span class="k">ident</span>, $prefix:<span class="k">literal</span>) <span class="k">=&gt;</span> {
+        <span class="a">#[derive</span>(<span class="fn">…</span>, Serialize)<span class="a">]</span>
+        <span class="a">#[serde(transparent)]</span>
+        <span class="k">pub struct</span> $name(<span class="k">String</span>);
+
+        <span class="k">impl</span> $name {
+            <span class="k">pub const</span> PREFIX: &<span class="k">str</span> = $prefix;
+            <span class="c">/// 从完整 ID 字符串解析（校验前缀与 ULID 格式）。</span>
+            <span class="k">pub fn</span> <span class="fn">parse</span>(raw: &<span class="k">str</span>) -&gt; <span class="fn">Result</span>&lt;<span class="k">Self</span>, <span class="k">String</span>&gt; { <span class="fn">…</span> }
+        }
+
+        <span class="k">impl</span>&lt;<span class="k">'de</span>&gt; <span class="fn">Deserialize</span>&lt;<span class="k">'de</span>&gt; <span class="k">for</span> $name { <span class="c">// 反序列化即校验</span>
+            <span class="k">fn</span> <span class="fn">deserialize</span>&lt;D: <span class="fn">Deserializer</span>&lt;<span class="k">'de</span>&gt;&gt;(d: D) -&gt; <span class="fn">Result</span>&lt;<span class="k">Self</span>, D::<span class="fn">Error</span>&gt; {
+                <span class="k">let</span> raw = <span class="k">String</span>::<span class="fn">deserialize</span>(d)?;
+                $name::<span class="fn">parse</span>(&amp;raw).<span class="fn">map_err</span>(serde::de::<span class="fn">Error</span>::<span class="fn">custom</span>)
+            }
+        }
+
+        <span class="k">impl</span> <span class="fn">PartialSchema</span> <span class="k">for</span> $name { <span class="c">// Schema 带 pattern 正则</span>
+            <span class="k">fn</span> <span class="fn">schema</span>() -&gt; <span class="fn">RefOr</span>&lt;<span class="fn">Schema</span>&gt; {
+                <span class="fn">ObjectBuilder</span>::<span class="fn">new</span>()
+                    .<span class="fn">schema_type</span>(Type::String)
+                    .<span class="fn">pattern</span>(<span class="fn">Some</span>(<span class="fn">concat!</span>(<span class="s">"^"</span>, $prefix, <span class="s">"_"</span>, <span class="s">"[0-9A-HJKMNP-TV-Z]{26}$"</span>)))
+                    .<span class="fn">into</span>()
+            }
+        }
+    };
+}
+
+<span class="c">// —— 前缀注册表（15 实体；与 contracts/PROTOCOL.md 一致，先登记后使用）——</span>
+<span class="fn">define_id!</span>(ProjectId, <span class="s">"prj"</span>);  <span class="c">// 项目</span>
+<span class="fn">define_id!</span>(NoteId, <span class="s">"itm"</span>);    <span class="c">// 笔记 / 条目（item）</span>
+<span class="fn">define_id!</span>(CardId, <span class="s">"crd"</span>);    <span class="c">// 操作卡片</span>
+<span class="fn">define_id!</span>(CaptureId, <span class="s">"cap"</span>);  <span class="c">// 捕获 …（共 15 个）</span></pre>
+  </div>
+
+  <h3>域类型：标注即文档</h3>
+  <p>以创建笔记请求为例，一个结构体同时是：serde 序列化目标、utoipa Schema 来源、TS 类型的祖先。注意可选字段的组合拳——<code class="inline">#[serde(default, skip_serializing_if)]</code> 保证 Wire 上「无值即省略」，null 剔除保证 TS 侧无 <code class="inline">| null</code>。检索响应 <code class="inline">SearchHit</code> 则逐字段对齐 SPEC §5 的冻结承诺（id / title / snippet / provenance / score）。</p>
+
+  <div class="codecard">
+    <div class="bar"><span>src-tauri/crates/contracts/src/notes.rs</span><span class="dot">节选</span></div>
+<pre><span class="c">/// 创建笔记请求。</span>
+<span class="a">#[derive</span>(<span class="fn">…</span>, Serialize, Deserialize, ToSchema)<span class="a">]</span>
+<span class="k">pub struct</span> <span class="fn">CreateNoteRequest</span> {
+    <span class="k">pub</span> project_id: ProjectId,
+    <span class="k">pub</span> title: <span class="k">String</span>,
+    <span class="k">pub</span> body: <span class="k">String</span>,
+    <span class="c">/// 目标目录（单归属；缺省落模板默认目录）</span>
+    <span class="a">#[serde(default, skip_serializing_if = "Option::is_none")]</span>
+    <span class="k">pub</span> target_dir: <span class="fn">Option</span>&lt;<span class="k">String</span>&gt;,
+    <span class="a">#[serde(default, skip_serializing_if = "Option::is_none")]</span>
+    <span class="k">pub</span> tags: <span class="fn">Option</span>&lt;<span class="fn">Vec</span>&lt;<span class="k">String</span>&gt;&gt;,
+    <span class="a">#[serde(default, skip_serializing_if = "Option::is_none")]</span>
+    <span class="k">pub</span> format: <span class="fn">Option</span>&lt;NoteFormat&gt;,
+}
+
+<span class="c">/// 创建笔记（Phase-2 实装：写 vault + SQLite 索引 + FTS）。</span>
+<span class="a">#[utoipa::path(</span>
+    post,
+    path = <span class="s">"/api/notes"</span>,
+    tag = <span class="s">"notes"</span>,
+    request_body = CreateNoteRequest,
+    responses(
+        (status = 201, description = <span class="s">"笔记已创建"</span>, body = NoteResponse),
+        (status = 401, description = <span class="s">"未认证"</span>, body = ErrorEnvelope),
+        (status = 422, description = <span class="s">"请求体校验失败"</span>, body = ErrorEnvelope),
+    )
+<span class="a">)]</span>
+<span class="k">pub fn</span> <span class="fn">create_note</span>() {}  <span class="c">// ← path stub：带注解的空函数，Phase-2 迁至真 handler</span></pre>
+  </div>
+
+  <p>「stub」是 Phase-1 的临时形态：没有 handler 可挂注解，就让空函数承载 <code class="inline">#[utoipa::path]</code>。迁移正确性的证明方式很优雅——注解内容不变则 openapi.json 零 diff，diff 就是迁移没有引入漂移的证据。捕获域还有一个 spike S1 验证过的细节：卡片内容 tagged enum 的判别值是带点号的 <code class="inline">"card.batch"</code>（<code class="inline">#[serde(rename = "card.batch")]</code>），serde 与 TS union 都正确处理。</p>
+
+  <h3>生成器：确定性与两个后处理</h3>
+  <p><code class="inline">gen.rs</code> 只做三件事：组装 ApiDoc、剔除 null 形态、解引用工具 Schema 的 $ref。确定性来自一个不起眼的选择——先转成 <code class="inline">serde_json::Value</code> 再序列化：Value 的 map 是 BTreeMap，<strong>全层级键按字典序排序</strong>，加上无时间戳无随机内容，同源两次运行字节一致，CI diff 检查因此成立。</p>
+
+  <div class="codecard">
+    <div class="bar"><span>src-tauri/crates/contracts/src/bin/gen.rs</span><span class="dot">节选</span></div>
+<pre><span class="k">fn</span> <span class="fn">main</span>() -&gt; <span class="fn">Result</span>&lt;(), Box&lt;<span class="k">dyn</span> std::error::<span class="fn">Error</span>&gt;&gt; {
+    <span class="k">let</span> repo_root = <span class="fn">repo_root</span>()?;
+
+    <span class="c">// 1) openapi.json（确定性键排序）</span>
+    <span class="k">let</span> doc = ApiDoc::<span class="fn">openapi</span>();
+    <span class="k">let</span> <span class="k">mut</span> value = serde_json::<span class="fn">to_value</span>(&amp;doc)?;  <span class="c">// BTreeMap = 全层级字典序</span>
+    <span class="fn">enforce_wire_discipline</span>(&amp;<span class="k">mut</span> value)?;           <span class="c">// null 剔除（S2）</span>
+    <span class="k">let</span> json = serde_json::<span class="fn">to_string_pretty</span>(&amp;value)?;
+    fs::<span class="fn">write</span>(out_dir.<span class="fn">join</span>(<span class="s">"openapi.json"</span>), <span class="fn">format!</span>(<span class="s">"{json}\n"</span>))?;
+
+    <span class="c">// 2) 工具 Schema（$ref 解引用 → 自包含）</span>
+    <span class="k">for</span> tool <span class="k">in</span> tools::<span class="fn">tools</span>() {
+        <span class="k">let</span> <span class="k">mut</span> schema = serde_json::<span class="fn">to_value</span>((tool.params)())?;
+        <span class="fn">deref_refs</span>(&amp;<span class="k">mut</span> schema, &amp;components, 0)?;  <span class="c">// 深度上限 32 防循环</span>
+        <span class="fn">strip_null</span>(&amp;<span class="k">mut</span> schema);
+        <span class="fn">…</span>
+    }
+}
+
+<span class="c">/// Wire 纪律机械化（spike S2 结论落地）：utoipa 对 Option&lt;T&gt; 生成「可空联合」</span>
+<span class="c">/// （oneOf: [{type: null}, X] 或 type: [T, null]），与本库 Wire 纪律冲突——</span>
+<span class="c">/// 生成期统一剔除 null 形态。</span>
+<span class="k">fn</span> <span class="fn">strip_null</span>(value: &amp;<span class="k">mut</span> serde_json::Value) -&gt; bool {
+    <span class="k">match</span> value {
+        serde_json::Value::Object(map) <span class="k">=&gt;</span> {
+            <span class="c">// oneOf: [{type: "null"}, X] → X（X 的键提升到当前层级）</span>
+            <span class="k">if let</span> <span class="fn">Some</span>(serde_json::Value::Array(variants)) = map.<span class="fn">get_mut</span>(<span class="s">"oneOf"</span>) {
+                <span class="k">if</span> variants.<span class="fn">len</span>() == 2 &amp;&amp; variants[0] == serde_json::<span class="fn">json</span>!({"type": "null"}) {
+                    <span class="k">let</span> x = variants.<span class="fn">remove</span>(1);
+                    map.<span class="fn">remove</span>(<span class="s">"oneOf"</span>);
+                    <span class="k">if let</span> serde_json::Value::Object(xm) = x {
+                        <span class="k">for</span> (k, v) <span class="k">in</span> xm { map.<span class="fn">insert</span>(k, v); }
+                    }
+                }
+            }
+            <span class="c">// type: [T, "null"] → 去除 "null"；单一元素坍缩为标量</span>
+            <span class="fn">…</span>
+        }
+        <span class="fn">…</span>
+    }
+}</pre>
+  </div>
+
+  <h3>生成物：TS 侧看到的形态</h3>
+  <p>管线跑完后，<code class="inline">contracts/generated/</code> 组装为 workspace 包 <code class="inline">@jotline/contracts</code>。app 与 sidecar 经包名导入（Bun 对 workspace 包支持良好，避免相对路径碎片化）。看两个生成结果——可选字段与判别联合正是 D4 纪律的验证面：</p>
+
+  <div class="codecard">
+    <div class="bar"><span>contracts/generated/src/schema.d.ts</span><span class="dot">生成物（节选）</span></div>
+<pre><span class="c">// 可选 = 字段省略：无 | null（S2 剔除后的形态）</span>
+CreateNoteRequest: {
+    body: string;
+    format?: components[<span class="s">"schemas"</span>][<span class="s">"NoteFormat"</span>];
+    project_id: components[<span class="s">"schemas"</span>][<span class="s">"ProjectId"</span>];
+    tags?: string[];
+    target_dir?: string;
+    title: string;
+};
+
+<span class="c">// tagged enum → 判别 union：type 字段即判别器，可直接 narrowing（S1 验证）</span>
+CaptureSubmit: {
+    text: string;
+    type: <span class="s">"text"</span>;
+} | {
+    data_base64: string;
+    filename?: string;
+    type: <span class="s">"image"</span>;
+} | {
+    data_base64: string;
+    filename: string;
+    media_type?: string;
+    type: <span class="s">"file"</span>;
+};</pre>
+  </div>
+
+  <p>前端消费方式已经就位（Phase-11 接入真实工程）：<code class="inline">openapi-fetch</code> 以生成的 <code class="inline">paths</code> 为类型参数创建客户端，URL、参数、响应全部类型推导，无需手写接口层：</p>
+
+  <div class="codecard">
+    <div class="bar"><span>app/src/api-client.ts</span><span class="dot">全文（占位）</span></div>
+<pre><span class="k">import type</span> { paths } <span class="k">from</span> <span class="s">"@jotline/contracts"</span>;
+<span class="k">import</span> createClient <span class="k">from</span> <span class="s">"openapi-fetch"</span>;
+
+<span class="c">/** 领域 API 客户端（Phase-11 接入前端工程；Mock 模式 baseUrl 切 127.0.0.1:4766）。 */</span>
+<span class="k">export const</span> client = createClient&lt;paths&gt;({ baseUrl: <span class="s">"http://127.0.0.1:4765"</span> });
+
+<span class="c">/** dev 固定 Bearer token（Roadmap 总则 4）。 */</span>
+<span class="k">export const</span> DEV_TOKEN = <span class="s">"dev-token"</span>;</pre>
+  </div>
+
+  <h3>Mock：一次请求的完整旅程</h3>
+  <p><code class="inline">MockEngine.handle</code> 是图 3 分层图的代码化。注意几个契约行为的落点：路由表由 openapi.json 编译而来；鉴权失败返回 401 错误信封；写操作请求体先过 Ajv 校验，违反契约返回 422 信封（含字段定位）且<strong>状态不变</strong>；SSE 端点区分「剧本流」与「常驻订阅」。</p>
+
+  <div class="codecard">
+    <div class="bar"><span>contracts/mock/src/router.ts</span><span class="dot">节选</span></div>
+<pre><span class="k">async</span> <span class="fn">handle</span>(req, res): <span class="fn">Promise</span>&lt;void&gt; {
+    <span class="k">const</span> url = <span class="k">new</span> URL(req.url ?? <span class="s">"/"</span>, <span class="s">"http://127.0.0.1"</span>);
+    <span class="k">const</span> method = (req.method ?? <span class="s">"GET"</span>).toLowerCase();
+
+    <span class="c">// 控制端点（不在 openapi.json，非契约面）</span>
+    <span class="k">if</span> (url.pathname.startsWith(<span class="s">"/_mock/"</span>)) { <span class="k">this</span>.<span class="fn">handleControl</span>(method, url, res); <span class="k">return</span>; }
+
+    <span class="c">// 契约路由匹配（契约外 404）</span>
+    <span class="k">const</span> route = <span class="k">this</span>.routes.<span class="fn">find</span>((r) <span class="k">=&gt;</span> r.method === method &amp;&amp; r.regex.<span class="fn">test</span>(url.pathname));
+    <span class="k">if</span> (!route) { <span class="k">this</span>.<span class="fn">sendJson</span>(res, 404, <span class="fn">errorEnvelope</span>(<span class="s">"not_found"</span>, <span class="s">`契约外路由：…`</span>)); <span class="k">return</span>; }
+
+    <span class="c">// Bearer 鉴权（错 token 401 错误信封）</span>
+    <span class="k">if</span> (req.headers.authorization !== <span class="s">`Bearer ${DEV_TOKEN}`</span>) {
+        <span class="k">this</span>.<span class="fn">sendJson</span>(res, 401, <span class="fn">errorEnvelope</span>(<span class="s">"unauthorized"</span>, <span class="s">"未携带或错误的 Bearer token…"</span>));
+        <span class="k">return</span>;
+    }
+
+    <span class="c">// 场景选择：请求级（X-Mock-Scenario，仅剧本生效）→ 否则全局激活场景</span>
+    <span class="k">let</span> scenarioName = <span class="k">this</span>.activeScenario;
+    <span class="k">const</span> headerScenario = req.headers[<span class="s">"x-mock-scenario"</span>];
+    <span class="fn">…</span>
+
+    <span class="c">// 剧本层（优先于语义内核的默认行为）：延迟注入 / 错误注入</span>
+    <span class="k">const</span> script = <span class="k">this</span>.<span class="fn">routeScript</span>(scenario, route, url.pathname);
+    <span class="k">if</span> (script?.delay_ms) <span class="k">await</span> <span class="fn">sleep</span>(script.delay_ms);
+    <span class="k">if</span> (script?.error) { <span class="k">this</span>.<span class="fn">sendJson</span>(res, script.error.status, <span class="fn">…</span>); <span class="k">return</span>; }
+
+    <span class="c">// SSE：剧本流（预定义事件序列）或常驻订阅（广播 + 心跳）</span>
+    <span class="k">if</span> (route.operation.operationId === <span class="s">"get_stream"</span>) { <span class="fn">…</span> <span class="k">return</span>; }
+
+    <span class="c">// 请求体：按契约 Schema 校验（违反契约 → 422 信封含字段定位，状态不变）</span>
+    <span class="k">const</span> bodyValidator = <span class="k">this</span>.validator.<span class="fn">requestBodyValidator</span>(route.operation);
+    <span class="k">if</span> (bodyValidator) {
+        body = <span class="k">await</span> <span class="fn">readJsonBody</span>(req);
+        <span class="k">if</span> (!<span class="fn">bodyValidator</span>(body)) {
+            <span class="k">this</span>.<span class="fn">sendJson</span>(res, 422, <span class="fn">validationEnvelope</span>(<span class="s">"请求体校验失败"</span>, <span class="fn">…</span>));
+            <span class="k">return</span>;
+        }
+    }
+
+    <span class="c">// 语义分发：按 operationId 落到语义内核</span>
+    <span class="k">const</span> result = <span class="k">this</span>.<span class="fn">dispatch</span>(route, pathParams, query, body);
+    <span class="fn">…</span>
+}</pre>
+  </div>
+
+  <p>语义内核的写操作是「双窗一致性」的支点——变更状态、广播事件，一次完成：</p>
+
+  <div class="codecard">
+    <div class="bar"><span>contracts/mock/src/state.ts</span><span class="dot">节选</span></div>
+<pre><span class="fn">createNote</span>(body: { project_id: string; title: string; body: string; <span class="fn">…</span> }): NoteEntity {
+    <span class="k">const</span> at = <span class="fn">nowIso</span>();
+    <span class="k">const</span> note: NoteEntity = {
+        id: <span class="fn">prefixedId</span>(<span class="s">"itm"</span>),        <span class="c">// 运行时 ULID（场景种子才用固定 ULID）</span>
+        project_id: body.project_id,
+        <span class="fn">…</span>
+        provenance: { source: <span class="s">"manual"</span>, origin: <span class="s">"manual"</span>, imported: <span class="k">false</span> },
+        created_at: at, updated_at: at,
+    };
+    <span class="k">this</span>.notes.<span class="fn">set</span>(note.id, note);
+    <span class="k">this</span>.<span class="fn">emit</span>(<span class="s">"note_created"</span>, note);    <span class="c">// 单调递增 event_id + 广播全部 SSE 订阅者</span>
+    <span class="k">return</span> note;
+}</pre>
+  </div>
+
+  <p>首批四个场景数据集（<code class="inline">contracts/mock/scenarios/</code>）各自服务一条 Roadmap 验证命令：</p>
+  <table class="spec">
+    <tr><th>场景</th><th>用途</th><th>关键内容</th></tr>
+    <tr><td>default</td><td>常规开发数据</td><td>2 项目 / 3 笔记 / 事件 / 待办 / 卡片，固定 ULID + ISO-8601</td></tr>
+    <tr><td>auth-401</td><td>鉴权失败路径</td><td>剧本注入 401 <code>unauthorized</code> 错误信封</td></tr>
+    <tr><td>stream-demo</td><td>SSE 模拟流</td><td>3 条注册表事件（50ms 间隔）后正常关闭</td></tr>
+    <tr><td>search-oracle</td><td>检索命中</td><td>oracle 关键词在正文/标题/OCR 三处命中，snippet + provenance 齐备</td></tr>
+  </table>
+
+  <h3>检查脚本：防线的最后一环</h3>
+
+  <div class="codecard">
+    <div class="bar"><span>scripts/contracts-check.sh</span><span class="dot">全文（简化注释）</span></div>
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># 1) 重新生成（在位覆盖）</span>
+./scripts/contracts-build.sh &gt; /dev/null
+
+<span class="c"># 2) 漂移检查：生成物目录（openapi.json / generated / tools）内任何修改或新增都算漂移。</span>
+<span class="c">#    注意范围不含 contracts/mock 与 contracts/PROTOCOL.md（手写物）。</span>
+<span class="k">if</span> [[ -n <span class="s">"$(git status --porcelain -- contracts/openapi.json contracts/generated contracts/tools)"</span> ]]; <span class="k">then</span>
+    <span class="fn">echo</span> <span class="s">"✗ 契约生成物与契约源不一致（漂移）："</span> &gt;&amp;2
+    git --no-pager diff -- contracts/openapi.json contracts/generated contracts/tools &gt;&amp;2 || <span class="k">true</span>
+    <span class="fn">echo</span> <span class="s">"  → 运行 pnpm contracts:build 重新生成并提交全部产物"</span> &gt;&amp;2
+    <span class="fn">exit</span> 1
+<span class="k">fi</span>
+
+<span class="c"># 3) Wire 纪律 grep（契约源禁 untagged / flatten / camelCase rename）</span>
+./scripts/wire-grep.sh
+
+<span class="fn">echo</span> <span class="s">"✓ contracts:check 通过（生成物零漂移 + Wire 纪律干净）"</span></pre>
+  </div>
+
+  <p>Wire grep 是纪律的机器警察——负向测试验证过：故意注入 <code class="inline">untagged</code> 样例，脚本显红并定位到行。CI 侧 GitHub Actions 三个 job 分工：<strong>contracts</strong>（build → check → 起 Mock 跑四条 curl 冒烟断言）、<strong>rust</strong>（fmt + clippy + 单测，因零 tauri 依赖而可在 Linux 直接跑）、<strong>ts</strong>（Biome + typecheck，含契约类型消费侧）。main 分支的 required check 锁定 contracts job——未经重生成的提交连合并按钮都点不了（7.3 任务用测试分支演练过：直接推送被拒、PR check 红阻合并）。</p>
+
+  <h3>验证：Roadmap Phase-1 完成标准</h3>
+  <p>任务 9.1 依序执行了全部验证命令并逐一通过，构成这个 change 的「可观测完成」证据：</p>
+  <div class="loopgrid">
+    <div class="cell ok"><div class="t">✓ 生成与检查</div><code>pnpm contracts:build</code> 三端产物落盘 → <code>pnpm contracts:check</code> 零 diff</div>
+    <div class="cell ok"><div class="t">✓ 实体数据</div><code>curl /api/projects</code> → 200，ULID / ISO-8601 抽查合格</div>
+    <div class="cell ok"><div class="t">✓ 检索命中</div><code>curl /api/search?q=oracle</code> → snippet + provenance 命中</div>
+    <div class="cell ok"><div class="t">✓ SSE 与鉴权</div><code>curl -sN /api/stream</code> 3 条事件后关闭；无 token → 401 信封</div>
+  </div>
+</section>
+
+<!-- ================================================================ -->
+<section id="quiz">
+  <div class="sec-head"><span class="num">04</span><h2>测验</h2></div>
+  <p class="sec-lede">五道选择题，覆盖本 change 的核心设计判断。选项每次加载随机排序。</p>
+
+  <div class="quiz-intro">点击选项立即判分并显示解析；全部作答后显示总分。刷新页面可重新随机排序再测一次。</div>
+
+  <div id="quiz-root"></div>
+
+  <div id="quiz-score" style="display:none"></div>
+  <button id="quiz-reset" type="button">重新随机排序再测一次</button>
+</section>
+
+<footer class="foot">
+  <p><strong>产物来源</strong> · OpenSpec change：<code>openspec/changes/phase-1-contracts-skeleton/</code>（proposal / design / tasks / specs × 3）· 契约源：<code>src-tauri/crates/contracts/</code> · 协议文档：<code>contracts/PROTOCOL.md</code></p>
+  <p style="margin-top:8px"><strong>Diff 基线</strong> · 策略 B（历史提交）：首个实施提交 <code>0973865</code> 的父提交 <code>73cfab8</code> → HEAD（<code>dd337bf</code>），63 文件，+10,980 / −42 行。</p>
+  <p style="margin-top:8px">本文档由 <code>/opsx:explain</code> 生成于 2026-09-13 · 自包含 HTML，无外部依赖 · 所有代码片段取自仓库真实源码。</p>
+</footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // -------- 题库（correct 为原始数组中正确答案的下标）--------
+  var QUESTIONS = [
+    {
+      q: "契约源 crate 为什么放在 src-tauri/crates/contracts，而不是直接放进 contracts/ 目录？",
+      opts: [
+        "因为 Rust 代码必须与 Tauri 主程序同目录才能编译",
+        "因为 SPEC §3.2 已把 contracts/ 冻结为「CI 生成物」目录，源码放进去违背冻结描述；顶层新增 crates/ 又等于给冻结结构加第六目录（需先修 ADR）——唯一合规解是住在 Rust workspace 内但不占 contracts/",
+        "因为 contracts/ 目录整体被 .gitignore 排除，源码放进去无法提交",
+        "因为 src-tauri/ 下有编译缓存，放那里编译更快"
+      ],
+      correct: 1,
+      why: "design D1 的核心推理：约束不是技术性的而是「冻结」的程序性约束。五目录结构与 contracts/ 的语义都已被 SPEC 冻结，两条「显然」的路径（放 contracts/ 或顶层 crates/）各自违背一条冻结项，于是选择根虚拟 Cargo manifest 把源挂进 src-tauri/crates/。附带零 tauri 依赖的纪律，保证 Linux CI 秒级可跑。"
+    },
+    {
+      q: "修改契约源后未重新生成就提交，CI 是如何「显红」的？",
+      opts: [
+        "Rust 编译失败，因为类型定义不完整导致 cargo check 报错",
+        "Biome 检测到 schema.d.ts 的代码风格与手写源不一致",
+        "contracts job 重新运行 contracts:build 在位覆盖产物，随后 git status --porcelain 发现 openapi.json / generated / tools 与已提交版本不一致，以非零退出码失败",
+        "wire-grep.sh 在契约源文件中发现了新增的关键字"
+      ],
+      correct: 2,
+      why: "防漂移的机制是「重新生成 + diff」，不是任何静态分析：contracts:check 先重跑 build 覆盖产物，再用 git 检查生成物目录是否出现变更。有变更说明提交者改了源却没重新生成——漂移。检查范围刻意不含 contracts/mock 与 PROTOCOL.md（手写物）。"
+    },
+    {
+      q: "gen bin 里的 enforce_wire_discipline / strip_null 解决什么问题？",
+      opts: [
+        "删除 Rust 源码中未被任何路由引用的废弃字段",
+        "把 JSON 输出中的 null 字面量统一替换为空字符串",
+        "保证 JSON 键按字典序排序，从而实现确定性生成",
+        "utoipa 对 Option<T> 生成可空联合（oneOf: [{type: null}, X] 等），与「可选 = 字段省略」的 Wire 纪律冲突——生成期递归剔除 null 形态，TS 侧因此得到 field?: T 而非 field?: T | null"
+      ],
+      correct: 3,
+      why: "这是 spike S2 的结论落地：冲突发生在「utoipa 的 Option 语义」与「项目 Wire 纪律」之间。修在生成期而非几十个字段标注上，因为剔除规则只有一处、可被「两次生成零 diff」与 TS typecheck 双重验证。查询参数剔 null 后还需把 required: true 修正为 false。字典序排序是确定性的来源，但那是另一件事。"
+    },
+    {
+      q: "Mock 服务为什么采用「语义内核」而不是「剧本式 Mock」（每路由返回硬编码响应）？",
+      opts: [
+        "剧本式 Mock 无法实现 Bearer token 鉴权检查",
+        "语义内核的运行速度比剧本式快，适合 CI 冒烟测试",
+        "Phase-11 的「双窗一致性」验证要求写操作真实变更状态并广播 SSE 事件；剧本式需为每个场景手写 SSE 时序，等于在 Mock 里手写第二份领域语义",
+        "剧本式 Mock 无法监听 127.0.0.1 环回地址"
+      ],
+      correct: 2,
+      why: "design D5 的判断标准是需求倒推：窗口 A 写、窗口 B 刷新可见——这要求 Mock 有真实状态与广播。剧本式结构上做不到，硬做就是在 Mock 里复制领域语义。语义内核之上再叠剧本层（延迟/错误注入，优先于语义），两层职责分离；且语义被钳制在契约域内基础读写，不实现业务规则。"
+    },
+    {
+      q: "生成的 contracts/tools/*.schema.json 为什么要在生成期解引用（deref）全部 $ref？",
+      opts: [
+        "为了让生成的 JSON 文件体积更小、加载更快",
+        "因为 OpenAPI 3.1 规范本身禁止在 components 之外使用 $ref",
+        "因为 Ajv 校验器完全不支持解析任何形式的 $ref 引用",
+        "消费方（LLM 工具调用）拿到的是单个独立文件，内含指向 openapi.json 的未解析外部 $ref 将无法使用——生成期展开保证每个 Schema 自包含"
+      ],
+      correct: 3,
+      why: "工具 Schema 的消费场景是「单文件交付」：Phase-8/9 把它交给 LLM 做函数调用参数校验，脱离仓库上下文。gen bin 递归展开 #/components/schemas/ 引用（深度上限 32 防循环引用），$ref 的兄弟键（如 description）保留并覆盖。验证方式很直接：检查生成文件不含任何 $ref。"
+    }
+  ];
+
+  // -------- 渲染 --------
+  var root = document.getElementById("quiz-root");
+  var scoreBox = document.getElementById("quiz-score");
+  var answered = 0;
+  var rightCount = 0;
+
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function build() {
+    root.innerHTML = "";
+    scoreBox.style.display = "none";
+    answered = 0;
+    rightCount = 0;
+
+    QUESTIONS.forEach(function (q, qi) {
+      // 随机排序选项，记录正确答案的新位置
+      var order = shuffle(q.opts.map(function (_, i) { return i; }));
+      var correctIdx = order.indexOf(q.correct);
+
+      var card = document.createElement("div");
+      card.className = "q";
+
+      var head = document.createElement("div");
+      head.className = "qh";
+      var num = document.createElement("span");
+      num.className = "qn";
+      num.textContent = "Q" + (qi + 1);
+      var title = document.createElement("span");
+      title.className = "qt";
+      title.textContent = q.q;
+      head.appendChild(num);
+      head.appendChild(title);
+      card.appendChild(head);
+
+      var done = false;
+      order.forEach(function (origIdx, pos) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "opt";
+        btn.setAttribute("data-letter", String.fromCharCode(65 + pos));
+        btn.textContent = q.opts[origIdx];
+        btn.addEventListener("click", function () {
+          if (done) return;
+          done = true;
+          answered++;
+          var opts = card.querySelectorAll(".opt");
+          opts.forEach(function (b) { b.disabled = true; });
+          var ok = pos === correctIdx;
+          if (ok) rightCount++;
+          btn.classList.add(ok ? "correct" : "wrong");
+          opts[correctIdx].classList.add("correct");
+          var expl = card.querySelector(".expl");
+          expl.classList.add("show");
+          var v = document.createElement("div");
+          v.className = "verdict";
+          v.textContent = ok ? "✓ 回答正确" : "✗ 回答错误";
+          v.style.color = ok ? "#2e7d4f" : "#b3382f";
+          expl.insertBefore(v, expl.firstChild);
+          if (answered === QUESTIONS.length) {
+            scoreBox.style.display = "block";
+            scoreBox.innerHTML = "完成：" + rightCount + " / " + QUESTIONS.length +
+              " 正确" + (rightCount === QUESTIONS.length ? "——全部正确，防漂移机制已经内化了 🎉" : "——错题解析已展开，可重测一次");
+          }
+        });
+        card.appendChild(btn);
+      });
+
+      var expl = document.createElement("div");
+      expl.className = "expl";
+      expl.textContent = q.why;
+      card.appendChild(expl);
+
+      root.appendChild(card);
+    });
+  }
+
+  document.getElementById("quiz-reset").addEventListener("click", function () {
+    window.scrollTo({ top: document.getElementById("quiz").offsetTop - 20, behavior: "smooth" });
+    build();
+  });
+
+  build();
+})();
+</script>
+
+</body>
+</html>
