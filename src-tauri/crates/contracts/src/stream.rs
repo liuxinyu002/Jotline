@@ -4,7 +4,6 @@
 
 use crate::capture::CaptureStatus;
 use crate::entities::{Project, Todo};
-use crate::error::ErrorEnvelope;
 use crate::ids::CaptureId;
 use crate::notes::NoteResponse;
 use serde::{Deserialize, Serialize};
@@ -47,24 +46,6 @@ pub struct CaptureStatusPayload {
     pub capture_id: CaptureId,
     pub status: CaptureStatus,
 }
-
-/// 订阅事件流（主窗与浮窗同源；Mock 以此验证双窗一致性）。
-#[utoipa::path(
-    get,
-    path = "/api/stream",
-    tag = "stream",
-    responses(
-        (
-            status = 200,
-            description = "SSE 事件流（data 行为 StreamEnvelope JSON；空闲期心跳注释行）",
-            content(
-                (StreamEnvelope = "text/event-stream"),
-            ),
-        ),
-        (status = 401, description = "未认证", body = ErrorEnvelope),
-    )
-)]
-pub fn get_stream() {}
 
 #[cfg(test)]
 mod tests {

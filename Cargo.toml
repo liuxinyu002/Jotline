@@ -1,5 +1,5 @@
 [workspace]
 resolver = "2"
-members = ["src-tauri/crates/contracts"]
+members = ["src-tauri/crates/contracts", "src-tauri/crates/server"]
 
 # Phase-2 起 tauri 主进程脚手架作为新 member 加入（维持 src-tauri/crates/ 子目录约定）

@@ -1,8 +1,11 @@
-//! 契约生成器（design D3）：组装 ApiDoc → 写 `contracts/openapi.json`
-//! 与 `contracts/tools/*.schema.json`（$ref 生成期解引用，自包含 JSON Schema）。
+//! 契约生成器（design D3 + IDR-03）：聚合 **contracts 剩余 stub + server 已实装 handler**
+//! 两处 ApiDoc → 写 `contracts/openapi.json` 与 `contracts/tools/*.schema.json`
+//! （$ref 生成期解引用，自包含 JSON Schema）。
 //!
 //! 确定性（spike S5）：经 `serde_json::Value`（BTreeMap）序列化 = 全层级字典序键排序；
 //! 无时间戳、无随机内容；同源两次运行产物字节一致。
+//! 注：本 bin 位于 server crate（聚合需要同时可见 contracts 与 server 的注解，
+//! 依赖方向 server → contracts 单向，不构成环）。
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -17,8 +20,11 @@ const MAX_DEREF_DEPTH: usize = 32;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let repo_root = repo_root()?;
 
+    // 0) 组装：contracts 剩余 stub + server 已实装 handler（IDR-03 聚合点）
+    let mut doc = ApiDoc::openapi();
+    doc.merge(server::ServerApiDoc::openapi());
+
     // 1) openapi.json（确定性键排序）
-    let doc = ApiDoc::openapi();
     let mut value = serde_json::to_value(&doc)?;
     enforce_wire_discipline(&mut value)?;
     let out_dir = repo_root.join("contracts");
@@ -49,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// 从 crate manifest（src-tauri/crates/contracts）上溯三级 = 仓库根。
+/// 从 crate manifest（src-tauri/crates/server）上溯三级 = 仓库根。
 fn repo_root() -> Result<PathBuf, Box<dyn std::error::Error>> {
     let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
     let root = manifest.ancestors().nth(3).ok_or("无法定位仓库根目录")?;

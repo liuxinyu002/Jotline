@@ -75,6 +75,7 @@
 
 - 领域 API 仅监听 localhost：主进程 `127.0.0.1:4765`，Mock `127.0.0.1:4766`（`MOCK_PORT` 可覆盖）。
 - 请求必须携带 `Authorization: Bearer <token>`；开发环境固定 `dev-token`。
+- **SSE 端点（`GET /api/stream`）同时接受等价的 query 参数 token**（`/api/stream?token=<token>`）：浏览器 `EventSource` 无法携带自定义请求头，两种形态的认证效力等价（Mock 与真实主进程同步实现）。
 - Mock 与真实主进程遵循同一约定（错 token → 401 `unauthorized` 信封）。
 
 ## 6. SSE 事件信封与首批事件注册表

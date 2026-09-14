@@ -42,4 +42,25 @@ if [ "$CODE" != "401" ]; then
 fi
 echo "④ 无 token 401 OK"
 
+# ⑤ SSE query token 等价形态（wire-protocol delta：EventSource 无法携带 header）
+EVENTS_QT=$(curl -sN --max-time 10 "$BASE/api/stream?token=dev-token" -H "X-Mock-Scenario: stream-demo" | grep -c '^event:' || true)
+if [ "$EVENTS_QT" != "3" ]; then
+  echo "⑤ stream(query token) 事件数异常: $EVENTS_QT（期望 3，与 header 形态等价）" >&2
+  exit 1
+fi
+echo "⑤ stream query token 等价 OK"
+
+# ⑥ CORS 预检（跨源 :1420 → Mock，design D5 同步修复项）
+PREFLIGHT=$(curl -s -o /dev/null -D - -X OPTIONS "$BASE/api/projects" \
+  -H "Origin: http://localhost:1420" -H "Access-Control-Request-Method: GET")
+echo "$PREFLIGHT" | grep -Eq '^HTTP/[0-9.]+ 204' || {
+  echo "⑥ CORS 预检状态非 204：$(echo "$PREFLIGHT" | head -1)" >&2
+  exit 1
+}
+echo "$PREFLIGHT" | grep -qi '^access-control-allow-origin: http://localhost:1420' || {
+  echo "⑥ CORS 预检缺 allow-origin 回显" >&2
+  exit 1
+}
+echo "⑥ CORS 预检 OK"
+
 echo "✓ Mock 冒烟全部通过"

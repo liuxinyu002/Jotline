@@ -35,9 +35,10 @@ use utoipa::OpenApi;
         (url = "http://127.0.0.1:4765", description = "Rust 主进程（dev）"),
     ),
     paths(
-        notes::create_note, notes::read_note, notes::search_content,
-        stream::get_stream,
-        entities::list_projects, entities::upsert_project,
+        // 已实装域的 path 注解已迁至 server crate 真实 handler（IDR-03 首次执行：
+        // notes create/read/search、projects list、stream），本处仅保留未实装域 stub；
+        // gen bin（server::gen）聚合两处产出 openapi.json
+        entities::upsert_project,
         entities::list_stages, entities::upsert_stage,
         entities::list_tags, entities::upsert_tag,
         entities::list_events, entities::list_timeline_groups,

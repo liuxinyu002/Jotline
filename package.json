@@ -13,7 +13,9 @@
     "mock": "pnpm --filter @jotline/mock run dev",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "typecheck": "pnpm -r run typecheck"
+    "typecheck": "pnpm -r run typecheck",
+    "dev": "node scripts/dev.mjs",
+    "dev:smoke": "bash scripts/dev-smoke.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.13",

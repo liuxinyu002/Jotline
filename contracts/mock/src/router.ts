@@ -87,8 +87,13 @@ export class MockEngine {
       return;
     }
 
-    // Bearer 鉴权（错 token 401 错误信封）
-    if (req.headers.authorization !== `Bearer ${DEV_TOKEN}`) {
+    // Bearer 鉴权（错 token 401 错误信封）；
+    // SSE 端点（get_stream）同时接受等价的 query 参数 token（wire-protocol 鉴权约定）
+    const bearerOk = req.headers.authorization === `Bearer ${DEV_TOKEN}`;
+    const streamQueryOk =
+      route.operation.operationId === "get_stream" &&
+      url.searchParams.get("token") === DEV_TOKEN;
+    if (!bearerOk && !streamQueryOk) {
       this.sendJson(
         res,
         401,

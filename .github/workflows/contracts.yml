@@ -23,7 +23,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri/crates/contracts
+          workspaces: .
 
       - name: 安装依赖（按 lockfile 冻结）
         run: pnpm install --frozen-lockfile
@@ -56,16 +56,16 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri/crates/contracts
+          workspaces: .
 
       - name: 格式检查
         run: cargo fmt --all --check
 
-      - name: Clippy（契约 crate，零 tauri 依赖，Linux 可跑）
-        run: cargo clippy -p contracts --locked --all-targets -- -D warnings
+      - name: Clippy（全 workspace 零告警门禁，含 server）
+        run: cargo clippy --workspace --locked --all-targets -- -D warnings
 
-      - name: 单元测试
-        run: cargo test -p contracts --locked
+      - name: 单元测试（全 workspace，含 server in-process 测试）
+        run: cargo test --workspace --locked
 
   ts:
     runs-on: ubuntu-latest

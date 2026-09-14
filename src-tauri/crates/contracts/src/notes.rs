@@ -4,7 +4,6 @@
 //! `(query, filters, top_k) → [{id, title, snippet, provenance, score}]`。
 
 use crate::common::{Provenance, Timestamp};
-use crate::error::ErrorEnvelope;
 use crate::ids::{NoteId, ProjectId};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
@@ -87,50 +86,6 @@ pub struct SearchHit {
     /// 相关性得分
     pub score: f64,
 }
-
-/// 创建笔记（Phase-2 实装：写 vault + SQLite 索引 + FTS）。
-#[utoipa::path(
-    post,
-    path = "/api/notes",
-    tag = "notes",
-    request_body = CreateNoteRequest,
-    responses(
-        (status = 201, description = "笔记已创建", body = NoteResponse),
-        (status = 401, description = "未认证", body = ErrorEnvelope),
-        (status = 422, description = "请求体校验失败", body = ErrorEnvelope),
-    )
-)]
-pub fn create_note() {}
-
-/// 读取笔记。
-#[utoipa::path(
-    get,
-    path = "/api/notes/{note_id}",
-    tag = "notes",
-    params(
-        ("note_id" = NoteId, Path, description = "笔记 ID（itm_ 前缀）"),
-    ),
-    responses(
-        (status = 200, description = "笔记详情", body = NoteResponse),
-        (status = 401, description = "未认证", body = ErrorEnvelope),
-        (status = 404, description = "笔记不存在", body = ErrorEnvelope),
-    )
-)]
-pub fn read_note() {}
-
-/// 全文检索（含 OCR 文本；元数据过滤；浮窗「查」与主窗共用同一接口）。
-#[utoipa::path(
-    get,
-    path = "/api/search",
-    tag = "notes",
-    params(SearchQuery),
-    responses(
-        (status = 200, description = "命中列表（带 snippet / provenance）", body = [SearchHit]),
-        (status = 401, description = "未认证", body = ErrorEnvelope),
-        (status = 422, description = "查询参数校验失败", body = ErrorEnvelope),
-    )
-)]
-pub fn search_content() {}
 
 #[cfg(test)]
 mod tests {

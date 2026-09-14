@@ -110,7 +110,7 @@ P20      ← P18, P19
     curl -s http://127.0.0.1:4766/api/projects   # 无 token → 401
     ```
 
-- [ ] **Phase-2 [Shared] 最小垂直切片** —— 打通 前端 → API → 数据库 完整链路
+- [x] **Phase-2 [Shared] 最小垂直切片** —— 打通 前端 → API → 数据库 完整链路
 
   - **依赖**：Phase-1
   - **上下文**：本项目无注册登录（本地单用户 + localhost token），故切片选**最简笔记路径**：创建笔记 → 落盘 vault → SQLite 索引 → 检索命中 → 前端可见。目的不是做功能，而是尽早暴露环境、代理、序列化、鉴权、SSE、多窗口数据同源等集成层面的问题——这些是本项目全部后续阶段的公共底座。
@@ -125,7 +125,7 @@ P20      ← P18, P19
     pnpm dev    # 一键启动 Rust 主进程(:4765) + sidecar 壳 + 前端(:1420)
     curl -s -X POST http://127.0.0.1:4765/api/notes \
       -H "Authorization: Bearer dev-token" -H "Content-Type: application/json" \
-      -d '{"project_id":"prj_seed","title":"切片验证","body":"hello jotline"}'
+      -d '{"project_id":"prj_01J8Z3A7B4C5D6E7F8G9H0JKMN","title":"切片验证","body":"hello jotline"}'
     # → 201，返回 {"id":"itm_01J…"}（ULID、时间 ISO-8601 UTC）
     ls "$JOTLINE_DATA_DIR/notes/"        # 出现 itm_01J….md 文件
     sqlite3 "$JOTLINE_DATA_DIR/index.sqlite" "select id from items;"   # 索引行存在
