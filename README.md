@@ -14,6 +14,7 @@
 | Rust | 1.95.0（`rust-toolchain.toml`） | [rustup](https://rustup.rs)（进入仓库自动切版本） |
 | Node.js | 24.14.1（`.node-version`） | [nvm](https://github.com/nvm-sh/nvm)：`nvm use` |
 | pnpm | 12.4.1（`package.json` packageManager） | `corepack enable`（进入仓库自动锁定） |
+| Bun | 任意稳定版 | [bun.sh](https://bun.sh)（sidecar 开发态直跑；未安装时主进程记 WARN 并继续服务，不阻塞 `pnpm dev`） |
 
 ### 环境准备（从零开始）
 
@@ -45,10 +46,24 @@ cp .env.example .env
 ### 常用命令
 
 ```bash
-pnpm mock        # 启动契约 Mock 服务（127.0.0.1:4766，Bearer dev-token）
-pnpm lint        # Biome 检查（app / sidecar / mock）
-pnpm format      # Biome 格式化
-pnpm typecheck   # 全部 TS 包类型检查
+pnpm dev        # 一键启动全链（Rust 主进程 :4765 + sidecar 壳 + 前端 :1420）
+pnpm dev:smoke  # dev 冒烟（隔离临时数据目录，机械化执行 Roadmap Phase-2 验证链）
+pnpm mock       # 启动契约 Mock 服务（127.0.0.1:4766，Bearer dev-token）
+pnpm lint       # Biome 检查（app / sidecar / mock）
+pnpm format     # Biome 格式化
+pnpm typecheck  # 全部 TS 包类型检查
+```
+
+### `pnpm dev` 进程拓扑与数据目录
+
+- **进程拓扑**：编排脚本（`scripts/dev.mjs`）直管两个子进程——Rust 主进程（`cargo run -p server`，`[core]` 前缀）与前端 dev server（`pnpm --filter app dev`，`[web]` 前缀）；**sidecar 由主进程在启动后自行拉起**（stdio 驱动，ADR-2），编排不直接管理它的生命周期。Ctrl-C 时编排先停主进程/前端，主进程退出前负责杀掉 sidecar，全链无孤儿进程。
+- **数据目录语义**：`JOTLINE_DATA_DIR`（默认 `./vault`）即 **vault 根目录**（非其父目录）；首次启动自动初始化全布局（notes / attachments / inbox / projects / memory / templates / audit.jsonl / index.sqlite）并 seed 固定示例项目。
+- **CWD 注意**：子进程一律以仓库根为工作目录拉起；若直接在子目录里 `cargo run -p server`，`./vault` 会落到那个子目录。
+
+### 冒烟验证（真实主进程）
+
+```bash
+pnpm dev:smoke   # 创建 201 → 文件断言 → 索引断言 → 检索命中 → 错 token 401（任一环节失败非零退出）
 ```
 
 ### 冒烟验证（Mock）
@@ -64,11 +79,11 @@ curl -s http://127.0.0.1:4766/api/projects    # 无 token → 401
 
 | 项 | 值 |
 |---|---|
-| 领域 API（真实后端） | `127.0.0.1:4765`（Phase-2 起） |
+| 领域 API（真实后端） | `127.0.0.1:4765`（Phase-2 起监听） |
 | 契约 Mock 服务 | `127.0.0.1:4766`（`MOCK_PORT` 可覆盖） |
-| 前端 dev server | `127.0.0.1:1420`（Phase-11 起） |
-| dev Bearer token | `dev-token`（固定） |
-| 数据目录 | `JOTLINE_DATA_DIR`，默认 `./vault` |
+| 前端 dev server | `127.0.0.1:1420`（Phase-2 起启用） |
+| dev Bearer token | `JOTLINE_DEV_TOKEN`（经 `.env` 注入，缺省 `dev-token`；server / app / sidecar / Mock 四端一致） |
+| 数据目录 | `JOTLINE_DATA_DIR`（= vault 根，默认 `./vault`） |
 
 ### 契约变更流程（铁律）
 

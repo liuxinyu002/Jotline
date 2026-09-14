@@ -294,19 +294,6 @@ pub struct TodoList {
 // path stub（Phase-2/3/5 实装时注解迁至真实 handler，openapi.json 零 diff 为迁移证明）
 // ---------------------------------------------------------------------------
 
-/// 列出项目。
-#[utoipa::path(
-    get,
-    path = "/api/projects",
-    tag = "entities",
-    params(ListParams),
-    responses(
-        (status = 200, description = "项目列表", body = ProjectList),
-        (status = 401, description = "未认证", body = ErrorEnvelope),
-    )
-)]
-pub fn list_projects() {}
-
 /// 创建 / 更新项目。
 #[utoipa::path(
     post,

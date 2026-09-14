@@ -87,8 +87,10 @@
 
 ### 3.1 数据目录（真相源布局）
 
+`JOTLINE_DATA_DIR`（默认 `./vault`）即 **vault 根目录**（非其父目录）；下图为该根内的布局（Phase-2 定稿澄清，消除 `./vault/vault` 歧义）：
+
 ```
-<DataDir>/vault/
+<vault 根>/                             # = JOTLINE_DATA_DIR
 ├── notes/<item_id>.md                 # 笔记与摘要（真相源，含凭证占位符）
 │   └── .revisions/<item_id>/          # 合并覆写前快照（有限保留）
 ├── attachments/ab/cd/<sha256>         # 附件，内容寻址，永不改写

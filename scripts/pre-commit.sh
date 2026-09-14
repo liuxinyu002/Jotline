@@ -6,7 +6,7 @@ cd "$(git rev-parse --show-toplevel)"
 
 STAGED=$(git diff --cached --name-only)
 
-if grep -qE '^(src-tauri/crates/contracts/|contracts/|scripts/|Cargo\.(toml|lock))' <<< "$STAGED"; then
+if grep -qE '^(src-tauri/crates/(contracts|server)/|contracts/|scripts/|Cargo\.(toml|lock))' <<< "$STAGED"; then
   echo "〔pre-commit〕暂存改动涉及契约域，执行 contracts:check …"
   ./scripts/contracts-check.sh
 else

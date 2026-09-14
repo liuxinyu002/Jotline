@@ -1,5 +1,6 @@
 // 语义内核：内存状态（场景播种）+ 写操作变更 + 读反映状态 + SSE 广播。
 // 边界钳制（design D5）：仅契约域内基础读写；不实现业务规则（推断 / 聚合 / 降级）。
+import type { components } from "@jotline/contracts";
 import type { Scenario } from "./scenarios.ts";
 
 /** Crockford Base32（去 I L O U）。 */
@@ -27,56 +28,12 @@ export function prefixedId(prefix: string): string {
   return `${prefix}_${newUlid()}`;
 }
 
-// —— 实体形态（契约生成类型的宽松镜像：字段以 openapi.json 为准，此处只声明内核用到的）——
+// —— 实体形态（契约生成类型直引，design D5：镜像漂移在编译期暴露）——
 
-export interface ProjectEntity {
-  id: string;
-  name: string;
-  sensitive: boolean;
-  template_id?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface NoteEntity {
-  id: string;
-  project_id: string;
-  title: string;
-  body: string;
-  target_dir?: string;
-  format: string;
-  tags: string[];
-  provenance: { source: string; origin: string; imported: boolean };
-  created_at: string;
-  updated_at: string;
-}
-
-export interface TodoEntity {
-  id: string;
-  project_id?: string;
-  title: string;
-  due_at?: string;
-  status: string;
-  owner?: string;
-  source: string;
-  source_ref?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CardEntity {
-  id: string;
-  status: string;
-  content: {
-    type: string;
-    project?: string;
-    confidence?: string;
-    reason?: string;
-    entries: Array<Record<string, unknown>>;
-  };
-  created_at: string;
-  updated_at: string;
-}
+export type ProjectEntity = components["schemas"]["Project"];
+export type NoteEntity = components["schemas"]["NoteResponse"];
+export type TodoEntity = components["schemas"]["Todo"];
+export type CardEntity = components["schemas"]["CardResponse"];
 
 /** SSE 广播回调（由 sse.ts 注入）。 */
 export type Broadcast = (event: { type: string; payload: unknown }) => void;
@@ -114,24 +71,14 @@ export class SemanticState {
     putAll(this.cards, scenario.seed.cards);
   }
 
-  /** 单调递增 SSE event_id（随全局状态重置归零）。 */
-  private seq = 0;
-
+  /** 广播（event_id 由 SseHub 单点分配——design D8）。 */
   private emit(type: string, payload: unknown): void {
-    this.seq += 1;
     this.broadcast({ type, payload });
   }
 
   // —— 写操作（语义生效：变更内存状态 + 广播事件）——
 
-  createNote(body: {
-    project_id: string;
-    title: string;
-    body: string;
-    target_dir?: string;
-    tags?: string[];
-    format?: string;
-  }): NoteEntity {
+  createNote(body: components["schemas"]["CreateNoteRequest"]): NoteEntity {
     const at = nowIso();
     const note: NoteEntity = {
       id: prefixedId("itm"),
@@ -150,12 +97,10 @@ export class SemanticState {
     return note;
   }
 
-  upsertProject(body: {
-    id?: string;
-    name: string;
-    sensitive?: boolean;
-    template_id?: string;
-  }): { created: boolean; project: ProjectEntity } {
+  upsertProject(body: components["schemas"]["ProjectUpsert"]): {
+    created: boolean;
+    project: ProjectEntity;
+  } {
     const at = nowIso();
     if (body.id) {
       const existing = this.projects.get(body.id);
@@ -192,12 +137,15 @@ export class SemanticState {
     if (id) {
       const existing = map.get(id);
       if (!existing) throw new NotFoundError(id);
-      Object.assign(existing, {
-        ...body,
-        id: undefined,
-        created_at: undefined,
-      });
-      // id / created_at 不被覆盖
+      // 解构剔除 id / created_at（不可被请求覆盖）；其余字段合并进存量实体。
+      // （不可用 `Object.assign(existing, {…, created_at: undefined})`——undefined
+      // 赋值会覆盖存量值，JSON 序列化时字段丢失即契约违约。）
+      const {
+        id: _id,
+        created_at: _created,
+        ...patchable
+      } = body as Record<string, unknown>;
+      Object.assign(existing, patchable);
       existing.id = id;
       existing.updated_at = at;
       return { created: false, entity: existing };
@@ -236,12 +184,17 @@ export class SemanticState {
       throw new ConflictError(
         `卡片已${card.status === "executed" ? "执行" : "丢弃"}，不可调整`,
       );
-    for (const key of ["project", "confidence", "reason"] as const) {
-      if (patch[key] !== undefined)
-        card.content[key] = optionalString(patch[key]);
-    }
+    // 请求体已经 CardPatch 校验（含 confidence 枚举），此处按生成类型收紧赋值
+    if (patch.project !== undefined)
+      card.content.project = String(patch.project);
+    if (patch.confidence !== undefined)
+      card.content.confidence = patch.confidence as
+        | components["schemas"]["Confidence"]
+        | undefined;
+    if (patch.reason !== undefined) card.content.reason = String(patch.reason);
     if (patch.entries !== undefined)
-      card.content.entries = patch.entries as Array<Record<string, unknown>>;
+      card.content.entries =
+        patch.entries as components["schemas"]["CardEntry"][];
     card.updated_at = nowIso();
     return card;
   }
@@ -263,18 +216,21 @@ export class SemanticState {
     const todoIds: string[] = [];
     const at = nowIso();
     for (const entry of card.content.entries) {
+      // 本 entry 创建的笔记（仅 create_note 条目非空；事件挂靠只用它，不回溯前驱）
+      let entryNoteId: string | undefined;
       if (entry.action === "create_note") {
         const note = this.createNote({
-          project_id: String(card.content.project ?? entry.project_id ?? ""),
-          title: String(entry.title ?? ""),
-          body: String(entry.body ?? ""),
-          target_dir: optionalString(entry.target_dir),
-          tags: (entry.tags as string[] | undefined) ?? undefined,
-          format: optionalString(entry.format) ?? "markdown",
+          project_id: String(card.content.project ?? ""),
+          title: entry.title,
+          body: entry.body,
+          target_dir: entry.target_dir,
+          tags: entry.tags,
+          format: entry.format,
         });
         noteIds.push(note.id);
+        entryNoteId = note.id;
       }
-      const eventSpec = entry.event as Record<string, unknown> | undefined;
+      const eventSpec = entry.event;
       if (eventSpec) {
         const eventId = prefixedId("evt");
         this.events.set(eventId, {
@@ -284,24 +240,25 @@ export class SemanticState {
           stage: eventSpec.stage,
           at: eventSpec.at,
           at_source: eventSpec.at_source,
-          group_name: entry.group_name ?? eventSpec.group_name,
-          note_id: noteIds.at(-1),
+          group_name: entry.group_name,
+          // 仅本 entry 创建的笔记才关联（不误挂前驱 entry 的笔记）
+          note_id: entryNoteId,
           created_at: at,
           updated_at: at,
         });
         eventIds.push(eventId);
       }
-      const todos = entry.todos as Array<Record<string, unknown>> | undefined;
+      const todos = entry.todos;
       if (todos) {
         for (const t of todos) {
           const todoId = prefixedId("tdo");
           const todo: TodoEntity = {
             id: todoId,
             project_id: card.content.project,
-            title: t.title as string,
-            due_at: optionalString(t.due),
+            title: t.title,
+            due_at: t.due,
             status: "open",
-            owner: optionalString(t.owner),
+            owner: t.owner,
             source: "card",
             source_ref: card.id,
             created_at: at,
@@ -394,10 +351,6 @@ export class SemanticState {
     };
   }
 
-  resetEventSeq(): void {
-    this.seq = 0;
-  }
-
   private clear(): void {
     this.projects.clear();
     this.stages.clear();
@@ -409,7 +362,6 @@ export class SemanticState {
     this.todos.clear();
     this.captures.clear();
     this.cards.clear();
-    this.resetEventSeq();
   }
 }
 
@@ -431,7 +383,3 @@ export class NotFoundError extends Error {
 }
 
 export class ConflictError extends Error {}
-
-function optionalString(v: unknown): string | undefined {
-  return typeof v === "string" ? v : undefined;
-}

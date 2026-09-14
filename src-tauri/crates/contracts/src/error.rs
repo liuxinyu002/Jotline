@@ -62,17 +62,6 @@ impl ErrorEnvelope {
             },
         }
     }
-
-    /// 该错误码对应的 HTTP 状态码。
-    pub fn status(&self) -> u16 {
-        match self.code {
-            ErrorCode::Unauthorized => 401,
-            ErrorCode::NotFound => 404,
-            ErrorCode::Conflict => 409,
-            ErrorCode::ValidationFailed => 422,
-            ErrorCode::Internal => 500,
-        }
-    }
 }
 
 #[cfg(test)]
@@ -80,7 +69,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn error_codes_snake_case_and_status() {
+    fn error_codes_snake_case() {
         assert_eq!(
             serde_json::to_string(&ErrorCode::Unauthorized).unwrap(),
             "\"unauthorized\""
@@ -89,17 +78,6 @@ mod tests {
             serde_json::to_string(&ErrorCode::ValidationFailed).unwrap(),
             "\"validation_failed\""
         );
-        assert_eq!(
-            ErrorEnvelope::new(ErrorCode::Unauthorized, "x").status(),
-            401
-        );
-        assert_eq!(ErrorEnvelope::new(ErrorCode::NotFound, "x").status(), 404);
-        assert_eq!(ErrorEnvelope::new(ErrorCode::Conflict, "x").status(), 409);
-        assert_eq!(
-            ErrorEnvelope::new(ErrorCode::ValidationFailed, "x").status(),
-            422
-        );
-        assert_eq!(ErrorEnvelope::new(ErrorCode::Internal, "x").status(), 500);
     }
 
     #[test]

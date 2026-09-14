@@ -79,8 +79,4 @@ export class SseHub {
       });
     }
   }
-
-  reset(): void {
-    this.nextId = 0;
-  }
 }

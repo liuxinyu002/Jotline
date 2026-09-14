@@ -5,6 +5,7 @@
   "type": "module",
   "description": "契约 Mock 服务（开发期领域 API 替身，读 contracts/openapi.json）",
   "dependencies": {
+    "@jotline/contracts": "workspace:*",
     "ajv": "8.20.0"
   },
   "devDependencies": {
@@ -12,8 +13,9 @@
     "typescript": "5.9.3"
   },
   "scripts": {
-    "dev": "node --watch src/server.ts",
-    "start": "node src/server.ts",
+    "dev": "node --env-file-if-exists=../../.env --watch src/server.ts",
+    "start": "node --env-file-if-exists=../../.env src/server.ts",
+    "test": "node --test \"test/*.test.ts\"",
     "validate": "node src/validate.ts",
     "typecheck": "tsc -p tsconfig.json"
   }

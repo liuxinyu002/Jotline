@@ -1,63 +1,11 @@
-//! 契约生成器（design D3）：组装 ApiDoc → 写 `contracts/openapi.json`
-//! 与 `contracts/tools/*.schema.json`（$ref 生成期解引用，自包含 JSON Schema）。
+//! 契约生成机械（design D2）：从 gen bin 入库为可测模块。
 //!
-//! 确定性（spike S5）：经 `serde_json::Value`（BTreeMap）序列化 = 全层级字典序键排序；
-//! 无时间戳、无随机内容；同源两次运行产物字节一致。
-
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use contracts::tools;
-use contracts::ApiDoc;
-use utoipa::OpenApi;
+//! 职责单一：对 `serde_json::Value` 形态的 OpenAPI 文档做 Wire 纪律变换与
+//! $ref 解引用。bin/gen.rs 只留 main() 装配（定位仓库根 → 组装 → 落盘），
+//! 变换机械在此以 fixture 单测锚定（tests 见本文件尾部）。
 
 /// $ref 解引用深度上限（循环引用防护）。
-const MAX_DEREF_DEPTH: usize = 32;
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let repo_root = repo_root()?;
-
-    // 1) openapi.json（确定性键排序）
-    let doc = ApiDoc::openapi();
-    let mut value = serde_json::to_value(&doc)?;
-    enforce_wire_discipline(&mut value)?;
-    let out_dir = repo_root.join("contracts");
-    fs::create_dir_all(out_dir.join("tools"))?;
-    let json = serde_json::to_string_pretty(&value)?;
-    fs::write(out_dir.join("openapi.json"), format!("{json}\n"))?;
-
-    // 2) 工具 Schema（$ref 解引用 → 自包含）
-    let components = value
-        .get("components")
-        .and_then(|c| c.get("schemas"))
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
-    for tool in tools::tools() {
-        let mut schema = serde_json::to_value((tool.params)())?;
-        deref_refs(&mut schema, &components, 0)?;
-        strip_null(&mut schema);
-        let path = out_dir
-            .join("tools")
-            .join(format!("{}.schema.json", tool.name));
-        fs::write(
-            path,
-            format!("{}\n", serde_json::to_string_pretty(&schema)?),
-        )?;
-    }
-
-    println!("契约生成完成：contracts/openapi.json + contracts/tools/*.schema.json");
-    Ok(())
-}
-
-/// 从 crate manifest（src-tauri/crates/contracts）上溯三级 = 仓库根。
-fn repo_root() -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let root = manifest.ancestors().nth(3).ok_or("无法定位仓库根目录")?;
-    if !root.join("pnpm-workspace.yaml").exists() {
-        return Err(format!("仓库根定位失败：{}", root.display()).into());
-    }
-    Ok(root.to_path_buf())
-}
+pub const MAX_DEREF_DEPTH: usize = 32;
 
 /// Wire 纪律机械化（spike S2 结论落地）：utoipa 对 `Option<T>` 生成「可空联合」
 /// （`oneOf: [{type: null}, X]` 或 `type: [T, null]`），与本库 Wire 纪律
@@ -65,9 +13,7 @@ fn repo_root() -> Result<PathBuf, Box<dyn std::error::Error>> {
 /// - `oneOf: [{type: "null"}, X]` → `X`
 /// - `type: [T, "null"]` → `type: T`
 /// - 查询参数剔除 null 后 `required: true` → `required: false`
-fn enforce_wire_discipline(
-    value: &mut serde_json::Value,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn enforce_wire_discipline(value: &mut serde_json::Value) {
     // 路径参数 / 查询参数：先剔 null，再修正 required
     if let Some(paths) = value.get_mut("paths").and_then(|p| p.as_object_mut()) {
         for (_path, item) in paths.iter_mut() {
@@ -90,11 +36,10 @@ fn enforce_wire_discipline(
     }
     // 全文档递归剔除（components / properties / items / oneOf …）
     strip_null(value);
-    Ok(())
 }
 
 /// 就地剔除 null 形态；返回是否发生剔除。
-fn strip_null(value: &mut serde_json::Value) -> bool {
+pub fn strip_null(value: &mut serde_json::Value) -> bool {
     let mut removed = false;
     match value {
         serde_json::Value::Object(map) => {
@@ -137,11 +82,11 @@ fn strip_null(value: &mut serde_json::Value) -> bool {
 }
 
 /// 递归解引用 `#/components/schemas/<name>`（就地展开；$ref 兄弟键保留并覆盖）。
-fn deref_refs(
+pub fn deref_refs(
     value: &mut serde_json::Value,
     components: &serde_json::Value,
     depth: usize,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), String> {
     if depth > MAX_DEREF_DEPTH {
         return Err("工具 Schema $ref 解引用超深（疑似循环引用）".into());
     }
@@ -182,4 +127,116 @@ fn deref_refs(
         _ => {}
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    /// oneOf 坍缩后 X 键提升覆盖兄弟键：X 的键（如 description）覆盖外层同名键。
+    #[test]
+    fn oneof_collapse_promotes_x_keys_over_siblings() {
+        let mut v = json!({
+            "description": "外层描述",
+            "oneOf": [
+                {"type": "null"},
+                {"type": "string", "description": "X 描述", "maxLength": 10}
+            ]
+        });
+        assert!(super::strip_null(&mut v));
+        let obj = v.as_object().unwrap();
+        assert!(!obj.contains_key("oneOf"), "oneOf 应被坍缩移除");
+        assert_eq!(obj.get("type"), Some(&json!("string")));
+        assert_eq!(
+            obj.get("description"),
+            Some(&json!("X 描述")),
+            "X 的键应覆盖外层兄弟键"
+        );
+        assert_eq!(obj.get("maxLength"), Some(&json!(10)));
+    }
+
+    /// `type: [T, null]` 坍缩为标量 `type: T`。
+    #[test]
+    fn nullable_type_array_collapses_to_scalar() {
+        let mut v = json!({"type": ["integer", "null"], "minimum": 0});
+        assert!(super::strip_null(&mut v));
+        assert_eq!(v, json!({"type": "integer", "minimum": 0}));
+    }
+
+    /// $ref 解引用：目标展开，$ref 兄弟键（description）覆盖展开结果。
+    #[test]
+    fn deref_expands_ref_with_sibling_override() {
+        let components = json!({
+            "Note": {"type": "object", "description": "原描述", "properties": {"id": {"type": "string"}}}
+        });
+        let mut v = json!({
+            "$ref": "#/components/schemas/Note",
+            "description": "字段级描述"
+        });
+        super::deref_refs(&mut v, &components, 0).unwrap();
+        let obj = v.as_object().unwrap();
+        assert_eq!(
+            obj.get("description"),
+            Some(&json!("字段级描述")),
+            "兄弟键应覆盖目标内同名键"
+        );
+        assert_eq!(obj.get("type"), Some(&json!("object")));
+        assert!(obj.get("properties").is_some(), "目标内容应展开");
+    }
+
+    /// 循环 $ref 触发深度上限报错。
+    #[test]
+    fn cyclic_ref_hits_depth_limit() {
+        let components = json!({
+            "A": {"$ref": "#/components/schemas/B"},
+            "B": {"$ref": "#/components/schemas/A"}
+        });
+        let mut v = json!({"$ref": "#/components/schemas/A"});
+        let err = super::deref_refs(&mut v, &components, 0).unwrap_err();
+        assert!(err.contains("超深"), "应报深度上限错误：{err}");
+    }
+
+    /// 查询参数剔 null 后 `required` 修正为 false；未剔 null 的参数不受影响。
+    #[test]
+    fn query_param_required_fixed_after_null_strip() {
+        let mut v = json!({
+            "paths": {
+                "/api/notes": {
+                    "get": {
+                        "parameters": [
+                            {
+                                "name": "q",
+                                "in": "query",
+                                "required": true,
+                                "schema": {"type": ["string", "null"]}
+                            },
+                            {
+                                "name": "limit",
+                                "in": "query",
+                                "required": true,
+                                "schema": {"type": "integer"}
+                            }
+                        ]
+                    }
+                }
+            }
+        });
+        super::enforce_wire_discipline(&mut v);
+        let params = &v["paths"]["/api/notes"]["get"]["parameters"];
+        assert_eq!(
+            params[0]["schema"]["type"],
+            json!("string"),
+            "剔 null 后坍缩为标量"
+        );
+        assert_eq!(
+            params[0]["required"],
+            json!(false),
+            "剔 null 的参数 required 应修正为 false"
+        );
+        assert_eq!(
+            params[1]["required"],
+            json!(true),
+            "未剔 null 的参数 required 不受影响"
+        );
+    }
 }

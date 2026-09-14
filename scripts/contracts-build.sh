@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # 1) Rust 侧生成
-cargo run -q -p contracts --bin gen --locked
+cargo run -q -p server --bin gen --locked
 
 # 2) TS 侧组装
 pnpm exec openapi-typescript contracts/openapi.json -o contracts/generated/src/schema.d.ts
